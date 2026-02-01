@@ -83,7 +83,7 @@
 - [x] Add proper file extensions to 57 product images missing extensions (.webp, .jpg)
 
 - [x] Create product photography portfolio page at /product-photography
-- [ ] Generate 10 Watches & Jewelry product images
+- [x] Generate 10 Watches & Jewelry product images
 - [ ] Generate 10 Automotive product images
 - [ ] Generate 10 Spirits/Alcohol product images
 - [ ] Generate 10 Soda/Beverages product images
