@@ -36,3 +36,5 @@
 - [x] Add individual blog post pages
 - [x] Add blog to navigation
 - [x] Select appropriate hero image for blog
+
+- [x] Add social media sharing buttons to blog posts (Twitter, LinkedIn, Facebook, Email, Copy Link)
