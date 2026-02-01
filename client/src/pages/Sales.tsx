@@ -220,6 +220,8 @@ export default function Sales() {
                     <div className="relative overflow-hidden aspect-[3/4] mb-4 bg-secondary/20">
                       <img
                         src={product.image || "/images/placeholder.webp"}
+                        srcSet={product.image?.includes('.webp') ? `${product.image.replace('.webp', '-400.webp')} 400w, ${product.image.replace('.webp', '-800.webp')} 800w, ${product.image} 1200w` : undefined}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         alt={product.name}
                         className="w-full h-full object-contain image-hover"
                         loading="lazy"

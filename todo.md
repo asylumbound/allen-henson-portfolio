@@ -97,3 +97,9 @@
 - [x] Remove "and the quiet revolution of AI. Hunter Thompson meets the Queen's English." from Journal/Blog page
 - [x] Implement lazy loading for all below-fold images site-wide (already implemented on most, added to ImageGallery thumbnails)
 - [x] Convert and optimize /sales images to WebP format (72MB → 51MB, 29% reduction)
+
+- [x] Implement responsive image srcset for faster mobile loading
+- [x] Create reusable ResponsiveImage component with srcset support
+- [x] Generate multiple image sizes (400w, 800w, 1200w) for product images (40 product + 59 sales = 99 images)
+- [x] Update Sales, ProductDetail, and ProductPhotography pages to use srcset
+- [x] Test responsive images across mobile, tablet, and desktop viewports (40 images with srcset verified)

@@ -190,6 +190,8 @@ export default function ProductPhotography() {
                   <div className="relative overflow-hidden aspect-[4/5] bg-secondary/20">
                     <img
                       src={image.src}
+                      srcSet={`${image.src.replace('.webp', '-400.webp')} 400w, ${image.src.replace('.webp', '-800.webp')} 800w, ${image.src.replace('.webp', '-1200.webp')} 1200w, ${image.src} 1600w`}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       alt={image.alt}
                       className="w-full h-full object-cover image-hover"
                       loading="lazy"
