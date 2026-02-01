@@ -38,3 +38,4 @@
 - [x] Select appropriate hero image for blog
 
 - [x] Add social media sharing buttons to blog posts (Twitter, LinkedIn, Facebook, Email, Copy Link)
+- [x] Add Open Graph meta tags to blog posts for social media previews

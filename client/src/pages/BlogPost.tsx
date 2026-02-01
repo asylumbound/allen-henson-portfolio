@@ -9,6 +9,7 @@ import { Link, useParams, useLocation } from "wouter";
 import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function BlogPost() {
   const params = useParams<{ slug: string }>();
@@ -78,7 +79,21 @@ export default function BlogPost() {
     );
   }
 
+  // Format date for Open Graph
+  const ogPublishedTime = post.publishedAt
+    ? new Date(post.publishedAt).toISOString()
+    : undefined;
+
   return (
+    <>
+      <SEOHead
+        title={post.title}
+        description={post.excerpt || post.title}
+        image={post.heroImage || "/images/L1009868.jpg"}
+        type="article"
+        publishedTime={ogPublishedTime}
+        author="Allen Henson"
+      />
     <div className="min-h-screen">
       {/* Header */}
       <section className="py-12 md:py-20">
@@ -277,5 +292,6 @@ export default function BlogPost() {
         </div>
       </section>
     </div>
+    </>
   );
 }
