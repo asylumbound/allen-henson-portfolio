@@ -40,3 +40,8 @@
 - [x] Add social media sharing buttons to blog posts (Twitter, LinkedIn, Facebook, Email, Copy Link)
 - [x] Add Open Graph meta tags to blog posts for social media previews
 - [x] Fix blog thumbnail and header image cropping to show faces (object-position: top)
+- [x] Create /sales section based on editorialontherun.com
+- [x] Download and incorporate images from editorialontherun.com
+- [x] Replicate text content and product descriptions
+- [x] Add purchase/checkout functionality (links to Big Cartel)
+- [x] Add Sales to navigation

@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, imageOrders, InsertImageOrder, blogPosts, InsertBlogPost, BlogPost } from "../drizzle/schema";
+import { InsertUser, users, imageOrders, InsertImageOrder, blogPosts, InsertBlogPost, BlogPost, products, InsertProduct, Product } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -170,5 +170,45 @@ export async function seedBlogPosts(posts: InsertBlogPost[]) {
   }
 
   await db.insert(blogPosts).values(posts);
+  return { success: true };
+}
+
+// Product queries
+export async function getAllProducts() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get products: database not available");
+    return [];
+  }
+
+  const result = await db.select().from(products).orderBy(asc(products.sortOrder));
+  return result;
+}
+
+export async function getProductBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get product: database not available");
+    return null;
+  }
+
+  const result = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function seedProducts(productList: InsertProduct[]) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot seed products: database not available");
+    return null;
+  }
+
+  // Check if products already exist
+  const existing = await db.select().from(products).limit(1);
+  if (existing.length > 0) {
+    return { success: true, message: "Products already seeded" };
+  }
+
+  await db.insert(products).values(productList);
   return { success: true };
 }

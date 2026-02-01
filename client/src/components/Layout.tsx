@@ -21,6 +21,7 @@ const navItems = [
   { href: "/video", label: "VIDEO" },
   { href: "/journal", label: "JOURNAL" },
   { href: "/blog", label: "BLOG" },
+  { href: "/sales", label: "SHOP" },
   { href: "/about", label: "ABOUT" },
   { href: "/contact", label: "CONTACT" },
 ];
