@@ -11,10 +11,10 @@ import { motion } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
 
 const featuredImages = [
-  { src: "/images/portfolio-01.png", alt: "Portrait photography" },
-  { src: "/images/portfolio-06.jpg", alt: "Fashion editorial" },
-  { src: "/images/portfolio-15.jpg", alt: "Commercial photography" },
-  { src: "/images/portfolio-09.png", alt: "Cinematic portrait" },
+  { src: "/images/XUQX2322-scaled.jpg", alt: "Portrait photography" },
+  { src: "/images/S-NAVONA_RETOUCH2_CHANEL-Tether_-427.png", alt: "Chanel Campaign" },
+  { src: "/images/L1009868.jpg", alt: "Leica Series" },
+  { src: "/images/BHL0538-Edit.jpg", alt: "Editorial portrait" },
 ];
 
 export default function Home() {
@@ -30,7 +30,7 @@ export default function Home() {
             loop
             playsInline
             className="w-full h-full object-cover opacity-60"
-            poster="/images/portfolio-01.png"
+            poster="/images/XUQX2322-scaled.jpg"
           >
             <source src="https://www.allenhenson.nyc/wp-content/uploads/2025/10/allen_henson_-_the_reel-1080p.mp4" type="video/mp4" />
           </video>
@@ -126,6 +126,7 @@ export default function Home() {
                       src={image.src}
                       alt={image.alt}
                       className="w-full h-full object-cover image-hover"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 cinematic-transition" />
                     <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 cinematic-transition" />
@@ -166,9 +167,10 @@ export default function Home() {
             >
               <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                  src="/images/portfolio-07.png"
+                  src="/images/allen-polaroid23gg.jpg"
                   alt="Allen Henson"
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 vignette" />
               </div>

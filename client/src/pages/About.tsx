@@ -39,7 +39,7 @@ export default function About() {
           >
             <div className="relative aspect-[3/4] overflow-hidden sticky top-24">
               <img
-                src="/images/portfolio-07.png"
+                src="/images/allen-polaroid23gg.jpg"
                 alt="Allen Henson"
                 className="w-full h-full object-cover"
               />
