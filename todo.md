@@ -82,7 +82,7 @@
 - [x] Fix image cropping issues on product pages (changed to object-contain, aspect-ratio 3:4)
 - [x] Add proper file extensions to 57 product images missing extensions (.webp, .jpg)
 
-- [ ] Create product photography portfolio page at /product-photography
+- [x] Create product photography portfolio page at /product-photography
 - [ ] Generate 10 Watches & Jewelry product images
 - [ ] Generate 10 Automotive product images
 - [ ] Generate 10 Spirits/Alcohol product images

@@ -18,6 +18,7 @@ interface LayoutProps {
 
 const navItems = [
   { href: "/photos", label: "PHOTOS" },
+  { href: "/product-photography", label: "PRODUCT" },
   { href: "/video", label: "VIDEO" },
   { href: "/journal", label: "JOURNAL" },
   { href: "/blog", label: "BLOG" },

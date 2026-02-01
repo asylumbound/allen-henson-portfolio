@@ -14,6 +14,7 @@ import Edit from "./pages/Edit";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Sales from "./pages/Sales";
+import ProductPhotography from "./pages/ProductPhotography";
 import ProductDetail from "./pages/ProductDetail";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Layout from "./components/Layout";
@@ -36,6 +37,7 @@ function Router() {
             <Route path="/blog" component={Blog} />
             <Route path="/blog/:slug" component={BlogPost} />
             <Route path="/sales" component={Sales} />
+            <Route path="/product-photography" component={ProductPhotography} />
             <Route path="/sales/success" component={CheckoutSuccess} />
             <Route path="/sales/:slug" component={ProductDetail} />
             <Route path="/404" component={NotFound} />
