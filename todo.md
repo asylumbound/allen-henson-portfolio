@@ -50,3 +50,8 @@
 - [x] Remove all Big Cartel references
 - [x] Update purchase buttons to email contact (allen@allenhenson.com)
 - [ ] Add all images for each product (image gallery on product detail pages) - deferred
+
+- [x] Audit all 4 product pages from editorialontherun.com (81 products total)
+- [x] Download complete product catalog (all pages)
+- [x] Add pagination to Sales page (4 pages, 24 products per page)
+- [x] Update sold out badges to gold/yellow theme
