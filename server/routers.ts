@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { getImageOrder, saveImageOrder, getAllBlogPosts, getBlogPostBySlug, seedBlogPosts, getAllProducts, getProductBySlug, seedProducts } from "./db";
 import { TRPCError } from "@trpc/server";
+import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 
 // Admin password for the /edit page - stored as env variable
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "allenhenson2026";
@@ -133,6 +134,37 @@ export const appRouter = router({
         }
         await seedProducts(input.products);
         return { success: true };
+      }),
+  }),
+
+  // Stripe checkout
+  checkout: router({
+    createSession: publicProcedure
+      .input(z.object({
+        productSlug: z.string(),
+        customerEmail: z.string().email().optional(),
+        customerName: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const origin = ctx.req.headers.origin || "https://www.allenhenson.com";
+        const userId = ctx.user?.id;
+        
+        const result = await createCheckoutSession(
+          input.productSlug,
+          input.customerEmail || ctx.user?.email || undefined,
+          input.customerName || ctx.user?.name || undefined,
+          userId,
+          origin
+        );
+        
+        return result;
+      }),
+    
+    getOrder: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        const order = await getOrderBySessionId(input.sessionId);
+        return order;
       }),
   }),
 });

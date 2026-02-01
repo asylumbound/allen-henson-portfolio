@@ -15,6 +15,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Sales from "./pages/Sales";
 import ProductDetail from "./pages/ProductDetail";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Layout from "./components/Layout";
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -35,6 +36,7 @@ function Router() {
             <Route path="/blog" component={Blog} />
             <Route path="/blog/:slug" component={BlogPost} />
             <Route path="/sales" component={Sales} />
+            <Route path="/sales/success" component={CheckoutSuccess} />
             <Route path="/sales/:slug" component={ProductDetail} />
             <Route path="/404" component={NotFound} />
             <Route component={NotFound} />

@@ -60,3 +60,12 @@
 - [x] Scrape all product pages for additional images (352 images from 80 products)
 - [x] Download all product gallery images
 - [x] Update ProductDetail page with image carousel
+
+- [x] Integrate Stripe for direct checkout
+- [x] Add Stripe feature to project
+- [x] Configure Stripe products and checkout flow (81 products mapped)
+- [x] Update ProductDetail page with Stripe checkout button (BUY NOW)
+- [x] Create checkout success page at /sales/success
+- [x] Add orders table to database schema
+- [x] Create Stripe webhook handler for payment events
+- [ ] Test checkout flow with live Stripe account (requires user to claim sandbox)

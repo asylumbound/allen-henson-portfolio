@@ -72,3 +72,24 @@ export const products = mysqlTable("products", {
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
+
+// Orders table for tracking Stripe purchases
+export const orders = mysqlTable("orders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // Optional - for logged in users
+  stripeSessionId: varchar("stripeSessionId", { length: 255 }).notNull().unique(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
+  customerName: varchar("customerName", { length: 255 }),
+  productSlug: varchar("productSlug", { length: 255 }).notNull(),
+  productName: varchar("productName", { length: 500 }).notNull(),
+  amount: int("amount").notNull(), // Amount in cents
+  currency: varchar("currency", { length: 10 }).default("usd").notNull(),
+  status: varchar("status", { length: 50 }).default("pending").notNull(), // pending, paid, fulfilled, cancelled
+  shippingAddress: text("shippingAddress"), // JSON string of shipping details
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = typeof orders.$inferInsert;

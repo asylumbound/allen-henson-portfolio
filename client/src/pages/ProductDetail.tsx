@@ -3,11 +3,12 @@
  * Individual product page with full details and purchase option
  */
 
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Mail } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { ArrowLeft, ShoppingCart, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import ImageGallery from "@/components/ImageGallery";
 import { getProductImages } from "@/data/productImages";
@@ -339,11 +340,23 @@ function getStatusBadge(status: string | null) {
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   
   const { data: dbProduct, isLoading } = trpc.products.getBySlug.useQuery(
     { slug: slug || "" },
     { enabled: !!slug }
   );
+
+  const checkoutMutation = trpc.checkout.createSession.useMutation({
+    onSuccess: (data) => {
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      setIsCheckingOut(false);
+      toast.error(error.message || "Failed to start checkout. Please try again.");
+    },
+  });
 
   // Scroll to top on mount
   useEffect(() => {
@@ -352,6 +365,12 @@ export default function ProductDetail() {
 
   // Use database product if available, otherwise fallback to static
   const product = dbProduct || (slug ? staticProducts[slug] : null);
+  
+  const handleCheckout = () => {
+    if (!slug) return;
+    setIsCheckingOut(true);
+    checkoutMutation.mutate({ productSlug: slug });
+  };
 
   if (isLoading) {
     return (
@@ -373,8 +392,6 @@ export default function ProductDetail() {
   }
 
   const isSoldOut = product.status === "sold_out";
-  const emailSubject = encodeURIComponent(`Purchase Inquiry: ${product.name}`);
-  const emailBody = encodeURIComponent(`Hi Allen,\n\nI'm interested in purchasing "${product.name}".\n\nPlease let me know the next steps.\n\nThank you!`);
 
   return (
     <>
@@ -473,17 +490,27 @@ export default function ProductDetail() {
                     SOLD OUT
                   </div>
                 ) : (
-                  <a
-                    href={`mailto:allen@allenhenson.com?subject=${emailSubject}&body=${emailBody}`}
-                    className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+                  <button
+                    onClick={handleCheckout}
+                    disabled={isCheckingOut}
+                    className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Mail className="w-4 h-4" />
-                    INQUIRE TO PURCHASE
-                  </a>
+                    {isCheckingOut ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        PROCESSING...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" />
+                        BUY NOW
+                      </>
+                    )}
+                  </button>
                 )}
                 
                 <p className="text-xs text-center text-foreground/50">
-                  Contact allen@allenhenson.com for purchases
+                  Secure checkout powered by Stripe
                 </p>
               </div>
 
