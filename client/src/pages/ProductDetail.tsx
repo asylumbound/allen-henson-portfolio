@@ -1,17 +1,26 @@
-/*
+/**
  * PRODUCT DETAIL PAGE
  * Individual product page with full details and purchase option
+ * Includes variant selection dropdown for products with multiple sizes
  */
 
 import { Link, useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ShoppingCart, Loader2 } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Loader2, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import ImageGallery from "@/components/ImageGallery";
 import { getProductImages } from "@/data/productImages";
+import { hasVariants, getVariants, ProductVariant } from "@shared/productVariants";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Full static product data for fallback
 const staticProducts: Record<string, {
@@ -162,7 +171,7 @@ const staticProducts: Record<string, {
     id: 12,
     slug: "mi-trevi",
     name: "Mi Trevi! - Mannequin in Roma II [MTII001-015]",
-    description: "Rome, Italy\n\nLimited edition print from the Mannequin in Roma series.",
+    description: "Rome, Italy - Trevi Fountain\n\nLimited edition print.",
     price: 190000,
     priceMax: 350000,
     image: "/images/sales/mi-trevi.jpg",
@@ -186,7 +195,7 @@ const staticProducts: Record<string, {
     id: 14,
     slug: "sarina-thai",
     name: "Sarina Thai in Grand Central 2015 [STG001-045]",
-    description: "New York City\n\nLimited edition print shot in Grand Central Station.",
+    description: "Grand Central Station, New York City\n\nLimited edition print.",
     price: 595000,
     priceMax: 900000,
     image: "/images/sales/sarina-thai.jpg",
@@ -198,28 +207,40 @@ const staticProducts: Record<string, {
     id: 15,
     slug: "entourage-pantheon-vii",
     name: "Entourage al Pantheon VII [EAPII001-150] + Verisart Cert",
-    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate of Authenticity.",
+    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate.",
     price: 500000,
     priceMax: null,
     image: "/images/sales/entourage-pantheon-vii.png",
     category: "print",
     status: "available",
-    details: "Includes Verisart Certificate of Authenticity\n\nLimited edition of 150",
+    details: "Limited edition of 150\n\nIncludes Verisart Certificate of Authenticity",
   },
   "entourage-pantheon": {
     id: 16,
     slug: "entourage-pantheon",
     name: "Entourage al Pantheon [EAP001-150] + Verisart Cert",
-    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate of Authenticity.",
+    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate.",
     price: 500000,
     priceMax: null,
     image: "/images/sales/entourage-pantheon.png",
     category: "print",
     status: "available",
-    details: "Includes Verisart Certificate of Authenticity\n\nLimited edition of 150",
+    details: "Limited edition of 150\n\nIncludes Verisart Certificate of Authenticity",
+  },
+  "agency-fees": {
+    id: 17,
+    slug: "agency-fees",
+    name: "AGENCY FEE'S 07JUNE2021",
+    description: "Limited edition print.",
+    price: 860000,
+    priceMax: null,
+    image: "/images/sales/agency-fees.jpg",
+    category: "print",
+    status: "sold_out",
+    details: "SOLD OUT",
   },
   "tour-eiffel-paris": {
-    id: 17,
+    id: 18,
     slug: "tour-eiffel-paris",
     name: "Tour Eiffel - Paris [TEII001-015]",
     description: "Paris, France\n\nLimited edition print.",
@@ -231,7 +252,7 @@ const staticProducts: Record<string, {
     details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
   },
   "sunbathers-miami": {
-    id: 18,
+    id: 19,
     slug: "sunbathers-miami",
     name: "Sunbathers in Miami Beach - 2014",
     description: "Miami Beach, Florida\n\nLimited edition print.",
@@ -243,19 +264,43 @@ const staticProducts: Record<string, {
     details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
   },
   "editorial-silver-gelatin": {
-    id: 19,
+    id: 20,
     slug: "editorial-silver-gelatin",
     name: "Editorial on the Run (Silver Gelatin FRAMED) - [OTR001-015L]",
-    description: "Silver Gelatin print, professionally framed.\n\nFrom the Editorial on the Run series.",
+    description: "Silver Gelatin fiber print, framed.",
     price: 520000,
     priceMax: null,
     image: "/images/sales/editorial-silver-gelatin.jpg",
     category: "print",
     status: "available",
-    details: "Silver Gelatin fiber print\n\nProfessionally framed\n\nLimited edition of 15",
+    details: "Ilford Silver Gelatin fiber print\n\nFramed and ready to hang",
+  },
+  "journal-44": {
+    id: 21,
+    slug: "journal-44",
+    name: "Journal # 44 [The EXILE Journal] - Allen Henson",
+    description: "Personal journal documentation from the Exile period.",
+    price: 1500000,
+    priceMax: null,
+    image: "/images/sales/journal-44.jpg",
+    category: "book",
+    status: "sold_out",
+    details: "SOLD OUT\n\nOriginal handwritten journal.",
+  },
+  "zines": {
+    id: 22,
+    slug: "zines",
+    name: "The Zines, LASCIVIOUS + PARAPHILIA",
+    description: "Two-zine set featuring LASCIVIOUS and PARAPHILIA.",
+    price: 9500,
+    priceMax: null,
+    image: "/images/sales/zines.jpg",
+    category: "book",
+    status: "sold_out",
+    details: "SOLD OUT",
   },
   "leaving-mondrian": {
-    id: 20,
+    id: 23,
     slug: "leaving-mondrian",
     name: "Leaving the Mondrian - Miami Beach",
     description: "Miami Beach, Florida\n\nLimited edition print.",
@@ -267,7 +312,7 @@ const staticProducts: Record<string, {
     details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
   },
   "girl-smoking-coral": {
-    id: 21,
+    id: 24,
     slug: "girl-smoking-coral",
     name: "Girl smoking on Coral II - Miami [GSC001-020]",
     description: "Miami, Florida\n\nLimited edition print.",
@@ -276,43 +321,7 @@ const staticProducts: Record<string, {
     image: "/images/sales/girl-smoking-coral.jpg",
     category: "print",
     status: "available",
-    details: "Limited edition of 20\n\nSigned and numbered",
-  },
-  "journal-44": {
-    id: 22,
-    slug: "journal-44",
-    name: "Journal # 44 [The EXILE Journal] - Allen Henson",
-    description: "The EXILE Journal - A personal documentation of the exile period.",
-    price: 1500000,
-    priceMax: null,
-    image: "/images/sales/journal-44.jpg",
-    category: "book",
-    status: "sold_out",
-    details: "SOLD OUT\n\nOriginal handwritten journal from the Exile period.",
-  },
-  "zines": {
-    id: 23,
-    slug: "zines",
-    name: "The Zines, LASCIVIOUS + PARAPHILIA",
-    description: "Two zine collection featuring LASCIVIOUS and PARAPHILIA.",
-    price: 9500,
-    priceMax: null,
-    image: "/images/sales/zines.jpg",
-    category: "book",
-    status: "sold_out",
-    details: "SOLD OUT\n\nTwo-zine set",
-  },
-  "agency-fees": {
-    id: 24,
-    slug: "agency-fees",
-    name: "AGENCY FEE'S 07JUNE2021",
-    description: "Limited edition print.",
-    price: 860000,
-    priceMax: null,
-    image: "/images/sales/agency-fees.jpg",
-    category: "print",
-    status: "sold_out",
-    details: "SOLD OUT",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
   },
   // Page 2 Products (25-48)
   "odlh-set": {
@@ -325,19 +334,19 @@ const staticProducts: Record<string, {
     image: "/images/sales/odlh_set",
     category: "print",
     status: "sold_out",
-    details: "SOLD OUT\n\nContact for pricing.",
+    details: "SOLD OUT\n\nContact for pricing on similar works.",
   },
   "anna-oakley-silver-gelatin": {
     id: 26,
     slug: "anna-oakley-silver-gelatin",
     name: "Anna Oakley (Silver Gelatin) - [AO001-015L]",
-    description: "Silver Gelatin fiber print.\n\nLimited edition.",
+    description: "Silver Gelatin fiber print.",
     price: 1290000,
     priceMax: null,
     image: "/images/sales/anna-oakley-silver-gelatin",
     category: "print",
     status: "available",
-    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order\n\nLimited edition of 15",
+    details: "Ilford Silver Gelatin fiber print\n\nLimited edition of 15",
   },
   "corset-en-metal": {
     id: 27,
@@ -523,7 +532,7 @@ const staticProducts: Record<string, {
     id: 42,
     slug: "mi-trevi-skye-roma",
     name: "Mi Trevi! - Skye in Roma [MT001-015]",
-    description: "Rome, Italy\n\nLimited edition print at the Trevi Fountain.",
+    description: "Rome, Italy - Trevi Fountain\n\nLimited edition print.",
     price: 1175000,
     priceMax: 1525000,
     image: "/images/sales/mi-trevi-skye-in-roma-mt001-015",
@@ -559,7 +568,7 @@ const staticProducts: Record<string, {
     id: 45,
     slug: "sarina-flatiron",
     name: "Sarina Flatiron Building - NYC [SFB001-015]",
-    description: "New York City\n\nLimited edition print at the Flatiron Building.",
+    description: "New York City - Flatiron Building\n\nLimited edition print.",
     price: 1290000,
     priceMax: null,
     image: "/images/sales/Sarian_Flatiron_Building_NYC_2015",
@@ -583,7 +592,7 @@ const staticProducts: Record<string, {
     id: 47,
     slug: "colosseum-rome",
     name: "Colosseum - Rome [C99]",
-    description: "Rome, Italy\n\nLimited edition print of the Colosseum.",
+    description: "Rome, Italy\n\nLimited edition print.",
     price: 235000,
     priceMax: null,
     image: "/images/sales/Colosseum_Rome_C99",
@@ -601,7 +610,7 @@ const staticProducts: Record<string, {
     image: "/images/sales/room_102_access",
     category: "access",
     status: "available",
-    details: "Digital access pass\n\nDiscontinued product",
+    details: "Digital access pass",
   },
   // Page 3 Products (49-72)
   "sacrilege-toulouse-skye": {
@@ -620,7 +629,7 @@ const staticProducts: Record<string, {
     id: 50,
     slug: "emily-shephard-bisjoux",
     name: "Emily Shephard in BISJOUX II [ESBi001-015]",
-    description: "Limited edition print from the BISJOUX series.",
+    description: "BISJOUX series\n\nLimited edition print.",
     price: 1140000,
     priceMax: null,
     image: "/images/sales/Emily-Shephard-in-BISJOUX-II-ESBi001-015",
@@ -650,7 +659,7 @@ const staticProducts: Record<string, {
     image: "/images/sales/editorial_on_the_run_and_editorial_on_the_rocks",
     category: "book",
     status: "available",
-    details: "Two-book bundle:\n\n• Editorial on the Run\n• Editorial on the Rocks",
+    details: "Two-book bundle\n\nSave $10 when purchasing together",
   },
   "journal-23": {
     id: 53,
@@ -686,7 +695,7 @@ const staticProducts: Record<string, {
     image: "/images/sales/bespoke-wooden-camera-handles-by-allen-henson",
     category: "accessory",
     status: "sold_out",
-    details: "SOLD OUT\n\nHandmade wooden camera handles",
+    details: "SOLD OUT\n\nHandmade wooden camera handles.",
   },
   "karyna-on-dock": {
     id: 56,
@@ -915,7 +924,7 @@ const staticProducts: Record<string, {
     image: "/images/sales/Shelby-Carter-Elizabeth-Marxs-Empire-State-Building-2013-1of5",
     category: "print",
     status: "available",
-    details: "Limited edition of 5\n\nSigned and numbered",
+    details: "Edition 1 of 5\n\nSigned and numbered",
   },
   "helene-traasavik-ii": {
     id: 75,
@@ -1028,6 +1037,7 @@ function getStatusBadge(status: string | null) {
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   
   const { data: dbProduct, isLoading } = trpc.products.getBySlug.useQuery(
     { slug: slug || "" },
@@ -1053,10 +1063,33 @@ export default function ProductDetail() {
   // Use database product if available, otherwise fallback to static
   const product = dbProduct || (slug ? staticProducts[slug] : null);
   
+  // Get variants for this product
+  const variants = slug ? getVariants(slug) : null;
+  const productHasVariants = slug ? hasVariants(slug) : false;
+  
+  // Initialize selected variant when product loads
+  useEffect(() => {
+    if (productHasVariants && variants && variants.length > 0 && !selectedVariantId) {
+      setSelectedVariantId(variants[0].id);
+    }
+  }, [productHasVariants, variants, selectedVariantId]);
+  
+  // Get the current price based on selected variant
+  const currentPrice = useMemo(() => {
+    if (productHasVariants && variants && selectedVariantId) {
+      const variant = variants.find(v => v.id === selectedVariantId);
+      return variant?.price || product?.price || 0;
+    }
+    return product?.price || 0;
+  }, [productHasVariants, variants, selectedVariantId, product]);
+  
   const handleCheckout = () => {
     if (!slug) return;
     setIsCheckingOut(true);
-    checkoutMutation.mutate({ productSlug: slug });
+    checkoutMutation.mutate({ 
+      productSlug: slug,
+      variantId: selectedVariantId || undefined,
+    });
   };
 
   if (isLoading) {
@@ -1140,17 +1173,47 @@ export default function ProductDetail() {
                 {product.name}
               </h1>
 
-              {/* Price */}
+              {/* Price - shows current variant price or range */}
               <div className="mb-6">
                 <p className="text-2xl md:text-3xl text-gold font-light">
-                  {formatPrice(product.price)}
-                  {product.priceMax && (
-                    <span> - {formatPrice(product.priceMax)}</span>
-                  )}
+                  {formatPrice(currentPrice)}
                 </p>
+                {productHasVariants && variants && (
+                  <p className="text-sm text-foreground/50 mt-1">
+                    {variants.length} size options available
+                  </p>
+                )}
               </div>
 
               <div className="w-12 h-px bg-gold mb-6" />
+
+              {/* Variant Selector */}
+              {productHasVariants && variants && variants.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-light tracking-cinematic text-foreground/60 mb-2">
+                    SELECT SIZE
+                  </label>
+                  <Select
+                    value={selectedVariantId || variants[0].id}
+                    onValueChange={setSelectedVariantId}
+                  >
+                    <SelectTrigger className="w-full bg-background border-foreground/20 text-foreground">
+                      <SelectValue placeholder="Select option" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-foreground/20">
+                      {variants.map((variant) => (
+                        <SelectItem
+                          key={variant.id}
+                          value={variant.id}
+                          className="text-foreground hover:bg-foreground/10"
+                        >
+                          {variant.name} - {formatPrice(variant.price)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Description */}
               {product.description && (

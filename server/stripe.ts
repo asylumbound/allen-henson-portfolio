@@ -164,18 +164,40 @@ stripeRouter.post(
   }
 );
 
+// Import product variants
+import { getVariantById, hasVariants, getDefaultVariant } from "../shared/productVariants";
+
 // Create checkout session endpoint
 export async function createCheckoutSession(
   productSlug: string,
+  variantId?: string,
   customerEmail?: string,
   customerName?: string,
   userId?: number,
   origin?: string
 ): Promise<{ url: string; sessionId: string }> {
-  const product = productPrices[productSlug];
+  const baseProduct = productPrices[productSlug];
   
-  if (!product) {
+  if (!baseProduct) {
     throw new Error(`Product not found: ${productSlug}`);
+  }
+
+  // Determine price based on variant
+  let finalPrice = baseProduct.price;
+  let productName = baseProduct.name;
+  let variantName = "";
+
+  if (hasVariants(productSlug)) {
+    // Product has variants - use selected variant or default
+    const variant = variantId 
+      ? getVariantById(productSlug, variantId)
+      : getDefaultVariant(productSlug);
+    
+    if (variant) {
+      finalPrice = variant.price;
+      variantName = variant.name;
+      productName = `${baseProduct.name} - ${variant.name}`;
+    }
   }
 
   const baseUrl = origin || "https://www.allenhenson.com";
@@ -188,10 +210,10 @@ export async function createCheckoutSession(
         price_data: {
           currency: "usd",
           product_data: {
-            name: product.name,
-            description: `Purchase of ${product.name} from Allen Henson Productions`,
+            name: productName,
+            description: `Purchase of ${productName} from Allen Henson Productions`,
           },
-          unit_amount: product.price,
+          unit_amount: finalPrice,
         },
         quantity: 1,
       },
@@ -206,6 +228,8 @@ export async function createCheckoutSession(
     },
     metadata: {
       product_slug: productSlug,
+      variant_id: variantId || "",
+      variant_name: variantName,
       user_id: userId?.toString() || "",
       customer_name: customerName || "",
     },
@@ -221,8 +245,8 @@ export async function createCheckoutSession(
     customerEmail: customerEmail || "pending@checkout.com",
     customerName: customerName || null,
     productSlug: productSlug,
-    productName: product.name,
-    amount: product.price,
+    productName: productName,
+    amount: finalPrice,
     currency: "usd",
       status: "pending",
     });

@@ -216,12 +216,12 @@ export default function Sales() {
               >
                 <Link href={`/sales/${product.slug}`}>
                   <div className="group cursor-pointer">
-                    {/* Product Image */}
-                    <div className="relative overflow-hidden aspect-[4/5] mb-4 bg-secondary/20">
+                    {/* Product Image - uses object-contain to show full image without cropping */}
+                    <div className="relative overflow-hidden aspect-[3/4] mb-4 bg-secondary/20">
                       <img
                         src={product.image || "/images/placeholder.jpg"}
                         alt={product.name}
-                        className="w-full h-full object-cover object-top image-hover"
+                        className="w-full h-full object-contain image-hover"
                         loading="lazy"
                       />
                       

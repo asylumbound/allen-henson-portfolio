@@ -52,8 +52,8 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Main Image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-secondary/20">
+      {/* Main Image - uses object-contain to show full image without cropping */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-secondary/20">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.img
             key={currentIndex}

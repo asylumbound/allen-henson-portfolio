@@ -142,6 +142,7 @@ export const appRouter = router({
     createSession: publicProcedure
       .input(z.object({
         productSlug: z.string(),
+        variantId: z.string().optional(),
         customerEmail: z.string().email().optional(),
         customerName: z.string().optional(),
       }))
@@ -151,6 +152,7 @@ export const appRouter = router({
         
         const result = await createCheckoutSession(
           input.productSlug,
+          input.variantId,
           input.customerEmail || ctx.user?.email || undefined,
           input.customerName || ctx.user?.name || undefined,
           userId,

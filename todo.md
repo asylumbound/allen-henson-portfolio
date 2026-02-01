@@ -75,3 +75,9 @@
 - [x] Fix all "Product Not Found" errors - added 57 missing products to ProductDetail.tsx
 - [x] Ensure slug consistency across Sales.tsx, ProductDetail.tsx, and stripe.ts (81 products synced)
 - [x] Test all 81 product pages
+
+- [x] Analyze original site for product variants and pricing structure
+- [x] Create comprehensive product spreadsheet (docs/Allen_Henson_Products.xlsx - 81 products with variants, descriptions, assets, pricing)
+- [x] Implement variant dropdown system with dynamic pricing on ProductDetail page (21 products with size variants)
+- [x] Fix image cropping issues on product pages (changed to object-contain, aspect-ratio 3:4)
+- [x] Add proper file extensions to 57 product images missing extensions (.webp, .jpg)
