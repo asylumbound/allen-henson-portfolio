@@ -246,9 +246,7 @@ export default function Journal() {
             </h1>
             <div className="w-24 h-px bg-accent mx-auto mb-8" />
             <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-2xl mx-auto">
-              Fragments of a life observed through glass. Before I ever picked up a camera, 
-              I had the honor of serving with the 22nd Infantry Regiment. The discipline and 
-              chaos of those years shaped the way I see — and how I capture what I see.
+              Fragments of a life.
             </p>
           </motion.div>
         </div>
