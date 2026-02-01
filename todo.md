@@ -86,4 +86,4 @@
 - [x] Generate 10 Watches & Jewelry product images
 - [x] Generate 10 Automotive product images
 - [x] Generate 10 Spirits/Alcohol product images
-- [ ] Generate 10 Soda/Beverages product images
+- [x] Generate 10 Soda/Beverages product images
