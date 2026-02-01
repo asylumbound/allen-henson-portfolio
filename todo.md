@@ -28,3 +28,5 @@
 
 ## Future Enhancements
 - [ ] Allow admin to set custom password via environment variable
+
+- [x] Swap About page image with new photo
