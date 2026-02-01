@@ -56,8 +56,7 @@ export default function Blog() {
             </h1>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
             <p className="max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed text-foreground/80">
-              Reflections on cinematography, photography, production, and the quiet revolution of AI.
-              Hunter Thompson meets the Queen's English.
+              Reflections on cinematography, photography, and production.
             </p>
           </motion.div>
         </div>

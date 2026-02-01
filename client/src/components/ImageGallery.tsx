@@ -118,6 +118,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
                 src={image}
                 alt={`${alt} - Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </button>
           ))}

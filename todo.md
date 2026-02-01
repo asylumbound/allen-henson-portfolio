@@ -93,3 +93,7 @@
 - [x] Optimize product photography images (219MB → 11MB, 95% reduction)
 - [x] Remove AI generation metadata from all 40 product images
 - [x] Convert product images to WebP format for web performance
+
+- [x] Remove "and the quiet revolution of AI. Hunter Thompson meets the Queen's English." from Journal/Blog page
+- [x] Implement lazy loading for all below-fold images site-wide (already implemented on most, added to ImageGallery thumbnails)
+- [x] Convert and optimize /sales images to WebP format (72MB → 51MB, 29% reduction)
