@@ -85,5 +85,5 @@
 - [x] Create product photography portfolio page at /product-photography
 - [x] Generate 10 Watches & Jewelry product images
 - [x] Generate 10 Automotive product images
-- [ ] Generate 10 Spirits/Alcohol product images
+- [x] Generate 10 Spirits/Alcohol product images
 - [ ] Generate 10 Soda/Beverages product images
