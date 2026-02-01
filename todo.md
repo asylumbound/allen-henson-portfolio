@@ -69,3 +69,9 @@
 - [x] Add orders table to database schema
 - [x] Create Stripe webhook handler for payment events
 - [ ] Test checkout flow with live Stripe account (requires user to claim sandbox)
+
+- [x] Deep assessment of /sales pages
+- [x] Create comprehensive site map of /sales segment (docs/sales-sitemap.md)
+- [x] Fix all "Product Not Found" errors - added 57 missing products to ProductDetail.tsx
+- [x] Ensure slug consistency across Sales.tsx, ProductDetail.tsx, and stripe.ts (81 products synced)
+- [x] Test all 81 product pages
