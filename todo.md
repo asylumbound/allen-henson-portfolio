@@ -55,3 +55,8 @@
 - [x] Download complete product catalog (all pages)
 - [x] Add pagination to Sales page (4 pages, 24 products per page)
 - [x] Update sold out badges to gold/yellow theme
+
+- [x] Add multi-image galleries for each product
+- [x] Scrape all product pages for additional images (352 images from 80 products)
+- [x] Download all product gallery images
+- [x] Update ProductDetail page with image carousel

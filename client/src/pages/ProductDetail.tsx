@@ -7,8 +7,10 @@ import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Mail } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import SEOHead from "@/components/SEOHead";
+import ImageGallery from "@/components/ImageGallery";
+import { getProductImages } from "@/data/productImages";
 
 // Full static product data for fallback
 const staticProducts: Record<string, {
@@ -403,20 +405,16 @@ export default function ProductDetail() {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-            {/* Product Image */}
+            {/* Product Image Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-secondary/20">
-                <img
-                  src={product.image || "/images/placeholder.jpg"}
-                  alt={product.name}
-                  className="w-full h-full object-contain"
-                />
-                <div className="absolute inset-0 vignette pointer-events-none" />
-              </div>
+              <ImageGallery
+                images={getProductImages(product.slug, product.image || "/images/placeholder.jpg")}
+                alt={product.name}
+              />
             </motion.div>
 
             {/* Product Info */}
