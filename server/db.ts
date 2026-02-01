@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, imageOrders, InsertImageOrder } from "../drizzle/schema";
+import { InsertUser, users, imageOrders, InsertImageOrder, blogPosts, InsertBlogPost, BlogPost } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -119,5 +119,56 @@ export async function saveImageOrder(gallery: string, order: string[]) {
     await db.insert(imageOrders).values({ gallery, imageOrder: orderJson });
   }
   
+  return { success: true };
+}
+
+// Blog post queries
+export async function getAllBlogPosts() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get blog posts: database not available");
+    return [];
+  }
+
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.published, 1)).orderBy(desc(blogPosts.publishedAt));
+  return result;
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get blog post: database not available");
+    return null;
+  }
+
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function createBlogPost(post: InsertBlogPost) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create blog post: database not available");
+    return null;
+  }
+
+  await db.insert(blogPosts).values(post);
+  return { success: true };
+}
+
+export async function seedBlogPosts(posts: InsertBlogPost[]) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot seed blog posts: database not available");
+    return null;
+  }
+
+  // Check if posts already exist
+  const existing = await db.select().from(blogPosts).limit(1);
+  if (existing.length > 0) {
+    return { success: true, message: "Posts already seeded" };
+  }
+
+  await db.insert(blogPosts).values(posts);
   return { success: true };
 }

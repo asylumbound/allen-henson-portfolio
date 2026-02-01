@@ -20,6 +20,7 @@ const navItems = [
   { href: "/photos", label: "PHOTOS" },
   { href: "/video", label: "VIDEO" },
   { href: "/journal", label: "JOURNAL" },
+  { href: "/blog", label: "BLOG" },
   { href: "/about", label: "ABOUT" },
   { href: "/contact", label: "CONTACT" },
 ];

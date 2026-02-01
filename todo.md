@@ -30,3 +30,9 @@
 - [ ] Allow admin to set custom password via environment variable
 
 - [x] Swap About page image with new photo
+
+- [x] Create blog section with 20 essays on AI and cinematography
+- [x] Add blog listing page at /blog
+- [x] Add individual blog post pages
+- [x] Add blog to navigation
+- [x] Select appropriate hero image for blog

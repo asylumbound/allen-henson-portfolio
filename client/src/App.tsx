@@ -11,6 +11,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Journal from "./pages/Journal";
 import Edit from "./pages/Edit";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Layout from "./components/Layout";
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -28,6 +30,8 @@ function Router() {
             <Route path="/about" component={About} />
             <Route path="/contact" component={Contact} />
             <Route path="/journal" component={Journal} />
+            <Route path="/blog" component={Blog} />
+            <Route path="/blog/:slug" component={BlogPost} />
             <Route path="/404" component={NotFound} />
             <Route component={NotFound} />
           </Switch>

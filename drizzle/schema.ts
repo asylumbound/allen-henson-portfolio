@@ -35,3 +35,20 @@ export const imageOrders = mysqlTable("image_orders", {
 
 export type ImageOrder = typeof imageOrders.$inferSelect;
 export type InsertImageOrder = typeof imageOrders.$inferInsert;
+
+// Blog posts table
+export const blogPosts = mysqlTable("blog_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: varchar("title", { length: 500 }).notNull(),
+  excerpt: text("excerpt"),
+  content: text("content").notNull(),
+  heroImage: varchar("heroImage", { length: 500 }),
+  published: int("published").default(1).notNull(), // 1 = published, 0 = draft
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;

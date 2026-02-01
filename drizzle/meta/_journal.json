@@ -15,6 +15,13 @@
       "when": 1769914054621,
       "tag": "0001_parallel_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769924126461,
+      "tag": "0002_flowery_sage",
+      "breakpoints": true
     }
   ]
 }
