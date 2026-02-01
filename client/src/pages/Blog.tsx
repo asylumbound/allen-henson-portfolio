@@ -95,7 +95,7 @@ export default function Blog() {
                           <img
                             src={post.heroImage}
                             alt={post.title}
-                            className="w-full h-full object-cover image-hover"
+                            className="w-full h-full object-cover object-top image-hover"
                             loading="lazy"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 cinematic-transition" />

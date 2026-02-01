@@ -149,7 +149,7 @@ export default function BlogPost() {
                 <img
                   src={post.heroImage}
                   alt={post.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
                 <div className="absolute inset-0 vignette opacity-50" />
               </div>
