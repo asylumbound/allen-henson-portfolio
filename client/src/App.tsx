@@ -10,22 +10,30 @@ import Video from "./pages/Video";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Journal from "./pages/Journal";
+import Edit from "./pages/Edit";
 import Layout from "./components/Layout";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/photos" component={Photos} />
-        <Route path="/video" component={Video} />
-        <Route path="/about" component={About} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/journal" component={Journal} />
-        <Route path="/404" component={NotFound} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {/* Edit page has its own layout (no header/footer) */}
+      <Route path="/edit" component={Edit} />
+      {/* All other pages use the standard Layout */}
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/photos" component={Photos} />
+            <Route path="/video" component={Video} />
+            <Route path="/about" component={About} />
+            <Route path="/contact" component={Contact} />
+            <Route path="/journal" component={Journal} />
+            <Route path="/404" component={NotFound} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
 

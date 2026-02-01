@@ -4,12 +4,14 @@
  * Personal/behind-the-scenes photos from Allen Henson's journey
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 // Journal images from allenhenson.nyc/about page
-const journalImages = [
+// Export for use in Edit page
+export const journalImages = [
   "/images/journal/1.png",
   "/images/journal/11794449_10156000040900602_7743628154975280560_o.png",
   "/images/journal/145-DSC09523.png",
@@ -181,6 +183,22 @@ const journalImages = [
 
 export default function Journal() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  
+  // Fetch saved order from database
+  const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "journal" });
+  
+  // Compute ordered images based on saved order or default
+  const orderedImages = useMemo(() => {
+    if (orderData?.order) {
+      // Reorder based on saved order
+      const ordered = orderData.order
+        .filter((src: string) => journalImages.includes(src));
+      // Add any new images not in saved order
+      const newImages = journalImages.filter(src => !orderData.order?.includes(src));
+      return [...ordered, ...newImages];
+    }
+    return journalImages;
+  }, [orderData]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -196,18 +214,18 @@ export default function Journal() {
         setSelectedImage(null);
       } else if (e.key === "ArrowLeft") {
         setSelectedImage((prev) => 
-          prev !== null ? (prev - 1 + journalImages.length) % journalImages.length : null
+          prev !== null ? (prev - 1 + orderedImages.length) % orderedImages.length : null
         );
       } else if (e.key === "ArrowRight") {
         setSelectedImage((prev) => 
-          prev !== null ? (prev + 1) % journalImages.length : null
+          prev !== null ? (prev + 1) % orderedImages.length : null
         );
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImage]);
+  }, [selectedImage, orderedImages.length]);
 
   // Prevent body scroll when lightbox is open
   useEffect(() => {
@@ -224,9 +242,9 @@ export default function Journal() {
   const navigateImage = (direction: "prev" | "next") => {
     if (selectedImage === null) return;
     if (direction === "prev") {
-      setSelectedImage((selectedImage - 1 + journalImages.length) % journalImages.length);
+      setSelectedImage((selectedImage - 1 + orderedImages.length) % orderedImages.length);
     } else {
-      setSelectedImage((selectedImage + 1) % journalImages.length);
+      setSelectedImage((selectedImage + 1) % orderedImages.length);
     }
   };
 
@@ -256,7 +274,7 @@ export default function Journal() {
       <section className="pb-24">
         <div className="container">
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {journalImages.map((src, index) => (
+            {orderedImages.map((src, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -324,7 +342,7 @@ export default function Journal() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              src={journalImages[selectedImage]}
+              src={orderedImages[selectedImage]}
               alt={`Journal entry ${selectedImage + 1}`}
               className="max-h-[90vh] max-w-[90vw] object-contain"
               onClick={(e) => e.stopPropagation()}
@@ -332,7 +350,7 @@ export default function Journal() {
 
             {/* Image counter */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 font-mono text-sm">
-              {selectedImage + 1} / {journalImages.length}
+              {selectedImage + 1} / {orderedImages.length}
             </div>
           </motion.div>
         )}

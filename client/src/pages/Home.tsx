@@ -9,6 +9,7 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const featuredImages = [
   { src: "/images/XUQX2322-scaled.jpg", alt: "Portrait photography" },
@@ -18,6 +19,9 @@ const featuredImages = [
 ];
 
 export default function Home() {
+  // Auth is available if needed for protected features
+  // const { user, isAuthenticated } = useAuth();
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

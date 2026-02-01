@@ -7,12 +7,14 @@
  * - Images in exact order from allenhenson.nyc
  */
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 // Images in exact order from allenhenson.nyc landing page
-const portfolioImages = [
+// Export for use in Edit page
+export const photosImages = [
   { src: "/images/XUQX2322-scaled.jpg", alt: "Portrait" },
   { src: "/images/AH4_1923.png", alt: "Portrait" },
   { src: "/images/AHP_AHP_1J3A1859-2.png", alt: "Portrait" },
@@ -187,19 +189,36 @@ const portfolioImages = [
 
 export default function Photos() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  
+  // Fetch saved order from database
+  const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "photos" });
+  
+  // Compute ordered images based on saved order or default
+  const orderedImages = useMemo(() => {
+    if (orderData?.order) {
+      // Reorder based on saved order
+      const ordered = orderData.order
+        .map((src: string) => photosImages.find(p => p.src === src))
+        .filter((p): p is typeof photosImages[0] => p !== undefined);
+      // Add any new images not in saved order
+      const newImages = photosImages.filter(p => !orderData.order?.includes(p.src));
+      return [...ordered, ...newImages];
+    }
+    return photosImages;
+  }, [orderData]);
 
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);
   
   const goToPrevious = () => {
     if (selectedIndex !== null) {
-      setSelectedIndex(selectedIndex === 0 ? portfolioImages.length - 1 : selectedIndex - 1);
+      setSelectedIndex(selectedIndex === 0 ? orderedImages.length - 1 : selectedIndex - 1);
     }
   };
   
   const goToNext = () => {
     if (selectedIndex !== null) {
-      setSelectedIndex(selectedIndex === portfolioImages.length - 1 ? 0 : selectedIndex + 1);
+      setSelectedIndex(selectedIndex === orderedImages.length - 1 ? 0 : selectedIndex + 1);
     }
   };
 
@@ -228,7 +247,7 @@ export default function Photos() {
 
         {/* Masonry Grid */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-          {portfolioImages.map((image, index) => (
+          {orderedImages.map((image, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -308,15 +327,15 @@ export default function Photos() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={portfolioImages[selectedIndex].src}
-                alt={portfolioImages[selectedIndex].alt}
+                src={orderedImages[selectedIndex].src}
+                alt={orderedImages[selectedIndex].alt}
                 className="max-w-full max-h-[90vh] object-contain"
               />
             </motion.div>
 
             {/* Counter */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm tracking-cinematic font-light">
-              {selectedIndex + 1} / {portfolioImages.length}
+              {selectedIndex + 1} / {orderedImages.length}
             </div>
           </motion.div>
         )}
