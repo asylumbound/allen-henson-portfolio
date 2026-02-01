@@ -45,3 +45,8 @@
 - [x] Replicate text content and product descriptions
 - [x] Add purchase/checkout functionality (links to Big Cartel)
 - [x] Add Sales to navigation
+- [x] Check page load time performance
+- [x] Verify full product catalog from editorialontherun.com (24 products)
+- [x] Remove all Big Cartel references
+- [x] Update purchase buttons to email contact (allen@allenhenson.com)
+- [ ] Add all images for each product (image gallery on product detail pages) - deferred

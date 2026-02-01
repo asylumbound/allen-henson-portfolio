@@ -7,10 +7,11 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 
-// Product data - will be loaded from database or fallback to static
+// Full product catalog
 const staticProducts = [
+  // Books & Box Sets
   {
     id: 1,
     slug: "abscond-box-set",
@@ -61,6 +62,7 @@ const staticProducts = [
     category: "book",
     status: "available",
   },
+  // Limited Edition Prints
   {
     id: 6,
     slug: "tour-de-eiffel",
@@ -90,6 +92,167 @@ const staticProducts = [
     image: "/images/sales/sarah-in-london.jpg",
     category: "print",
     status: "available",
+  },
+  {
+    id: 9,
+    slug: "sword-bordeaux-v2",
+    name: "The Sword of Bordeaux v2of3 [2 SoB001-035]",
+    price: 375000,
+    priceMax: 475000,
+    image: "/images/sales/sword-bordeaux-v2.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 10,
+    slug: "raffaella-tresor",
+    name: "Raffaella Trésor - Un Incrocio a Milano [RTit001-015]",
+    price: 150000,
+    priceMax: 240000,
+    image: "/images/sales/raffaella-tresor.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 11,
+    slug: "sacrilege-toulouse",
+    name: "Sacrilège à Toulouse - Mannequin in Toulouse II [SATII001-055]",
+    price: 555000,
+    priceMax: 770000,
+    image: "/images/sales/sacrilege-toulouse.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 12,
+    slug: "mi-trevi",
+    name: "Mi Trevi! - Mannequin in Roma II [MTII001-015]",
+    price: 190000,
+    priceMax: 350000,
+    image: "/images/sales/mi-trevi.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 13,
+    slug: "sword-bordeaux-v1",
+    name: "The Sword of Bordeaux v1of3 [SoB001-035]",
+    price: 450000,
+    priceMax: 650000,
+    image: "/images/sales/sword-bordeaux-v1.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 14,
+    slug: "sarina-thai",
+    name: "Sarina Thai in Grand Central 2015 [STG001-045]",
+    price: 595000,
+    priceMax: 900000,
+    image: "/images/sales/sarina-thai.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 15,
+    slug: "entourage-pantheon-vii",
+    name: "Entourage al Pantheon VII [EAPII001-150] + Verisart Cert",
+    price: 500000,
+    priceMax: null,
+    image: "/images/sales/entourage-pantheon-vii.png",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 16,
+    slug: "entourage-pantheon",
+    name: "Entourage al Pantheon [EAP001-150] + Verisart Cert",
+    price: 500000,
+    priceMax: null,
+    image: "/images/sales/entourage-pantheon.png",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 17,
+    slug: "tour-eiffel-paris",
+    name: "Tour Eiffel - Paris [TEII001-015]",
+    price: 245000,
+    priceMax: 275000,
+    image: "/images/sales/tour-eiffel-paris.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 18,
+    slug: "sunbathers-miami",
+    name: "Sunbathers in Miami Beach - 2014",
+    price: 270000,
+    priceMax: null,
+    image: "/images/sales/sunbathers-miami.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 19,
+    slug: "editorial-silver-gelatin",
+    name: "Editorial on the Run (Silver Gelatin FRAMED) - [OTR001-015L]",
+    price: 520000,
+    priceMax: null,
+    image: "/images/sales/editorial-silver-gelatin.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 20,
+    slug: "leaving-mondrian",
+    name: "Leaving the Mondrian - Miami Beach",
+    price: 1399999,
+    priceMax: null,
+    image: "/images/sales/leaving-mondrian.jpg",
+    category: "print",
+    status: "available",
+  },
+  {
+    id: 21,
+    slug: "girl-smoking-coral",
+    name: "Girl smoking on Coral II - Miami [GSC001-020]",
+    price: 970000,
+    priceMax: null,
+    image: "/images/sales/girl-smoking-coral.jpg",
+    category: "print",
+    status: "available",
+  },
+  // Sold Out Items
+  {
+    id: 22,
+    slug: "journal-44",
+    name: "Journal # 44 [The EXILE Journal] - Allen Henson",
+    price: 1500000,
+    priceMax: null,
+    image: "/images/sales/journal-44.jpg",
+    category: "book",
+    status: "sold_out",
+  },
+  {
+    id: 23,
+    slug: "zines",
+    name: "The Zines, LASCIVIOUS + PARAPHILIA",
+    price: 9500,
+    priceMax: null,
+    image: "/images/sales/zines.jpg",
+    category: "book",
+    status: "sold_out",
+  },
+  {
+    id: 24,
+    slug: "agency-fees",
+    name: "AGENCY FEE'S 07JUNE2021",
+    price: 860000,
+    priceMax: null,
+    image: "/images/sales/agency-fees.jpg",
+    category: "print",
+    status: "sold_out",
   },
 ];
 
@@ -177,7 +340,7 @@ export default function Sales() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  transition={{ duration: 0.5, delay: index * 0.03 }}
                 >
                   <Link href={`/sales/${product.slug}`}>
                     <div className="group cursor-pointer">
@@ -220,7 +383,7 @@ export default function Sales() {
         </div>
       </section>
 
-      {/* External Link to Big Cartel */}
+      {/* Contact CTA */}
       <section className="py-16 md:py-24 bg-secondary/20">
         <div className="container text-center">
           <motion.div
@@ -230,29 +393,27 @@ export default function Sales() {
             transition={{ duration: 0.6 }}
           >
             <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
-              FULL CATALOG
+              INQUIRIES & PURCHASES
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
-              View All Products
+              Ready to Acquire a Piece?
             </h2>
             <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-foreground/80 mb-8">
-              Browse the complete collection including additional prints, 
-              limited editions, and exclusive pieces.
+              For purchases, custom orders, specific sizes, or commissioned work, 
+              please contact me directly.
             </p>
             <a
-              href="https://www.editorialontherun.com/products"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:allen@allenhenson.com?subject=Purchase Inquiry"
               className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
             >
-              SHOP NOW
-              <ExternalLink className="w-4 h-4" />
+              <Mail className="w-4 h-4" />
+              CONTACT: allen@allenhenson.com
             </a>
           </motion.div>
         </div>
       </section>
 
-      {/* Contact CTA */}
+      {/* Custom Orders */}
       <section className="py-16 md:py-24">
         <div className="container text-center">
           <motion.div
@@ -262,7 +423,7 @@ export default function Sales() {
             transition={{ duration: 0.6 }}
           >
             <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
-              INQUIRIES
+              COMMISSIONS
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
               Custom Orders & Commissions

@@ -3,14 +3,14 @@
  * Individual product page with full details and purchase option
  */
 
-import { Link, useParams, useLocation } from "wouter";
+import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ExternalLink, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import { useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 
-// Static product data for fallback
+// Full static product data for fallback
 const staticProducts: Record<string, {
   id: number;
   slug: string;
@@ -119,6 +119,198 @@ const staticProducts: Record<string, {
     status: "available",
     details: "Limited edition of 50\n\nSigned and numbered",
   },
+  "sword-bordeaux-v2": {
+    id: 9,
+    slug: "sword-bordeaux-v2",
+    name: "The Sword of Bordeaux v2of3 [2 SoB001-035]",
+    description: "(Model shot in Bordeaux, France February 2019 during Exile.)\n\nIlford gelatin Silver fiber print",
+    price: 375000,
+    priceMax: 475000,
+    image: "/images/sales/sword-bordeaux-v2.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order\n\nI love antique stores, this one in an alley in Bordeaux happened to have an array of old swords in the front.",
+  },
+  "raffaella-tresor": {
+    id: 10,
+    slug: "raffaella-tresor",
+    name: "Raffaella Trésor - Un Incrocio a Milano [RTit001-015]",
+    description: "Milan, Italy\n\nLimited edition print.",
+    price: 150000,
+    priceMax: 240000,
+    image: "/images/sales/raffaella-tresor.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "sacrilege-toulouse": {
+    id: 11,
+    slug: "sacrilege-toulouse",
+    name: "Sacrilège à Toulouse - Mannequin in Toulouse II [SATII001-055]",
+    description: "Toulouse, France\n\nLimited edition print from the Mannequin series.",
+    price: 555000,
+    priceMax: 770000,
+    image: "/images/sales/sacrilege-toulouse.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "mi-trevi": {
+    id: 12,
+    slug: "mi-trevi",
+    name: "Mi Trevi! - Mannequin in Roma II [MTII001-015]",
+    description: "Rome, Italy\n\nLimited edition print from the Mannequin in Roma series.",
+    price: 190000,
+    priceMax: 350000,
+    image: "/images/sales/mi-trevi.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "sword-bordeaux-v1": {
+    id: 13,
+    slug: "sword-bordeaux-v1",
+    name: "The Sword of Bordeaux v1of3 [SoB001-035]",
+    description: "(Model shot in Bordeaux, France February 2019 during Exile.)\n\nIlford gelatin Silver fiber print",
+    price: 450000,
+    priceMax: 650000,
+    image: "/images/sales/sword-bordeaux-v1.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "sarina-thai": {
+    id: 14,
+    slug: "sarina-thai",
+    name: "Sarina Thai in Grand Central 2015 [STG001-045]",
+    description: "New York City\n\nLimited edition print shot in Grand Central Station.",
+    price: 595000,
+    priceMax: 900000,
+    image: "/images/sales/sarina-thai.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "entourage-pantheon-vii": {
+    id: 15,
+    slug: "entourage-pantheon-vii",
+    name: "Entourage al Pantheon VII [EAPII001-150] + Verisart Cert",
+    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate of Authenticity.",
+    price: 500000,
+    priceMax: null,
+    image: "/images/sales/entourage-pantheon-vii.png",
+    category: "print",
+    status: "available",
+    details: "Includes Verisart Certificate of Authenticity\n\nLimited edition of 150",
+  },
+  "entourage-pantheon": {
+    id: 16,
+    slug: "entourage-pantheon",
+    name: "Entourage al Pantheon [EAP001-150] + Verisart Cert",
+    description: "Rome, Italy\n\nLimited edition print with Verisart Certificate of Authenticity.",
+    price: 500000,
+    priceMax: null,
+    image: "/images/sales/entourage-pantheon.png",
+    category: "print",
+    status: "available",
+    details: "Includes Verisart Certificate of Authenticity\n\nLimited edition of 150",
+  },
+  "tour-eiffel-paris": {
+    id: 17,
+    slug: "tour-eiffel-paris",
+    name: "Tour Eiffel - Paris [TEII001-015]",
+    description: "Paris, France\n\nLimited edition print.",
+    price: 245000,
+    priceMax: 275000,
+    image: "/images/sales/tour-eiffel-paris.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "sunbathers-miami": {
+    id: 18,
+    slug: "sunbathers-miami",
+    name: "Sunbathers in Miami Beach - 2014",
+    description: "Miami Beach, Florida\n\nLimited edition print.",
+    price: 270000,
+    priceMax: null,
+    image: "/images/sales/sunbathers-miami.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "editorial-silver-gelatin": {
+    id: 19,
+    slug: "editorial-silver-gelatin",
+    name: "Editorial on the Run (Silver Gelatin FRAMED) - [OTR001-015L]",
+    description: "Silver Gelatin print, professionally framed.\n\nFrom the Editorial on the Run series.",
+    price: 520000,
+    priceMax: null,
+    image: "/images/sales/editorial-silver-gelatin.jpg",
+    category: "print",
+    status: "available",
+    details: "Silver Gelatin fiber print\n\nProfessionally framed\n\nLimited edition of 15",
+  },
+  "leaving-mondrian": {
+    id: 20,
+    slug: "leaving-mondrian",
+    name: "Leaving the Mondrian - Miami Beach",
+    description: "Miami Beach, Florida\n\nLimited edition print.",
+    price: 1399999,
+    priceMax: null,
+    image: "/images/sales/leaving-mondrian.jpg",
+    category: "print",
+    status: "available",
+    details: "24\"X36\" & 11\"X17\" options available\n\nCustom sizes by special order",
+  },
+  "girl-smoking-coral": {
+    id: 21,
+    slug: "girl-smoking-coral",
+    name: "Girl smoking on Coral II - Miami [GSC001-020]",
+    description: "Miami, Florida\n\nLimited edition print.",
+    price: 970000,
+    priceMax: null,
+    image: "/images/sales/girl-smoking-coral.jpg",
+    category: "print",
+    status: "available",
+    details: "Limited edition of 20\n\nSigned and numbered",
+  },
+  "journal-44": {
+    id: 22,
+    slug: "journal-44",
+    name: "Journal # 44 [The EXILE Journal] - Allen Henson",
+    description: "The EXILE Journal - A personal documentation of the exile period.",
+    price: 1500000,
+    priceMax: null,
+    image: "/images/sales/journal-44.jpg",
+    category: "book",
+    status: "sold_out",
+    details: "SOLD OUT\n\nOriginal handwritten journal from the Exile period.",
+  },
+  "zines": {
+    id: 23,
+    slug: "zines",
+    name: "The Zines, LASCIVIOUS + PARAPHILIA",
+    description: "Two zine collection featuring LASCIVIOUS and PARAPHILIA.",
+    price: 9500,
+    priceMax: null,
+    image: "/images/sales/zines.jpg",
+    category: "book",
+    status: "sold_out",
+    details: "SOLD OUT\n\nTwo-zine set",
+  },
+  "agency-fees": {
+    id: 24,
+    slug: "agency-fees",
+    name: "AGENCY FEE'S 07JUNE2021",
+    description: "Limited edition print.",
+    price: 860000,
+    priceMax: null,
+    image: "/images/sales/agency-fees.jpg",
+    category: "print",
+    status: "sold_out",
+    details: "SOLD OUT",
+  },
 };
 
 function formatPrice(cents: number): string {
@@ -145,7 +337,6 @@ function getStatusBadge(status: string | null) {
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [, setLocation] = useLocation();
   
   const { data: dbProduct, isLoading } = trpc.products.getBySlug.useQuery(
     { slug: slug || "" },
@@ -179,7 +370,9 @@ export default function ProductDetail() {
     );
   }
 
-  const bigCartelUrl = `https://www.editorialontherun.com/product/${slug}`;
+  const isSoldOut = product.status === "sold_out";
+  const emailSubject = encodeURIComponent(`Purchase Inquiry: ${product.name}`);
+  const emailBody = encodeURIComponent(`Hi Allen,\n\nI'm interested in purchasing "${product.name}".\n\nPlease let me know the next steps.\n\nThank you!`);
 
   return (
     <>
@@ -277,19 +470,22 @@ export default function ProductDetail() {
 
               {/* Purchase Button */}
               <div className="mt-auto space-y-4">
-                <a
-                  href={bigCartelUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  PURCHASE
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                {isSoldOut ? (
+                  <div className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-foreground/20 text-foreground/50 font-medium tracking-cinematic text-sm cursor-not-allowed">
+                    SOLD OUT
+                  </div>
+                ) : (
+                  <a
+                    href={`mailto:allen@allenhenson.com?subject=${emailSubject}&body=${emailBody}`}
+                    className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+                  >
+                    <Mail className="w-4 h-4" />
+                    INQUIRE TO PURCHASE
+                  </a>
+                )}
                 
                 <p className="text-xs text-center text-foreground/50">
-                  Secure checkout via Big Cartel
+                  Contact allen@allenhenson.com for purchases
                 </p>
               </div>
 
