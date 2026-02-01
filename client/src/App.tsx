@@ -9,6 +9,7 @@ import Photos from "./pages/Photos";
 import Video from "./pages/Video";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Journal from "./pages/Journal";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/video" component={Video} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
+        <Route path="/journal" component={Journal} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
