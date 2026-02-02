@@ -5,7 +5,8 @@
  * Features: Uncropped images, shuffled layout, zoom-on-hover
  */
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -105,7 +106,7 @@ function shuffleWithSeed(array: typeof productPhotographyImages, seed: number) {
 }
 
 // Pre-shuffled images for "All" view (seed ensures consistent order)
-const shuffledAllImages = shuffleWithSeed(productPhotographyImages, 42);
+const defaultShuffledImages = shuffleWithSeed(productPhotographyImages, 42);
 
 // Zoom-on-hover component
 function ZoomableImage({ 
@@ -160,14 +161,37 @@ export default function ProductPhotography() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [orderedImages, setOrderedImages] = useState(defaultShuffledImages);
 
-  // Filter images by category - use shuffled for "all", original order for categories
+  // Load saved order from database
+  const { data: savedOrder } = trpc.gallery.getOrder.useQuery(
+    { gallery: "product-photography" },
+    { staleTime: 1000 * 60 * 5 } // Cache for 5 minutes
+  );
+
+  // Apply saved order when loaded
+  useEffect(() => {
+    if (savedOrder?.order && savedOrder.order.length > 0) {
+      // Create a map for quick lookup
+      const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
+      // Reorder based on saved order, keeping any new images at the end
+      const reordered = savedOrder.order
+        .map(src => imageMap.get(src))
+        .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
+      // Add any images not in the saved order
+      const savedSrcs = new Set(savedOrder.order);
+      const newImages = productPhotographyImages.filter(img => !savedSrcs.has(img.src));
+      setOrderedImages([...reordered, ...newImages]);
+    }
+  }, [savedOrder]);
+
+  // Filter images by category - use ordered for "all", original order for categories
   const filteredImages = useMemo(() => {
     if (selectedCategory === "all") {
-      return shuffledAllImages;
+      return orderedImages;
     }
-    return productPhotographyImages.filter(img => img.category === selectedCategory);
-  }, [selectedCategory]);
+    return orderedImages.filter(img => img.category === selectedCategory);
+  }, [selectedCategory, orderedImages]);
 
   // Update category counts
   const categoriesWithCounts = useMemo(() => {

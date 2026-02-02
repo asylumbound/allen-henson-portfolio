@@ -139,3 +139,5 @@
 - [x] Shuffle product images to mix categories together (not batched)
 - [x] Add zoom-on-hover feature for all product images
 - [x] Create password-protected /product_edit admin page (password: &&77VAnguard)
+
+- [x] Fix product_edit page to save image order to database (password validation fixed, loads saved order on page load)

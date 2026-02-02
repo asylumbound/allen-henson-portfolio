@@ -8,8 +8,8 @@ import { TRPCError } from "@trpc/server";
 import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 import { storagePut } from "./storage";
 
-// Admin password for the /edit page - stored as env variable
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "allenhenson2026";
+// Admin password for the /edit page
+const ADMIN_PASSWORD = "&&77VAnguard";
 
 export const appRouter = router({
   system: systemRouter,
@@ -41,7 +41,7 @@ export const appRouter = router({
     // Upload a new image to S3
     uploadImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal"]),
+        gallery: z.enum(["photos", "journal", "product-photography"]),
         fileName: z.string(),
         fileData: z.string(), // Base64 encoded
         contentType: z.string(),
@@ -69,7 +69,7 @@ export const appRouter = router({
     // Delete an image (removes from order, actual S3 deletion optional)
     deleteImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal"]),
+        gallery: z.enum(["photos", "journal", "product-photography"]),
         imageSrc: z.string(),
         password: z.string(),
       }))
@@ -90,7 +90,7 @@ export const appRouter = router({
       }),
 
     getOrder: publicProcedure
-      .input(z.object({ gallery: z.enum(["photos", "journal"]) }))
+      .input(z.object({ gallery: z.enum(["photos", "journal", "product-photography"]) }))
       .query(async ({ input }) => {
         const result = await getImageOrder(input.gallery);
         if (result) {
@@ -101,7 +101,7 @@ export const appRouter = router({
     
     saveOrder: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal"]),
+        gallery: z.enum(["photos", "journal", "product-photography"]),
         order: z.array(z.string()),
         password: z.string(),
       }))

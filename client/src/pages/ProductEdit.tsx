@@ -4,9 +4,9 @@
  * Password: &&77VAnguard
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, Reorder } from "framer-motion";
-import { Lock, Plus, Trash2, GripVertical, Save, X, Upload, LogOut } from "lucide-react";
+import { Lock, Plus, Trash2, GripVertical, Save, X, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ interface ProductImage {
   description: string;
 }
 
-// Initial images from ProductPhotography page
+// Initial images from ProductPhotography page - used as fallback if no saved order exists
 const initialImages: ProductImage[] = [
   // Watches & Jewelry (11)
   { id: "1", src: "/images/product/rolex-pepsi-gmt.webp", alt: "Rolex GMT-Master II 'Pepsi'", category: "watches", description: "Studio: bezel color separation + sapphire control" },
@@ -87,6 +87,9 @@ const initialImages: ProductImage[] = [
   { id: "51", src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
 ];
 
+// Create a lookup map for quick access to image metadata by src
+const imageMetadataMap = new Map(initialImages.map(img => [img.src, img]));
+
 const categories = [
   { id: "watches", name: "Watches & Jewelry" },
   { id: "automotive", name: "Automotive" },
@@ -98,15 +101,22 @@ const categories = [
 export default function ProductEdit() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
-  const [images, setImages] = useState<ProductImage[]>(initialImages);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [newImage, setNewImage] = useState<Partial<ProductImage>>({
     src: "",
     alt: "",
     category: "watches",
     description: "",
   });
+
+  // Fetch saved order from database
+  const { data: savedOrder, isLoading: isLoadingOrder } = trpc.gallery.getOrder.useQuery(
+    { gallery: "product-photography" },
+    { enabled: isAuthenticated }
+  );
 
   // Check for saved session
   useEffect(() => {
@@ -117,6 +127,49 @@ export default function ProductEdit() {
     // Scroll to top on page load
     window.scrollTo(0, 0);
   }, []);
+
+  // Load images from saved order or use initial images
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+    
+    if (isLoadingOrder) {
+      setIsLoading(true);
+      return;
+    }
+
+    if (savedOrder?.order && savedOrder.order.length > 0) {
+      // Reconstruct images from saved order
+      const orderedImages: ProductImage[] = [];
+      let idCounter = 1;
+      
+      for (const src of savedOrder.order) {
+        const metadata = imageMetadataMap.get(src);
+        if (metadata) {
+          orderedImages.push({ ...metadata, id: String(idCounter++) });
+        } else {
+          // Handle images that might have been added but aren't in the initial set
+          orderedImages.push({
+            id: String(idCounter++),
+            src,
+            alt: "Custom Image",
+            category: "tech-fashion",
+            description: "User added image",
+          });
+        }
+      }
+      
+      setImages(orderedImages);
+      toast.success(`Loaded ${orderedImages.length} images from saved order`);
+    } else {
+      // No saved order, use initial images
+      setImages(initialImages);
+    }
+    
+    setIsLoading(false);
+  }, [isAuthenticated, savedOrder, isLoadingOrder]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +205,7 @@ export default function ProductEdit() {
       return;
     }
 
-    const newId = (Math.max(...images.map(img => parseInt(img.id))) + 1).toString();
+    const newId = (Math.max(...images.map(img => parseInt(img.id)), 0) + 1).toString();
     setImages([...images, { ...newImage, id: newId } as ProductImage]);
     setHasChanges(true);
     setShowAddModal(false);
@@ -160,12 +213,24 @@ export default function ProductEdit() {
     toast.success("Image added");
   };
 
+  const saveOrderMutation = trpc.gallery.saveOrder.useMutation({
+    onSuccess: () => {
+      toast.success("Changes saved to database successfully!");
+      setHasChanges(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to save: ${error.message}`);
+    },
+  });
+
   const handleSave = async () => {
-    // In a real implementation, this would save to the database
-    // For now, we'll show a success message and log the new order
-    console.log("Saving new image order:", images);
-    toast.success("Changes saved successfully! Note: To persist changes permanently, the code needs to be updated.");
-    setHasChanges(false);
+    // Save to database via API
+    const imageOrder = images.map(img => img.src);
+    saveOrderMutation.mutate({
+      gallery: "product-photography",
+      order: imageOrder,
+      password: ADMIN_PASSWORD,
+    });
   };
 
   // Login screen
@@ -202,6 +267,18 @@ export default function ProductEdit() {
     );
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-gold mx-auto mb-4" />
+          <p className="text-sm text-foreground/60">Loading images...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Admin panel
   return (
     <div className="min-h-screen bg-background">
@@ -214,8 +291,16 @@ export default function ProductEdit() {
           </div>
           <div className="flex items-center gap-4">
             {hasChanges && (
-              <Button onClick={handleSave} className="bg-gold hover:bg-gold/90 text-background">
-                <Save className="w-4 h-4 mr-2" />
+              <Button 
+                onClick={handleSave} 
+                className="bg-gold hover:bg-gold/90 text-background"
+                disabled={saveOrderMutation.isPending}
+              >
+                {saveOrderMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
                 Save Changes
               </Button>
             )}
