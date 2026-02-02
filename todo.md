@@ -145,3 +145,6 @@
 - [x] Fix success page to show correct discounted amount (fetches actual amount from Stripe session)
 - [x] Fix success page to show buyer's actual email (fetches from Stripe customer_details)
 - [x] Add owner notification on successful purchase (customer email requires external email service integration)
+
+- [x] Add automatic responsive image generation when uploading new images (Sharp integration)
+- [x] Update ProductPhotography page to handle missing responsive variants gracefully (fallback to original)

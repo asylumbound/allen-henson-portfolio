@@ -152,6 +152,14 @@ function ZoomableImage({
         }}
         loading="lazy"
         onLoad={onLoad}
+        onError={(e) => {
+          // Fallback to original image if responsive variants don't exist
+          const img = e.currentTarget;
+          if (img.srcset) {
+            img.srcset = '';
+            img.src = src;
+          }
+        }}
       />
     </div>
   );

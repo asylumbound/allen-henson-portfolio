@@ -7,6 +7,7 @@ import { getImageOrder, saveImageOrder, getAllBlogPosts, getBlogPostBySlug, seed
 import { TRPCError } from "@trpc/server";
 import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 import { storagePut } from "./storage";
+import { generateResponsiveImages } from "./imageProcessing";
 
 // Admin password for the /edit page
 const ADMIN_PASSWORD = "&&77VAnguard";
@@ -38,7 +39,7 @@ export const appRouter = router({
 
   // Image management (upload, delete, reorder)
   gallery: router({
-    // Upload a new image to S3
+    // Upload a new image to S3 with automatic responsive variants
     uploadImage: publicProcedure
       .input(z.object({
         gallery: z.enum(["photos", "journal", "product-photography"]),
@@ -46,6 +47,7 @@ export const appRouter = router({
         fileData: z.string(), // Base64 encoded
         contentType: z.string(),
         password: z.string(),
+        generateResponsive: z.boolean().optional().default(true), // Auto-generate responsive variants
       }))
       .mutation(async ({ input }) => {
         if (input.password !== ADMIN_PASSWORD) {
@@ -55,15 +57,38 @@ export const appRouter = router({
         // Decode base64 to buffer
         const buffer = Buffer.from(input.fileData, "base64");
         
-        // Generate unique filename with timestamp
+        // Generate unique filename with timestamp (without extension)
         const timestamp = Date.now();
-        const cleanFileName = input.fileName.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
-        const fileKey = `gallery/${input.gallery}/${timestamp}-${cleanFileName}`;
+        const cleanFileName = input.fileName
+          .replace(/\.[^/.]+$/, "") // Remove extension
+          .replace(/[^a-zA-Z0-9.-]/g, "-")
+          .toLowerCase();
+        const baseFileKey = `gallery/${input.gallery}/${timestamp}-${cleanFileName}`;
         
-        // Upload to S3
+        // Check if we should generate responsive variants
+        if (input.generateResponsive && (input.contentType === "image/webp" || input.contentType === "image/jpeg" || input.contentType === "image/png")) {
+          try {
+            // Generate responsive images (400w, 800w, 1200w) + original
+            const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
+            return {
+              success: true,
+              url: result.original.url,
+              fileKey: result.original.fileKey,
+              variants: result.variants,
+            };
+          } catch (error) {
+            console.error("Failed to generate responsive images, falling back to single upload:", error);
+            // Fall through to single upload
+          }
+        }
+        
+        // Fallback: Upload single image without responsive variants
+        const extension = input.contentType === "image/webp" ? ".webp" : 
+                         input.contentType === "image/png" ? ".png" : ".jpg";
+        const fileKey = `${baseFileKey}${extension}`;
         const { url } = await storagePut(fileKey, buffer, input.contentType);
         
-        return { success: true, url, fileKey };
+        return { success: true, url, fileKey, variants: [] };
       }),
     
     // Delete an image (removes from order, actual S3 deletion optional)
