@@ -11,7 +11,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 // Product photography categories and images
 const productCategories = [
   { id: "all", name: "All Work", count: 0 },
-  { id: "watches", name: "Watches & Jewelry", count: 10 },
+  { id: "watches", name: "Watches & Jewelry", count: 11 },
   { id: "automotive", name: "Automotive", count: 10 },
   { id: "spirits", name: "Spirits & Alcohol", count: 10 },
   { id: "beverages", name: "Beverages", count: 10 },
@@ -30,6 +30,7 @@ export const productPhotographyImages = [
   { src: "/images/product/tudor-black-bay.webp", alt: "Tudor Black Bay", category: "watches", description: "Studio: dive watch heritage, snowflake hands" },
   { src: "/images/product/jlc-reverso.webp", alt: "Jaeger-LeCoultre Reverso", category: "watches", description: "Studio: art-deco geometry, reversible case" },
   { src: "/images/product/tiffany-jewelry.webp", alt: "Tiffany & Co. Diamond Ring", category: "watches", description: "Studio: gem specular control, platinum setting" },
+  { src: "/images/product/rolex-yacht-master.webp", alt: "Rolex Yacht-Master II", category: "watches", description: "Studio: water splash, rose gold + steel, ceramic bezel" },
   
   // Automotive (10)
   { src: "/images/product/porsche-911-crest.webp", alt: "Porsche 911 Hood Crest", category: "automotive", description: "Studio: paint reflections, emblem detail" },

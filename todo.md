@@ -127,3 +127,6 @@
 - [x] Analyze bundle size and dependencies
 - [x] Remove hardcoded Stripe keys (use platform env vars)
 - [x] Optimize and remove unnecessary code (removed streamdown, deleted unused components)
+
+- [x] Add Rolex watch image to product photography page (web optimized)
+- [x] Verify all product images are properly assigned in product detail galleries (reference editorialontherun.com)

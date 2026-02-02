@@ -65,6 +65,7 @@ export const products = mysqlTable("products", {
   category: varchar("category", { length: 100 }), // 'book', 'print', 'boxset'
   status: varchar("status", { length: 50 }).default("available"), // 'available', 'presale', 'sold_out', 'in_production'
   details: text("details"), // Additional product details (size options, materials, etc.)
+  galleryImages: text("galleryImages"), // JSON array of additional image URLs for gallery
   sortOrder: int("sortOrder").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
