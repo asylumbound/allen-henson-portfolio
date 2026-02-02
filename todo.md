@@ -130,3 +130,5 @@
 
 - [x] Add Rolex watch image to product photography page (web optimized)
 - [x] Verify all product images are properly assigned in product detail galleries (reference editorialontherun.com)
+
+- [x] Re-render ABSCOND box set with photorealistic AI images (library desk, marble flat lay, stacked volumes)

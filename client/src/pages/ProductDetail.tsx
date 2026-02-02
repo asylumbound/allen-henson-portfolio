@@ -66,7 +66,7 @@ const staticProducts: Record<string, {
     description: "THE ABSCOND SERIALS BY ROI ALLEN HENSON\n\nA six-volume journey through France, Morocco, Italy, Greece, Prague & The Escape, and Los Angeles & The Virus.",
     price: 60000,
     priceMax: null,
-    image: "/images/sales/abscond-box-set.webp",
+    image: "/images/sales/abscond-boxset-realistic-1.webp",
     category: "boxset",
     status: "in_production",
     details: "BOOK I - FRANCE [isbn: 979-8-88796-508-6]\nBOOK II - MOROCCO [isbn: 979-8-88796-509-3]\nBOOK III - ITALY [isbn: 979-8-88796-510-9]\nBOOK IV - GREECE [isbn: 979-8-88796-516-1]\nBOOK V - PRAGUE & THE ESCAPE [isbn: 979-8-88796-517-8]\nBOOK VI - LOS ANGELES & THE VIRUS [isbn: 979-8-88796-518-5]",

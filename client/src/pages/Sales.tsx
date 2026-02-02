@@ -12,7 +12,7 @@ import { ArrowRight, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 // Full 81-product catalog
 const staticProducts = [
   // Page 1 Products (1-24)
-  { id: 1, slug: "abscond-box-set", name: "[IN PRODUCTION] LIMITED RUN - ABSCOND BOX SET Vol I-VI", price: 60000, priceMax: null, image: "/images/sales/abscond-box-set.webp", status: "in_production" },
+  { id: 1, slug: "abscond-box-set", name: "[IN PRODUCTION] LIMITED RUN - ABSCOND BOX SET Vol I-VI", price: 60000, priceMax: null, image: "/images/sales/abscond-boxset-realistic-1.webp", status: "in_production" },
   { id: 2, slug: "abscond-series", name: "[PRESALE] ABSCOND - THE SERIES", price: 51000, priceMax: null, image: "/images/sales/abscond-series.webp", status: "presale" },
   { id: 3, slug: "abscond-vol1-france", name: "[PRESALE] ABSCOND - VOL I - FRANCE (I of VI)", price: 5000, priceMax: null, image: "/images/sales/abscond-vol1-france.webp", status: "presale" },
   { id: 4, slug: "editorial-on-the-run", name: "Editorial on the Run", price: 5000, priceMax: null, image: "/images/sales/editorial-on-the-run.webp", status: "available" },
