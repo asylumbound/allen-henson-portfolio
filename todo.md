@@ -134,3 +134,8 @@
 - [x] Re-render ABSCOND box set with photorealistic AI images (library desk, marble flat lay, stacked volumes)
 
 - [x] Generate 10 Tech/Fashion/Consumer Icons product images (Apple iPhone, Leica, Sony, B&O, Nike, Adidas, Ray-Ban, LV, Aesop, Dyson)
+
+- [x] Update ProductPhotography page to show uncropped full images (no cropping)
+- [x] Shuffle product images to mix categories together (not batched)
+- [x] Add zoom-on-hover feature for all product images
+- [x] Create password-protected /product_edit admin page (password: &&77VAnguard)

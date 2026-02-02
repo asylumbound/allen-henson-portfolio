@@ -2,9 +2,10 @@
  * PRODUCT PHOTOGRAPHY PAGE
  * Commercial product photography portfolio showcasing luxury brands
  * Categories: Watches & Jewelry, Automotive, Spirits, Beverages, Tech/Fashion
+ * Features: Uncropped images, shuffled layout, zoom-on-hover
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -20,7 +21,7 @@ const productCategories = [
 
 // Product images with metadata
 export const productPhotographyImages = [
-  // Watches & Jewelry (10)
+  // Watches & Jewelry (11)
   { src: "/images/product/rolex-pepsi-gmt.webp", alt: "Rolex GMT-Master II 'Pepsi'", category: "watches", description: "Studio: bezel color separation + sapphire control" },
   { src: "/images/product/omega-speedmaster.webp", alt: "Omega Speedmaster Moonwatch", category: "watches", description: "Studio: black dial contrast, tachymeter detail" },
   { src: "/images/product/cartier-tank.webp", alt: "Cartier Tank", category: "watches", description: "Studio: high-key minimal, Parisian restraint" },
@@ -82,15 +83,88 @@ export const productPhotographyImages = [
   { src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
 ];
 
+// Seeded shuffle function for consistent but mixed order
+function shuffleWithSeed(array: typeof productPhotographyImages, seed: number) {
+  const shuffled = [...array];
+  let currentIndex = shuffled.length;
+  let randomValue;
+  
+  // Simple seeded random
+  const seededRandom = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  while (currentIndex !== 0) {
+    randomValue = Math.floor(seededRandom() * currentIndex);
+    currentIndex--;
+    [shuffled[currentIndex], shuffled[randomValue]] = [shuffled[randomValue], shuffled[currentIndex]];
+  }
+
+  return shuffled;
+}
+
+// Pre-shuffled images for "All" view (seed ensures consistent order)
+const shuffledAllImages = shuffleWithSeed(productPhotographyImages, 42);
+
+// Zoom-on-hover component
+function ZoomableImage({ 
+  src, 
+  alt, 
+  className,
+  onLoad 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+  onLoad?: () => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setPosition({ x, y });
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden w-full h-full"
+      onMouseEnter={() => setIsZoomed(true)}
+      onMouseLeave={() => setIsZoomed(false)}
+      onMouseMove={handleMouseMove}
+    >
+      <img
+        src={src}
+        srcSet={`${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        alt={alt}
+        className={`w-full h-full transition-transform duration-300 ease-out ${className}`}
+        style={{
+          transform: isZoomed ? 'scale(2)' : 'scale(1)',
+          transformOrigin: `${position.x}% ${position.y}%`,
+        }}
+        loading="lazy"
+        onLoad={onLoad}
+      />
+    </div>
+  );
+}
+
 export default function ProductPhotography() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Filter images by category
+  // Filter images by category - use shuffled for "all", original order for categories
   const filteredImages = useMemo(() => {
     if (selectedCategory === "all") {
-      return productPhotographyImages;
+      return shuffledAllImages;
     }
     return productPhotographyImages.filter(img => img.category === selectedCategory);
   }, [selectedCategory]);
@@ -182,11 +256,11 @@ export default function ProductPhotography() {
         </div>
       </section>
 
-      {/* Gallery Grid */}
+      {/* Gallery Grid - Masonry-style with uncropped images */}
       <section className="py-16 md:py-24">
         <div className="container">
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+            className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6"
             layout
           >
             <AnimatePresence mode="popLayout">
@@ -198,25 +272,22 @@ export default function ProductPhotography() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className="group cursor-pointer"
+                  className="group cursor-pointer mb-4 md:mb-6 break-inside-avoid"
                   onClick={() => openLightbox(index)}
                 >
-                  <div className="relative overflow-hidden aspect-[4/5] bg-secondary/20">
-                    <img
+                  <div className="relative overflow-hidden bg-secondary/20 rounded-sm">
+                    {/* Zoomable image - shows full uncropped image */}
+                    <ZoomableImage
                       src={image.src}
-                      srcSet={`${image.src.replace('.webp', '-400.webp')} 400w, ${image.src.replace('.webp', '-800.webp')} 800w, ${image.src.replace('.webp', '-1200.webp')} 1200w, ${image.src} 1600w`}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       alt={image.alt}
-                      className="w-full h-full object-cover image-hover"
-                      loading="lazy"
+                      className="object-contain w-full"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 cinematic-transition" />
-                    <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 cinematic-transition" />
                     
                     {/* Hover overlay with info */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 cinematic-transition">
-                      <p className="text-white text-sm font-light">{image.alt}</p>
-                      <p className="text-white/70 text-xs font-light mt-1">{image.description}</p>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                      <p className="text-white text-sm font-light drop-shadow-lg">{image.alt}</p>
+                      <p className="text-white/80 text-xs font-light mt-1 drop-shadow-lg">{image.description}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -281,7 +352,7 @@ export default function ProductPhotography() {
               <X className="w-8 h-8" />
             </button>
 
-            {/* Navigation */}
+            {/* Navigation buttons */}
             <button
               onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
               className="absolute left-4 md:left-8 z-50 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white cinematic-transition"
@@ -297,31 +368,27 @@ export default function ProductPhotography() {
               <ChevronRight className="w-8 h-8" />
             </button>
 
-            {/* Image */}
+            {/* Main image */}
             <motion.div
               key={currentIndex}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="max-w-[90vw] max-h-[85vh] relative"
+              className="max-w-[90vw] max-h-[85vh] flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={filteredImages[currentIndex].src}
                 alt={filteredImages[currentIndex].alt}
-                className="max-w-full max-h-[85vh] object-contain"
+                className="max-w-full max-h-[75vh] object-contain"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+              <div className="mt-4 text-center">
                 <p className="text-white text-lg font-light">{filteredImages[currentIndex].alt}</p>
-                <p className="text-white/70 text-sm font-light mt-1">{filteredImages[currentIndex].description}</p>
+                <p className="text-white/60 text-sm font-light mt-1">{filteredImages[currentIndex].description}</p>
+                <p className="text-white/40 text-xs mt-2">{currentIndex + 1} / {filteredImages.length}</p>
               </div>
             </motion.div>
-
-            {/* Counter */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm tracking-cinematic">
-              {currentIndex + 1} / {filteredImages.length}
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
