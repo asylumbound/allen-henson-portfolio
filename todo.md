@@ -112,3 +112,8 @@
 - [x] Test and verify Stripe checkout flow (redirects to Stripe checkout successfully)
 
 - [x] Create branded 404 page matching cinematic noir aesthetic (camera icon, film strip motif, gold accents)
+
+- [x] Add image upload functionality to /edit admin page (S3 storage with base64 encoding)
+- [x] Add image delete functionality to /edit admin page (removes from gallery order)
+- [x] Create backend API endpoints for upload and delete (gallery.uploadImage, gallery.deleteImage)
+- [x] Update Edit page UI with upload dropzone and delete buttons (green upload button, red trash icons)

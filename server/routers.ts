@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getImageOrder, saveImageOrder, getAllBlogPosts, getBlogPostBySlug, seedBlogPosts, getAllProducts, getProductBySlug, seedProducts } from "./db";
 import { TRPCError } from "@trpc/server";
 import { createCheckoutSession, getOrderBySessionId } from "./stripe";
+import { storagePut } from "./storage";
 
 // Admin password for the /edit page - stored as env variable
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "allenhenson2026";
@@ -35,8 +36,59 @@ export const appRouter = router({
       }),
   }),
 
-  // Image order management
+  // Image management (upload, delete, reorder)
   gallery: router({
+    // Upload a new image to S3
+    uploadImage: publicProcedure
+      .input(z.object({
+        gallery: z.enum(["photos", "journal"]),
+        fileName: z.string(),
+        fileData: z.string(), // Base64 encoded
+        contentType: z.string(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        
+        // Decode base64 to buffer
+        const buffer = Buffer.from(input.fileData, "base64");
+        
+        // Generate unique filename with timestamp
+        const timestamp = Date.now();
+        const cleanFileName = input.fileName.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
+        const fileKey = `gallery/${input.gallery}/${timestamp}-${cleanFileName}`;
+        
+        // Upload to S3
+        const { url } = await storagePut(fileKey, buffer, input.contentType);
+        
+        return { success: true, url, fileKey };
+      }),
+    
+    // Delete an image (removes from order, actual S3 deletion optional)
+    deleteImage: publicProcedure
+      .input(z.object({
+        gallery: z.enum(["photos", "journal"]),
+        imageSrc: z.string(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        
+        // Get current order
+        const currentOrder = await getImageOrder(input.gallery);
+        if (currentOrder) {
+          const order = JSON.parse(currentOrder.imageOrder) as string[];
+          const newOrder = order.filter(src => src !== input.imageSrc);
+          await saveImageOrder(input.gallery, newOrder);
+        }
+        
+        return { success: true };
+      }),
+
     getOrder: publicProcedure
       .input(z.object({ gallery: z.enum(["photos", "journal"]) }))
       .query(async ({ input }) => {

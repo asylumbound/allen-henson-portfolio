@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { motion, Reorder } from "framer-motion";
-import { Lock, Save, GripVertical, Check, X, Images, BookOpen } from "lucide-react";
+import { Lock, Save, GripVertical, Check, X, Images, BookOpen, Upload, Trash2, Plus, Loader2 } from "lucide-react";
 import { Link } from "wouter";
+import { toast } from "sonner";
 
 // Import the image arrays from Photos and Journal pages
 import { photosImages } from "./Photos";
@@ -14,6 +15,7 @@ interface ImageItem {
   id: string;
   src: string;
   alt: string;
+  isNew?: boolean; // Track newly uploaded images
 }
 
 export default function Edit() {
@@ -25,11 +27,16 @@ export default function Edit() {
   const [journalOrder, setJournalOrder] = useState<ImageItem[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [deletingImage, setDeletingImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const verifyPassword = trpc.admin.verifyPassword.useMutation();
   const saveOrderMutation = trpc.gallery.saveOrder.useMutation();
-  const { data: photosOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "photos" });
-  const { data: journalOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "journal" });
+  const uploadImageMutation = trpc.gallery.uploadImage.useMutation();
+  const deleteImageMutation = trpc.gallery.deleteImage.useMutation();
+  const { data: photosOrderData, refetch: refetchPhotos } = trpc.gallery.getOrder.useQuery({ gallery: "photos" });
+  const { data: journalOrderData, refetch: refetchJournal } = trpc.gallery.getOrder.useQuery({ gallery: "journal" });
 
   // Initialize image orders
   useEffect(() => {
@@ -43,7 +50,7 @@ export default function Edit() {
     if (photosOrderData?.order) {
       // Reorder based on saved order
       const orderedPhotos = photosOrderData.order
-        .map((src: string) => defaultPhotos.find(p => p.src === src))
+        .map((src: string) => defaultPhotos.find(p => p.src === src) || { id: `uploaded-${src}`, src, alt: "Uploaded image", isNew: true })
         .filter((p): p is ImageItem => p !== undefined);
       // Add any new images not in saved order
       const newPhotos = defaultPhotos.filter(p => !photosOrderData.order?.includes(p.src));
@@ -61,7 +68,7 @@ export default function Edit() {
     
     if (journalOrderData?.order) {
       const orderedJournal = journalOrderData.order
-        .map((src: string) => defaultJournal.find(p => p.src === src))
+        .map((src: string) => defaultJournal.find(p => p.src === src) || { id: `uploaded-${src}`, src, alt: "Uploaded image", isNew: true })
         .filter((p): p is ImageItem => p !== undefined);
       const newJournal = defaultJournal.filter(p => !journalOrderData.order?.includes(p.src));
       setJournalOrder([...orderedJournal, ...newJournal]);
@@ -119,9 +126,120 @@ export default function Edit() {
       
       setSaveStatus("saved");
       setHasChanges(false);
+      toast.success("Gallery order saved successfully");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
       setSaveStatus("error");
+      toast.error("Failed to save gallery order");
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingCount(files.length);
+    const uploadedImages: ImageItem[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image file`);
+        continue;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 10MB)`);
+        continue;
+      }
+
+      try {
+        // Convert to base64
+        const base64 = await fileToBase64(file);
+        
+        // Upload to S3
+        const result = await uploadImageMutation.mutateAsync({
+          gallery: activeGallery,
+          fileName: file.name,
+          fileData: base64,
+          contentType: file.type,
+          password,
+        });
+
+        uploadedImages.push({
+          id: `new-${Date.now()}-${i}`,
+          src: result.url,
+          alt: file.name.replace(/\.[^/.]+$/, ""),
+          isNew: true,
+        });
+
+        toast.success(`Uploaded ${file.name}`);
+      } catch (err) {
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    // Add uploaded images to the current gallery
+    if (uploadedImages.length > 0) {
+      if (activeGallery === "photos") {
+        setPhotosOrder(prev => [...uploadedImages, ...prev]);
+      } else {
+        setJournalOrder(prev => [...uploadedImages, ...prev]);
+      }
+      setHasChanges(true);
+    }
+
+    setUploadingCount(0);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleDelete = async (image: ImageItem) => {
+    if (!confirm(`Are you sure you want to delete this image?\n\nThis will remove it from the gallery.`)) {
+      return;
+    }
+
+    setDeletingImage(image.id);
+
+    try {
+      // Remove from server order
+      await deleteImageMutation.mutateAsync({
+        gallery: activeGallery,
+        imageSrc: image.src,
+        password,
+      });
+
+      // Remove from local state
+      if (activeGallery === "photos") {
+        setPhotosOrder(prev => prev.filter(p => p.id !== image.id));
+      } else {
+        setJournalOrder(prev => prev.filter(p => p.id !== image.id));
+      }
+
+      toast.success("Image deleted from gallery");
+    } catch (err) {
+      toast.error("Failed to delete image");
+    } finally {
+      setDeletingImage(null);
     }
   };
 
@@ -144,7 +262,7 @@ export default function Edit() {
             
             <h1 className="text-2xl font-semibold text-center mb-2">Admin Access</h1>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Enter password to manage gallery order
+              Enter password to manage gallery
             </p>
             
             <form onSubmit={handleLogin}>
@@ -223,7 +341,7 @@ export default function Edit() {
 
       {/* Gallery Tabs */}
       <div className="container py-6">
-        <div className="flex gap-4 mb-8">
+        <div className="flex flex-wrap gap-4 mb-8">
           <button
             onClick={() => setActiveGallery("photos")}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
@@ -247,10 +365,43 @@ export default function Edit() {
             <BookOpen className="w-5 h-5" />
             Journal ({journalOrder.length})
           </button>
+
+          {/* Upload Button */}
+          <div className="ml-auto">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              id="image-upload"
+            />
+            <label
+              htmlFor="image-upload"
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium cursor-pointer transition-all ${
+                uploadingCount > 0
+                  ? "bg-foreground/10 text-muted-foreground cursor-wait"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }`}
+            >
+              {uploadingCount > 0 ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Uploading {uploadingCount}...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5" />
+                  Upload Images
+                </>
+              )}
+            </label>
+          </div>
         </div>
 
         <p className="text-sm text-muted-foreground mb-6">
-          Drag images to reorder. Changes will be reflected on the live site after saving.
+          Drag images to reorder. Click the trash icon to delete. Upload new images using the button above.
         </p>
 
         {/* Reorderable Grid */}
@@ -275,7 +426,7 @@ export default function Edit() {
                   draggable={false}
                 />
                 
-                {/* Overlay with position number */}
+                {/* Overlay with position number and actions */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
                     <GripVertical className="w-6 h-6 text-white mb-1" />
@@ -287,10 +438,42 @@ export default function Edit() {
                 <div className="absolute top-2 left-2 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-medium">{index + 1}</span>
                 </div>
+
+                {/* New badge for uploaded images */}
+                {image.isNew && (
+                  <div className="absolute top-2 right-10 px-2 py-0.5 bg-green-600 rounded text-white text-xs font-medium">
+                    NEW
+                  </div>
+                )}
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(image);
+                  }}
+                  disabled={deletingImage === image.id}
+                  className="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                  title="Delete image"
+                >
+                  {deletingImage === image.id ? (
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 text-white" />
+                  )}
+                </button>
               </div>
             </Reorder.Item>
           ))}
         </Reorder.Group>
+
+        {currentOrder.length === 0 && (
+          <div className="text-center py-20">
+            <Images className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No images in this gallery yet.</p>
+            <p className="text-sm text-muted-foreground mt-2">Upload images using the button above.</p>
+          </div>
+        )}
       </div>
     </div>
   );
