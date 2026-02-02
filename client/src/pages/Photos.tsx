@@ -11,6 +11,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { SEOHead } from "@/components/SEOHead";
 
 // Images in exact order from allenhenson.nyc landing page
 // Export for use in Edit page
@@ -223,9 +224,15 @@ export default function Photos() {
   };
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
-      <div className="container">
-        {/* Page Header */}
+    <>
+      <SEOHead
+        title="Editorial Photography"
+        description="Editorial and portrait photography by Allen Henson. Two decades of cinematic storytelling through fashion editorials, celebrity portraits, and campaign work for luxury brands including Chanel. Based in Los Angeles and New York."
+        image="/images/XUQX2322-scaled.jpg"
+      />
+      <div className="min-h-screen py-12 md:py-20">
+        <div className="container">
+          {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -278,10 +285,9 @@ export default function Photos() {
             </motion.div>
           ))}
         </div>
-      </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
+        {/* Lightbox */}
+        <AnimatePresence>
         {selectedIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -339,7 +345,9 @@ export default function Photos() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-    </div>
+        </AnimatePresence>
+        </div>
+      </div>
+    </>
   );
 }

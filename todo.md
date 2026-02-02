@@ -157,3 +157,5 @@
 - [x] Remove Red Bull, Fanta, and Gatorade images from product photography
 - [x] Rename PHOTOS to EDITORIAL in navigation menu
 - [x] Update Photos page hero and title from Photography to Editorial
+
+- [x] Update meta description for Editorial page to improve SEO
