@@ -176,3 +176,8 @@
 - [x] Create AI alt text generation service using built-in LLM (server/altTextGenerator.ts)
 - [x] Integrate alt text generation into image upload workflow (auto-generates on upload)
 - [x] Add alt text generation endpoint for admin panel (gallery.generateAltText)
+
+- [x] Fix product photography page to respect /product_edit changes:
+  - [x] Deletions in /product_edit should remove images from public page
+  - [x] Order set in /product_edit should be exactly reflected on public page
+  - [x] Public page should ONLY show images from saved database order, not hardcoded fallback

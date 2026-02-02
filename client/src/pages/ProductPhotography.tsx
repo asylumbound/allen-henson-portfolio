@@ -157,19 +157,17 @@ export default function ProductPhotography() {
     { staleTime: 1000 * 60 * 5 } // Cache for 5 minutes
   );
 
-  // Apply saved order when loaded
+  // Apply saved order when loaded - ONLY show images from saved order
+  // This respects deletions made in /product_edit
   useEffect(() => {
     if (savedOrder?.order && savedOrder.order.length > 0) {
-      // Create a map for quick lookup
+      // Create a map for quick lookup of image metadata
       const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
-      // Reorder based on saved order, keeping any new images at the end
+      // ONLY show images that are in the saved order - deleted images stay deleted
       const reordered = savedOrder.order
         .map(src => imageMap.get(src))
         .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
-      // Add any images not in the saved order
-      const savedSrcs = new Set(savedOrder.order);
-      const newImages = productPhotographyImages.filter(img => !savedSrcs.has(img.src));
-      setOrderedImages([...reordered, ...newImages]);
+      setOrderedImages(reordered);
     }
   }, [savedOrder]);
 
@@ -181,15 +179,15 @@ export default function ProductPhotography() {
     return orderedImages.filter(img => img.category === selectedCategory);
   }, [selectedCategory, orderedImages]);
 
-  // Update category counts
+  // Update category counts based on actual displayed images (respects deletions)
   const categoriesWithCounts = useMemo(() => {
     return productCategories.map(cat => ({
       ...cat,
       count: cat.id === "all" 
-        ? productPhotographyImages.length 
-        : productPhotographyImages.filter(img => img.category === cat.id).length
+        ? orderedImages.length 
+        : orderedImages.filter(img => img.category === cat.id).length
     }));
-  }, []);
+  }, [orderedImages]);
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
