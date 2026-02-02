@@ -110,3 +110,5 @@
 - [x] Implement drag-and-drop image reordering UI on edit page (Photos and Journal galleries)
 - [x] Test and verify contact form functionality (now sends notifications to owner)
 - [x] Test and verify Stripe checkout flow (redirects to Stripe checkout successfully)
+
+- [x] Create branded 404 page matching cinematic noir aesthetic (camera icon, film strip motif, gold accents)
