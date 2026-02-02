@@ -159,3 +159,16 @@
 - [x] Update Photos page hero and title from Photography to Editorial
 
 - [x] Update meta description for Editorial page to improve SEO
+
+- [x] Create sitemap.xml with all site pages
+- [x] Create robots.txt file
+- [x] Create JSON-LD structured data for creative professional (Person, Organization, Website, Service schemas)
+- [x] Add SEO metadata to Product Photography page
+- [x] Add SEO metadata to Video page
+- [x] Add SEO metadata to Journal page
+- [x] Add SEO metadata to Blog page
+- [x] Add SEO metadata to Shop page
+- [x] Add SEO metadata to About page
+- [x] Add SEO metadata to Contact page
+- [x] Add SEO metadata to Home page
+- [x] Review and update image alt tags across all pages (already well-implemented)

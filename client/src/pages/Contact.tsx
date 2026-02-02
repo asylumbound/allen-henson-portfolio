@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Send, Instagram, Mail, MapPin } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { SEOHead } from "@/components/SEOHead";
+import { BreadcrumbSchema } from "@/components/StructuredData";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -44,7 +46,19 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <>
+      <SEOHead
+        title="Contact Allen Henson"
+        description="Get in touch with Allen Henson for photography and film direction inquiries. Available for editorial, commercial, portrait, and product photography projects. Studios in Los Angeles and New York."
+        image="/images/allen-polaroid23gg.jpg"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Contact", url: "https://www.allenhenson.com/contact" },
+        ]}
+      />
+      <div className="min-h-screen py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
@@ -222,6 +236,7 @@ export default function Contact() {
           </motion.div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -10,6 +10,8 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { SEOHead } from "@/components/SEOHead";
+import { PersonSchema, OrganizationSchema, WebsiteSchema, ProfessionalServiceSchema } from "@/components/StructuredData";
 
 const featuredImages = [
   { src: "/images/XUQX2322-scaled.jpg", alt: "Portrait photography" },
@@ -23,7 +25,17 @@ export default function Home() {
   // const { user, isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen">
+    <>
+      <SEOHead
+        title="Allen Henson | Cinematic Photography, Film Direction & Creative Strategy"
+        description="Award-winning photographer and film director Allen Henson. Over 20 years of cinematic storytelling through editorial, commercial, and portrait photography. Campaign work for luxury brands including Chanel. Based in Los Angeles and New York."
+        image="/images/XUQX2322-scaled.jpg"
+      />
+      <PersonSchema />
+      <OrganizationSchema />
+      <WebsiteSchema />
+      <ProfessionalServiceSchema />
+      <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Video */}
@@ -243,6 +255,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

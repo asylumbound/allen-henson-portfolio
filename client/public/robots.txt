@@ -1,0 +1,23 @@
+# robots.txt for allenhenson.com
+# Allen Henson Photography - Cinematic Photography, Film Direction & Creative Strategy
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.allenhenson.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /product_edit
+Disallow: /edit
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /*.json$
+
+# Allow important resources
+Allow: /images/
+Allow: /*.css
+Allow: /*.js

@@ -9,10 +9,25 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
+import { PersonSchema, BreadcrumbSchema } from "@/components/StructuredData";
 
 export default function About() {
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <>
+      <SEOHead
+        title="About Allen Henson"
+        description="Allen Henson is an award-winning photographer and film director with over 20 years of experience. A U.S. Army veteran who served with the 22nd Infantry Regiment, he brings discipline and cinematic vision to editorial, commercial, and portrait photography. Based in Los Angeles and New York."
+        image="/images/allen-about-new.png"
+      />
+      <PersonSchema />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "About", url: "https://www.allenhenson.com/about" },
+        ]}
+      />
+      <div className="min-h-screen py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
@@ -139,6 +154,7 @@ export default function About() {
           </motion.div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

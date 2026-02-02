@@ -7,10 +7,24 @@
  */
 
 import { motion } from "framer-motion";
+import { SEOHead } from "@/components/SEOHead";
+import { BreadcrumbSchema } from "@/components/StructuredData";
 
 export default function Video() {
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <>
+      <SEOHead
+        title="Video Reel"
+        description="Cinematic video work by Allen Henson. Commercial campaigns, music videos, and narrative-driven content. Director's reel showcasing cinematography, direction, and post-production expertise."
+        image="/images/portfolio-01.png"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Video", url: "https://www.allenhenson.com/video" },
+        ]}
+      />
+      <div className="min-h-screen py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
@@ -90,6 +104,7 @@ export default function Video() {
           </p>
         </motion.div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

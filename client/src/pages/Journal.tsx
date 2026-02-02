@@ -8,6 +8,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { SEOHead } from "@/components/SEOHead";
+import { BreadcrumbSchema } from "@/components/StructuredData";
 
 // Journal images from allenhenson.nyc/about page
 // Export for use in Edit page
@@ -249,7 +251,19 @@ export default function Journal() {
   };
 
   return (
-    <div className="min-h-screen">
+    <>
+      <SEOHead
+        title="The Journal"
+        description="Behind the scenes and personal photography from Allen Henson's journey. Fragments of a life spanning two decades of travel, conflict documentation, and artistic exploration across continents."
+        image="/images/journal/1.png"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Journal", url: "https://www.allenhenson.com/journal" },
+        ]}
+      />
+      <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-24 md:py-32">
         <div className="container">
@@ -355,6 +369,7 @@ export default function Journal() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }

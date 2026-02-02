@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
+import { BreadcrumbSchema } from "@/components/StructuredData";
 
 // Full 81-product catalog
 const staticProducts = [
@@ -165,7 +167,19 @@ export default function Sales() {
   };
 
   return (
-    <div className="min-h-screen">
+    <>
+      <SEOHead
+        title="Shop | Fine Art Prints & Books"
+        description="Limited edition fine art prints, signed photography books, and exclusive collections by Allen Henson. Each piece is a fragment of a larger story. 81 pieces available including the ABSCOND series and Editorial on the Run."
+        image="/images/sales/abscond-boxset-realistic-1.webp"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Shop", url: "https://www.allenhenson.com/shop" },
+        ]}
+      />
+      <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -358,6 +372,7 @@ export default function Sales() {
           </motion.div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

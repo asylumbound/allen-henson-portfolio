@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Calendar } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { SEOHead } from "@/components/SEOHead";
+import { BreadcrumbSchema } from "@/components/StructuredData";
 
 // Hero image for the blog section
 const BLOG_HERO = "/images/L1009868.jpg";
@@ -29,7 +31,19 @@ export default function Blog() {
   };
 
   return (
-    <div className="min-h-screen">
+    <>
+      <SEOHead
+        title="Blog"
+        description="Essays on cinematography, photography, production, and AI by Allen Henson. Insights from two decades of professional experience in editorial, commercial, and cinematic storytelling."
+        image="/images/L1009868.jpg"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Blog", url: "https://www.allenhenson.com/blog" },
+        ]}
+      />
+      <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -135,6 +149,7 @@ export default function Blog() {
           )}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

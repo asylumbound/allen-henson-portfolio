@@ -9,6 +9,8 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
+import { ImageGallerySchema, BreadcrumbSchema } from "@/components/StructuredData";
 
 // Product photography categories and images
 const productCategories = [
@@ -216,8 +218,25 @@ export default function ProductPhotography() {
   };
 
   return (
-    <div className="min-h-screen" onKeyDown={handleKeyDown} tabIndex={0}>
-      {/* Hero Section */}
+    <>
+      <SEOHead
+        title="Product Photography"
+        description="High-end commercial product photography by Allen Henson. Luxury watches, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision for brands like Rolex, Porsche, Dom Pérignon, and more."
+        image="/images/product/rolex-pepsi-gmt.webp"
+      />
+      <ImageGallerySchema
+        name="Product Photography Portfolio"
+        description="Commercial product photography portfolio featuring luxury watches, automotive, spirits, and consumer goods."
+        images={filteredImages}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://www.allenhenson.com/" },
+          { name: "Product Photography", url: "https://www.allenhenson.com/product-photography" },
+        ]}
+      />
+      <div className="min-h-screen" onKeyDown={handleKeyDown} tabIndex={0}>
+        {/* Hero Section */}
       <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="w-full h-full bg-gradient-to-b from-secondary/50 to-background" />
@@ -402,6 +421,7 @@ export default function ProductPhotography() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }
