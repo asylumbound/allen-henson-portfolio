@@ -117,3 +117,7 @@
 - [x] Add image delete functionality to /edit admin page (removes from gallery order)
 - [x] Create backend API endpoints for upload and delete (gallery.uploadImage, gallery.deleteImage)
 - [x] Update Edit page UI with upload dropzone and delete buttons (green upload button, red trash icons)
+
+- [ ] Configure Stripe with allen@allenhenson.com account
+- [ ] Test Stripe checkout flow functionality
+- [ ] Verify webhook configuration and order processing
