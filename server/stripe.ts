@@ -199,6 +199,33 @@ ${(session as any).shipping_details.address.country || ""}
         }
 
         console.log(`[Stripe Webhook] Order ${session.id} marked as paid`);
+        
+        // Send order confirmation email to customer
+        try {
+          const customerEmail = session.customer_details?.email || session.customer_email;
+          if (customerEmail) {
+            const { sendOrderConfirmation } = await import("./email");
+            const productName = session.metadata?.product_slug 
+              ? productPrices[session.metadata.product_slug]?.name || session.metadata.product_slug
+              : "Unknown Product";
+            const variantName = session.metadata?.variant_name || "";
+            
+            await sendOrderConfirmation({
+              customerEmail,
+              customerName: session.customer_details?.name || "Valued Customer",
+              productName,
+              productSize: variantName || "Standard",
+              amountPaid: session.amount_total || 0,
+              orderDate: new Date(),
+              sessionId: session.id,
+            });
+            console.log(`[Stripe Webhook] Order confirmation email sent to ${customerEmail}`);
+          } else {
+            console.warn("[Stripe Webhook] No customer email available for confirmation");
+          }
+        } catch (emailError) {
+          console.error("[Stripe Webhook] Failed to send customer confirmation email:", emailError);
+        }
       } catch (error) {
         console.error("[Stripe Webhook] Error updating order:", error);
       }

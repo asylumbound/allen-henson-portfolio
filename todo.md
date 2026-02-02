@@ -148,3 +148,8 @@
 
 - [x] Add automatic responsive image generation when uploading new images (Sharp integration)
 - [x] Update ProductPhotography page to handle missing responsive variants gracefully (fallback to original)
+
+- [x] Disable zoom feature on product photography page (replaced ZoomableImage with ProductImage)
+- [x] Integrate SendGrid for email services (server/email.ts)
+- [x] Add order confirmation email to customers after successful purchase (sent via Stripe webhook)
+- [x] Update contact form to send emails via SendGrid (with auto-reply to submitter)

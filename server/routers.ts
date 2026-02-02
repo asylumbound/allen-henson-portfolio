@@ -220,15 +220,47 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().min(1, "Name is required"),
         email: z.string().email("Valid email is required"),
+        subject: z.string().optional(),
+        projectType: z.string().optional(),
         message: z.string().min(10, "Message must be at least 10 characters"),
       }))
       .mutation(async ({ input }) => {
+        const { sendContactFormEmail, sendContactAutoReply, isEmailConfigured } = await import("./email");
         const { notifyOwner } = await import("./_core/notification");
         
+        // Try SendGrid first if configured
+        if (isEmailConfigured()) {
+          try {
+            // Send email to Allen
+            const emailSent = await sendContactFormEmail({
+              name: input.name,
+              email: input.email,
+              subject: input.subject || "Website Inquiry",
+              message: input.message,
+              projectType: input.projectType,
+            });
+            
+            if (emailSent) {
+              // Send auto-reply to the person who submitted the form
+              await sendContactAutoReply({
+                name: input.name,
+                email: input.email,
+              });
+              
+              return { success: true };
+            }
+          } catch (emailError) {
+            console.error("[Contact] SendGrid failed, falling back to notification:", emailError);
+          }
+        }
+        
+        // Fallback to owner notification if SendGrid fails or isn't configured
         const title = `New Contact Form Submission from ${input.name}`;
         const content = `
 **Name:** ${input.name}
 **Email:** ${input.email}
+${input.projectType ? `**Project Type:** ${input.projectType}` : ""}
+${input.subject ? `**Subject:** ${input.subject}` : ""}
 
 **Message:**
 ${input.message}

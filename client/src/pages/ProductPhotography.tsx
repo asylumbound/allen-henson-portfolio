@@ -108,8 +108,8 @@ function shuffleWithSeed(array: typeof productPhotographyImages, seed: number) {
 // Pre-shuffled images for "All" view (seed ensures consistent order)
 const defaultShuffledImages = shuffleWithSeed(productPhotographyImages, 42);
 
-// Zoom-on-hover component
-function ZoomableImage({ 
+// Simple image component (zoom feature disabled)
+function ProductImage({ 
   src, 
   alt, 
   className,
@@ -120,36 +120,14 @@ function ZoomableImage({
   className?: string;
   onLoad?: () => void;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [position, setPosition] = useState({ x: 50, y: 50 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setPosition({ x, y });
-  };
-
   return (
-    <div
-      ref={containerRef}
-      className="relative overflow-hidden w-full h-full"
-      onMouseEnter={() => setIsZoomed(true)}
-      onMouseLeave={() => setIsZoomed(false)}
-      onMouseMove={handleMouseMove}
-    >
+    <div className="relative overflow-hidden w-full h-full">
       <img
         src={src}
         srcSet={`${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         alt={alt}
-        className={`w-full h-full transition-transform duration-300 ease-out ${className}`}
-        style={{
-          transform: isZoomed ? 'scale(2)' : 'scale(1)',
-          transformOrigin: `${position.x}% ${position.y}%`,
-        }}
+        className={`w-full h-full object-cover ${className}`}
         loading="lazy"
         onLoad={onLoad}
         onError={(e) => {
@@ -308,8 +286,8 @@ export default function ProductPhotography() {
                   onClick={() => openLightbox(index)}
                 >
                   <div className="relative overflow-hidden bg-secondary/20 rounded-sm">
-                    {/* Zoomable image - shows full uncropped image */}
-                    <ZoomableImage
+                    {/* Product image - shows full uncropped image */}
+                    <ProductImage
                       src={image.src}
                       alt={image.alt}
                       className="object-contain w-full"
