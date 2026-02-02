@@ -98,10 +98,10 @@ export default function Contact() {
                   </p>
                 </div>
                 <a
-                  href="mailto:contact@allenhenson.la"
+                  href="mailto:allen@allenhenson.com"
                   className="text-lg font-light text-foreground hover:text-gold cinematic-transition gold-underline"
                 >
-                  contact@allenhenson.la
+                  allen@allenhenson.com
                 </a>
               </div>
 

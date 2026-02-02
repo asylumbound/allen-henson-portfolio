@@ -186,3 +186,5 @@
 - [x] Investigate why /product_edit changes aren't syncing to live site
   - Root cause: ProductEdit.tsx had different fallback list (51 images) vs ProductPhotography.tsx (42 images)
   - Fixed by syncing both files to use the same 42-image list matching database order
+
+- [x] Change contact page email from contact@allenhenson.la to allen@allenhenson.com
