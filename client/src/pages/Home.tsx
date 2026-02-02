@@ -171,7 +171,7 @@ export default function Home() {
             >
               <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                  src="/images/allen-polaroid23gg.jpg"
+                  src="/images/allen-about-hero.webp"
                   alt="Allen Henson"
                   className="w-full h-full object-cover"
                   loading="lazy"

@@ -103,3 +103,5 @@
 - [x] Generate multiple image sizes (400w, 800w, 1200w) for product images (40 product + 59 sales = 99 images)
 - [x] Update Sales, ProductDetail, and ProductPhotography pages to use srcset
 - [x] Test responsive images across mobile, tablet, and desktop viewports (40 images with srcset verified)
+
+- [x] Update homepage "A Witness to Light" section with hero image from About page (allen-about-hero.webp)
