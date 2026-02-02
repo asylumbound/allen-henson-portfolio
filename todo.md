@@ -105,3 +105,8 @@
 - [x] Test responsive images across mobile, tablet, and desktop viewports (40 images with srcset verified)
 
 - [x] Update homepage "A Witness to Light" section with hero image from About page (allen-about-hero.webp)
+
+- [x] Create admin-protected edit page with password authentication (already exists at /edit)
+- [x] Implement drag-and-drop image reordering UI on edit page (Photos and Journal galleries)
+- [x] Test and verify contact form functionality (now sends notifications to owner)
+- [x] Test and verify Stripe checkout flow (redirects to Stripe checkout successfully)

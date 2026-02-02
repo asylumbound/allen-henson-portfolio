@@ -137,6 +137,42 @@ export const appRouter = router({
       }),
   }),
 
+  // Contact form
+  contact: router({
+    submit: publicProcedure
+      .input(z.object({
+        name: z.string().min(1, "Name is required"),
+        email: z.string().email("Valid email is required"),
+        message: z.string().min(10, "Message must be at least 10 characters"),
+      }))
+      .mutation(async ({ input }) => {
+        const { notifyOwner } = await import("./_core/notification");
+        
+        const title = `New Contact Form Submission from ${input.name}`;
+        const content = `
+**Name:** ${input.name}
+**Email:** ${input.email}
+
+**Message:**
+${input.message}
+
+---
+*Submitted via allenhenson.com contact form*
+        `.trim();
+        
+        const success = await notifyOwner({ title, content });
+        
+        if (!success) {
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: "Failed to send message. Please try again or email directly." 
+          });
+        }
+        
+        return { success: true };
+      }),
+  }),
+
   // Stripe checkout
   checkout: router({
     createSession: publicProcedure

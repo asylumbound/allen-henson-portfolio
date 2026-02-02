@@ -10,6 +10,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Send, Instagram, Mail, MapPin } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -17,18 +18,20 @@ export default function Contact() {
     email: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submitContact = trpc.contact.submit.useMutation({
+    onSuccess: () => {
+      toast.success("Message sent successfully! I'll get back to you soon.");
+      setFormData({ name: "", email: "", message: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send message. Please try again.");
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast.success("Message sent successfully! I'll get back to you soon.");
-    setFormData({ name: "", email: "", message: "" });
-    setIsSubmitting(false);
+    submitContact.mutate(formData);
   };
 
   const handleChange = (
@@ -202,10 +205,10 @@ export default function Contact() {
               <div className="pt-4">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={submitContact.isPending}
                   className="group flex items-center gap-3 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? (
+                  {submitContact.isPending ? (
                     "SENDING..."
                   ) : (
                     <>
