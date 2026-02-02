@@ -153,3 +153,7 @@
 - [x] Integrate SendGrid for email services (server/email.ts)
 - [x] Add order confirmation email to customers after successful purchase (sent via Stripe webhook)
 - [x] Update contact form to send emails via SendGrid (with auto-reply to submitter)
+
+- [x] Remove Red Bull, Fanta, and Gatorade images from product photography
+- [x] Rename PHOTOS to EDITORIAL in navigation menu
+- [x] Update Photos page hero and title from Photography to Editorial

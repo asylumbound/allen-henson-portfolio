@@ -16,7 +16,7 @@ const productCategories = [
   { id: "watches", name: "Watches & Jewelry", count: 11 },
   { id: "automotive", name: "Automotive", count: 10 },
   { id: "spirits", name: "Spirits & Alcohol", count: 10 },
-  { id: "beverages", name: "Beverages", count: 10 },
+  { id: "beverages", name: "Beverages", count: 7 },
   { id: "tech-fashion", name: "Tech / Fashion / Consumer", count: 10 },
 ];
 
@@ -62,13 +62,13 @@ export const productPhotographyImages = [
   // Beverages (10)
   { src: "/images/product/coca-cola-classic.webp", alt: "Coca-Cola Classic Bottle", category: "beverages", description: "Studio: iconic contour bottle, condensation" },
   { src: "/images/product/pepsi-can.webp", alt: "Pepsi Can Splash", category: "beverages", description: "Studio: dynamic water splash, frozen motion" },
-  { src: "/images/product/red-bull-energy.webp", alt: "Red Bull Energy", category: "beverages", description: "Studio: silver can, bulls logo" },
+
   { src: "/images/product/starbucks-frappuccino.webp", alt: "Starbucks Frappuccino", category: "beverages", description: "Studio: glass bottle, siren logo" },
   { src: "/images/product/perrier-sparkling.webp", alt: "Perrier Sparkling Water", category: "beverages", description: "Studio: green glass, rising bubbles" },
   { src: "/images/product/monster-energy.webp", alt: "Monster Energy", category: "beverages", description: "Studio: green claw logo, ice crystals" },
   { src: "/images/product/san-pellegrino.webp", alt: "San Pellegrino", category: "beverages", description: "Studio: Italian elegance, red star" },
-  { src: "/images/product/gatorade-orange.webp", alt: "Gatorade Orange", category: "beverages", description: "Studio: athletic energy, lightning bolt" },
-  { src: "/images/product/fanta-orange.webp", alt: "Fanta Orange", category: "beverages", description: "Studio: vibrant orange, playful" },
+
+
   { src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
   
   // Tech / Fashion / Consumer Icons (10)

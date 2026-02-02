@@ -236,7 +236,7 @@ export default function Photos() {
             PORTFOLIO
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-            Photography
+            Editorial
           </h1>
           <div className="w-16 h-px bg-gold mx-auto mb-6" />
           <p className="max-w-2xl mx-auto text-base font-light leading-relaxed text-muted-foreground">
