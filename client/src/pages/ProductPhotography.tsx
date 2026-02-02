@@ -15,6 +15,7 @@ const productCategories = [
   { id: "automotive", name: "Automotive", count: 10 },
   { id: "spirits", name: "Spirits & Alcohol", count: 10 },
   { id: "beverages", name: "Beverages", count: 10 },
+  { id: "tech-fashion", name: "Tech / Fashion / Consumer", count: 10 },
 ];
 
 // Product images with metadata
@@ -67,6 +68,18 @@ export const productPhotographyImages = [
   { src: "/images/product/gatorade-orange.webp", alt: "Gatorade Orange", category: "beverages", description: "Studio: athletic energy, lightning bolt" },
   { src: "/images/product/fanta-orange.webp", alt: "Fanta Orange", category: "beverages", description: "Studio: vibrant orange, playful" },
   { src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
+  
+  // Tech / Fashion / Consumer Icons (10)
+  { src: "/images/product/tech-iphone-backplate.webp", alt: "Apple iPhone Backplate Macro", category: "tech-fashion", description: "Studio: ultra-clean specular control" },
+  { src: "/images/product/tech-leica-camera.webp", alt: "Leica Camera Body", category: "tech-fashion", description: "Studio: heritage engineering, low-key" },
+  { src: "/images/product/tech-sony-headphones.webp", alt: "Sony Headphones", category: "tech-fashion", description: "Studio: matte textures, soft gradients" },
+  { src: "/images/product/tech-bo-speaker.webp", alt: "Bang & Olufsen Speaker", category: "tech-fashion", description: "Studio: industrial sculpture" },
+  { src: "/images/product/fashion-nike-af1.webp", alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
+  { src: "/images/product/fashion-adidas-samba.webp", alt: "Adidas Samba", category: "tech-fashion", description: "Lifestyle: street + shadow geometry" },
+  { src: "/images/product/fashion-rayban-wayfarer.webp", alt: "Ray-Ban Wayfarer", category: "tech-fashion", description: "Studio: lens reflection discipline" },
+  { src: "/images/product/fashion-lv-leather.webp", alt: "Louis Vuitton Leather Good", category: "tech-fashion", description: "Studio: grain + stitching macro" },
+  { src: "/images/product/consumer-aesop-bottles.webp", alt: "Aesop Bottle Set", category: "tech-fashion", description: "Studio: editorial minimal, warm neutrals" },
+  { src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
 ];
 
 export default function ProductPhotography() {

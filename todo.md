@@ -132,3 +132,5 @@
 - [x] Verify all product images are properly assigned in product detail galleries (reference editorialontherun.com)
 
 - [x] Re-render ABSCOND box set with photorealistic AI images (library desk, marble flat lay, stacked volumes)
+
+- [x] Generate 10 Tech/Fashion/Consumer Icons product images (Apple iPhone, Leica, Sony, B&O, Nike, Adidas, Ray-Ban, LV, Aesop, Dyson)
