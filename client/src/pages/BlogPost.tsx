@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Link, useParams, useLocation } from "wouter";
 import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { Streamdown } from "streamdown";
+import ReactMarkdown from "react-markdown";
 import { SEOHead } from "@/components/SEOHead";
 
 export default function BlogPost() {
@@ -179,7 +179,7 @@ export default function BlogPost() {
               prose-li:text-foreground/85 prose-li:font-light
               prose-hr:border-border prose-hr:my-12"
           >
-            <Streamdown>{post.content}</Streamdown>
+            <ReactMarkdown>{post.content}</ReactMarkdown>
           </motion.article>
 
           {/* Social Sharing */}

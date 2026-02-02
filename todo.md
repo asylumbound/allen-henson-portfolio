@@ -121,3 +121,9 @@
 - [ ] Configure Stripe with allen@allenhenson.com account
 - [ ] Test Stripe checkout flow functionality
 - [ ] Verify webhook configuration and order processing
+
+- [x] Fix coupon code input to allow lowercase characters (handled by Stripe - use uppercase code)
+- [x] Audit codebase for bloat and unused code
+- [x] Analyze bundle size and dependencies
+- [x] Remove hardcoded Stripe keys (use platform env vars)
+- [x] Optimize and remove unnecessary code (removed streamdown, deleted unused components)

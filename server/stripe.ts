@@ -9,10 +9,8 @@ import { getDb } from "./db";
 import { orders } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-// Initialize Stripe with live secret key
-// Using live key directly to bypass platform integration issues
-const LIVE_STRIPE_SECRET_KEY = "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";
-const stripe = new Stripe(LIVE_STRIPE_SECRET_KEY, {
+// Initialize Stripe with secret key from platform environment variables
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2026-01-28.clover",
 });
 
