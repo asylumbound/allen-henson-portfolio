@@ -181,3 +181,6 @@
   - [x] Deletions in /product_edit should remove images from public page
   - [x] Order set in /product_edit should be exactly reflected on public page
   - [x] Public page should ONLY show images from saved database order, not hardcoded fallback
+
+- [x] Reorganize ProductPhotography.tsx hardcoded array to match database order (42 images)
+- [ ] Investigate why /product_edit changes aren't syncing to live site

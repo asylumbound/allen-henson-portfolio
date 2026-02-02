@@ -2,7 +2,7 @@
  * PRODUCT PHOTOGRAPHY PAGE
  * Commercial product photography portfolio showcasing luxury brands
  * Categories: Watches & Jewelry, Automotive, Spirits, Beverages, Tech/Fashion
- * Features: Uncropped images, shuffled layout, zoom-on-hover
+ * Features: Uncropped images, database-driven order, zoom-on-hover
  */
 
 import { useState, useMemo, useRef, useEffect } from "react";
@@ -12,103 +12,104 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { ImageGallerySchema, BreadcrumbSchema } from "@/components/StructuredData";
 
-// Product photography categories and images
+// Product photography categories
 const productCategories = [
   { id: "all", name: "All Work", count: 0 },
-  { id: "watches", name: "Watches & Jewelry", count: 11 },
-  { id: "automotive", name: "Automotive", count: 10 },
-  { id: "spirits", name: "Spirits & Alcohol", count: 10 },
-  { id: "beverages", name: "Beverages", count: 7 },
-  { id: "tech-fashion", name: "Tech / Fashion / Consumer", count: 10 },
+  { id: "watches", name: "Watches & Jewelry", count: 0 },
+  { id: "automotive", name: "Automotive", count: 0 },
+  { id: "spirits", name: "Spirits & Alcohol", count: 0 },
+  { id: "beverages", name: "Beverages", count: 0 },
+  { id: "tech-fashion", name: "Tech / Fashion / Consumer", count: 0 },
 ];
 
-// Product images with metadata
+// Product images with metadata - ORDER MATCHES DATABASE (42 images)
+// This is the master list that provides metadata for each image
 export const productPhotographyImages = [
-  // Watches & Jewelry (11)
-  { src: "/images/product/rolex-pepsi-gmt.webp", alt: "Rolex GMT-Master II 'Pepsi'", category: "watches", description: "Studio: bezel color separation + sapphire control" },
-  { src: "/images/product/omega-speedmaster.webp", alt: "Omega Speedmaster Moonwatch", category: "watches", description: "Studio: black dial contrast, tachymeter detail" },
-  { src: "/images/product/cartier-tank.webp", alt: "Cartier Tank", category: "watches", description: "Studio: high-key minimal, Parisian restraint" },
-  { src: "/images/product/ap-royal-oak.webp", alt: "Audemars Piguet Royal Oak", category: "watches", description: "Studio: bracelet geometry + brushed/polished contrast" },
-  { src: "/images/product/patek-calatrava.webp", alt: "Patek Philippe Calatrava", category: "watches", description: "Studio: dress watch elegance, guilloché dial" },
-  { src: "/images/product/tag-monaco.webp", alt: "TAG Heuer Monaco", category: "watches", description: "Studio: square case, racing heritage" },
-  { src: "/images/product/breitling-navitimer.webp", alt: "Breitling Navitimer", category: "watches", description: "Studio: aviation instrument, slide rule bezel" },
-  { src: "/images/product/tudor-black-bay.webp", alt: "Tudor Black Bay", category: "watches", description: "Studio: dive watch heritage, snowflake hands" },
-  { src: "/images/product/jlc-reverso.webp", alt: "Jaeger-LeCoultre Reverso", category: "watches", description: "Studio: art-deco geometry, reversible case" },
-  { src: "/images/product/tiffany-jewelry.webp", alt: "Tiffany & Co. Diamond Ring", category: "watches", description: "Studio: gem specular control, platinum setting" },
+  // 1. Rolex Yacht-Master
   { src: "/images/product/rolex-yacht-master.webp", alt: "Rolex Yacht-Master II", category: "watches", description: "Studio: water splash, rose gold + steel, ceramic bezel" },
-  
-  // Automotive (10)
-  { src: "/images/product/porsche-911-crest.webp", alt: "Porsche 911 Hood Crest", category: "automotive", description: "Studio: paint reflections, emblem detail" },
-  { src: "/images/product/ferrari-steering.webp", alt: "Ferrari Steering Wheel", category: "automotive", description: "Lifestyle: cockpit drama, leather + carbon" },
-  { src: "/images/product/mercedes-g-headlight.webp", alt: "Mercedes-Benz G-Class Headlight", category: "automotive", description: "Studio: hard-edge highlight, brutal luxury" },
-  { src: "/images/product/range-rover-interior.webp", alt: "Range Rover Interior", category: "automotive", description: "Lifestyle: calm wealth, glass/wood" },
-  { src: "/images/product/tesla-cybertruck.webp", alt: "Tesla Cybertruck Surface", category: "automotive", description: "Studio: geometry + steel texture" },
-  { src: "/images/product/lamborghini-exhaust.webp", alt: "Lamborghini Exhaust", category: "automotive", description: "Studio: titanium heat patina, hexagonal tips" },
-  { src: "/images/product/bentley-flying-b.webp", alt: "Bentley Flying B", category: "automotive", description: "Studio: chrome wings, ultra-luxury emblem" },
-  { src: "/images/product/aston-martin-grille.webp", alt: "Aston Martin Grille", category: "automotive", description: "Studio: mesh detail, British craftsmanship" },
-  { src: "/images/product/mclaren-wheel.webp", alt: "McLaren Carbon Wheel", category: "automotive", description: "Studio: carbon weave, orange caliper" },
-  { src: "/images/product/rolls-royce-spirit.webp", alt: "Rolls-Royce Spirit of Ecstasy", category: "automotive", description: "Studio: iconic chrome figure, dramatic light" },
-  
-  // Spirits & Alcohol (10)
-  { src: "/images/product/macallan-whisky.webp", alt: "The Macallan 18 Year", category: "spirits", description: "Studio: amber gradients, heritage bottle" },
-  { src: "/images/product/hennessy-cognac.webp", alt: "Hennessy XO Cognac", category: "spirits", description: "Studio: dark luxe, snifter glass" },
-  { src: "/images/product/grey-goose-vodka.webp", alt: "Grey Goose Vodka", category: "spirits", description: "Studio: frosted glass, French elegance" },
+  // 2. Don Julio Tequila
   { src: "/images/product/don-julio-tequila.webp", alt: "Don Julio 1942", category: "spirits", description: "Studio: tall amber bottle, gold accents" },
-  { src: "/images/product/champagne-dom-perignon.webp", alt: "Dom Perignon", category: "spirits", description: "Studio: condensation droplets, celebration" },
-  { src: "/images/product/johnnie-walker-blue.webp", alt: "Johnnie Walker Blue Label", category: "spirits", description: "Studio: iconic blue bottle, gold label" },
-  { src: "/images/product/patron-tequila.webp", alt: "Patrón Silver", category: "spirits", description: "Studio: hand-blown glass, bee logo" },
-  { src: "/images/product/bombay-sapphire-gin.webp", alt: "Bombay Sapphire Gin", category: "spirits", description: "Studio: blue glass facets, Queen Victoria" },
-  { src: "/images/product/remy-martin-xo.webp", alt: "Rémy Martin XO", category: "spirits", description: "Studio: frosted decanter, centaur logo" },
-  { src: "/images/product/veuve-clicquot.webp", alt: "Veuve Clicquot", category: "spirits", description: "Studio: iconic yellow label, celebration" },
-  
-  // Beverages (10)
-  { src: "/images/product/coca-cola-classic.webp", alt: "Coca-Cola Classic Bottle", category: "beverages", description: "Studio: iconic contour bottle, condensation" },
-  { src: "/images/product/pepsi-can.webp", alt: "Pepsi Can Splash", category: "beverages", description: "Studio: dynamic water splash, frozen motion" },
-
-  { src: "/images/product/starbucks-frappuccino.webp", alt: "Starbucks Frappuccino", category: "beverages", description: "Studio: glass bottle, siren logo" },
-  { src: "/images/product/perrier-sparkling.webp", alt: "Perrier Sparkling Water", category: "beverages", description: "Studio: green glass, rising bubbles" },
-  { src: "/images/product/monster-energy.webp", alt: "Monster Energy", category: "beverages", description: "Studio: green claw logo, ice crystals" },
-  { src: "/images/product/san-pellegrino.webp", alt: "San Pellegrino", category: "beverages", description: "Studio: Italian elegance, red star" },
-
-
-  { src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
-  
-  // Tech / Fashion / Consumer Icons (10)
-  { src: "/images/product/tech-iphone-backplate.webp", alt: "Apple iPhone Backplate Macro", category: "tech-fashion", description: "Studio: ultra-clean specular control" },
-  { src: "/images/product/tech-leica-camera.webp", alt: "Leica Camera Body", category: "tech-fashion", description: "Studio: heritage engineering, low-key" },
-  { src: "/images/product/tech-sony-headphones.webp", alt: "Sony Headphones", category: "tech-fashion", description: "Studio: matte textures, soft gradients" },
-  { src: "/images/product/tech-bo-speaker.webp", alt: "Bang & Olufsen Speaker", category: "tech-fashion", description: "Studio: industrial sculpture" },
-  { src: "/images/product/fashion-nike-af1.webp", alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
-  { src: "/images/product/fashion-adidas-samba.webp", alt: "Adidas Samba", category: "tech-fashion", description: "Lifestyle: street + shadow geometry" },
-  { src: "/images/product/fashion-rayban-wayfarer.webp", alt: "Ray-Ban Wayfarer", category: "tech-fashion", description: "Studio: lens reflection discipline" },
-  { src: "/images/product/fashion-lv-leather.webp", alt: "Louis Vuitton Leather Good", category: "tech-fashion", description: "Studio: grain + stitching macro" },
+  // 3. Aesop Bottles
   { src: "/images/product/consumer-aesop-bottles.webp", alt: "Aesop Bottle Set", category: "tech-fashion", description: "Studio: editorial minimal, warm neutrals" },
+  // 4. McLaren Wheel
+  { src: "/images/product/mclaren-wheel.webp", alt: "McLaren Carbon Wheel", category: "automotive", description: "Studio: carbon weave, orange caliper" },
+  // 5. Louis Vuitton Leather
+  { src: "/images/product/fashion-lv-leather.webp", alt: "Louis Vuitton Leather Good", category: "tech-fashion", description: "Studio: grain + stitching macro" },
+  // 6. Bang & Olufsen Speaker
+  { src: "/images/product/tech-bo-speaker.webp", alt: "Bang & Olufsen Speaker", category: "tech-fashion", description: "Studio: industrial sculpture" },
+  // 7. Audemars Piguet Royal Oak
+  { src: "/images/product/ap-royal-oak.webp", alt: "Audemars Piguet Royal Oak", category: "watches", description: "Studio: bracelet geometry + brushed/polished contrast" },
+  // 8. Jaeger-LeCoultre Reverso
+  { src: "/images/product/jlc-reverso.webp", alt: "Jaeger-LeCoultre Reverso", category: "watches", description: "Studio: art-deco geometry, reversible case" },
+  // 9. Omega Speedmaster
+  { src: "/images/product/omega-speedmaster.webp", alt: "Omega Speedmaster Moonwatch", category: "watches", description: "Studio: black dial contrast, tachymeter detail" },
+  // 10. Porsche 911 Crest
+  { src: "/images/product/porsche-911-crest.webp", alt: "Porsche 911 Hood Crest", category: "automotive", description: "Studio: paint reflections, emblem detail" },
+  // 11. Tiffany Jewelry
+  { src: "/images/product/tiffany-jewelry.webp", alt: "Tiffany & Co. Diamond Ring", category: "watches", description: "Studio: gem specular control, platinum setting" },
+  // 12. Patek Philippe Calatrava
+  { src: "/images/product/patek-calatrava.webp", alt: "Patek Philippe Calatrava", category: "watches", description: "Studio: dress watch elegance, guilloché dial" },
+  // 13. TAG Heuer Monaco
+  { src: "/images/product/tag-monaco.webp", alt: "TAG Heuer Monaco", category: "watches", description: "Studio: square case, racing heritage" },
+  // 14. Cartier Tank
+  { src: "/images/product/cartier-tank.webp", alt: "Cartier Tank", category: "watches", description: "Studio: high-key minimal, Parisian restraint" },
+  // 15. Mercedes G-Class Headlight
+  { src: "/images/product/mercedes-g-headlight.webp", alt: "Mercedes-Benz G-Class Headlight", category: "automotive", description: "Studio: hard-edge highlight, brutal luxury" },
+  // 16. Breitling Navitimer
+  { src: "/images/product/breitling-navitimer.webp", alt: "Breitling Navitimer", category: "watches", description: "Studio: aviation instrument, slide rule bezel" },
+  // 17. Tudor Black Bay
+  { src: "/images/product/tudor-black-bay.webp", alt: "Tudor Black Bay", category: "watches", description: "Studio: dive watch heritage, snowflake hands" },
+  // 18. Macallan Whisky
+  { src: "/images/product/macallan-whisky.webp", alt: "The Macallan 18 Year", category: "spirits", description: "Studio: amber gradients, heritage bottle" },
+  // 19. Ferrari Steering
+  { src: "/images/product/ferrari-steering.webp", alt: "Ferrari Steering Wheel", category: "automotive", description: "Lifestyle: cockpit drama, leather + carbon" },
+  // 20. Range Rover Interior
+  { src: "/images/product/range-rover-interior.webp", alt: "Range Rover Interior", category: "automotive", description: "Lifestyle: calm wealth, glass/wood" },
+  // 21. Tesla Cybertruck
+  { src: "/images/product/tesla-cybertruck.webp", alt: "Tesla Cybertruck Surface", category: "automotive", description: "Studio: geometry + steel texture" },
+  // 22. Rolls-Royce Spirit
+  { src: "/images/product/rolls-royce-spirit.webp", alt: "Rolls-Royce Spirit of Ecstasy", category: "automotive", description: "Studio: iconic chrome figure, dramatic light" },
+  // 23. Hennessy Cognac
+  { src: "/images/product/hennessy-cognac.webp", alt: "Hennessy XO Cognac", category: "spirits", description: "Studio: dark luxe, snifter glass" },
+  // 24. Rémy Martin XO
+  { src: "/images/product/remy-martin-xo.webp", alt: "Rémy Martin XO", category: "spirits", description: "Studio: frosted decanter, centaur logo" },
+  // 25. Lamborghini Exhaust
+  { src: "/images/product/lamborghini-exhaust.webp", alt: "Lamborghini Exhaust", category: "automotive", description: "Studio: titanium heat patina, hexagonal tips" },
+  // 26. Bentley Flying B
+  { src: "/images/product/bentley-flying-b.webp", alt: "Bentley Flying B", category: "automotive", description: "Studio: chrome wings, ultra-luxury emblem" },
+  // 27. Johnnie Walker Blue
+  { src: "/images/product/johnnie-walker-blue.webp", alt: "Johnnie Walker Blue Label", category: "spirits", description: "Studio: iconic blue bottle, gold label" },
+  // 28. Aston Martin Grille
+  { src: "/images/product/aston-martin-grille.webp", alt: "Aston Martin Grille", category: "automotive", description: "Studio: mesh detail, British craftsmanship" },
+  // 29. Adidas Samba
+  { src: "/images/product/fashion-adidas-samba.webp", alt: "Adidas Samba", category: "tech-fashion", description: "Lifestyle: street + shadow geometry" },
+  // 30. Grey Goose Vodka
+  { src: "/images/product/grey-goose-vodka.webp", alt: "Grey Goose Vodka", category: "spirits", description: "Studio: frosted glass, French elegance" },
+  // 31. Dom Perignon
+  { src: "/images/product/champagne-dom-perignon.webp", alt: "Dom Perignon", category: "spirits", description: "Studio: condensation droplets, celebration" },
+  // 32. Sprite Lemon
+  { src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
+  // 33. Veuve Clicquot
+  { src: "/images/product/veuve-clicquot.webp", alt: "Veuve Clicquot", category: "spirits", description: "Studio: iconic yellow label, celebration" },
+  // 34. Bombay Sapphire Gin
+  { src: "/images/product/bombay-sapphire-gin.webp", alt: "Bombay Sapphire Gin", category: "spirits", description: "Studio: blue glass facets, Queen Victoria" },
+  // 35. Coca-Cola Classic
+  { src: "/images/product/coca-cola-classic.webp", alt: "Coca-Cola Classic Bottle", category: "beverages", description: "Studio: iconic contour bottle, condensation" },
+  // 36. Pepsi Can
+  { src: "/images/product/pepsi-can.webp", alt: "Pepsi Can Splash", category: "beverages", description: "Studio: dynamic water splash, frozen motion" },
+  // 37. Monster Energy
+  { src: "/images/product/monster-energy.webp", alt: "Monster Energy", category: "beverages", description: "Studio: green claw logo, ice crystals" },
+  // 38. San Pellegrino
+  { src: "/images/product/san-pellegrino.webp", alt: "San Pellegrino", category: "beverages", description: "Studio: Italian elegance, red star" },
+  // 39. Dyson Hair Tool
   { src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
+  // 40. Leica Camera
+  { src: "/images/product/tech-leica-camera.webp", alt: "Leica Camera Body", category: "tech-fashion", description: "Studio: heritage engineering, low-key" },
+  // 41. Sony Headphones
+  { src: "/images/product/tech-sony-headphones.webp", alt: "Sony Headphones", category: "tech-fashion", description: "Studio: matte textures, soft gradients" },
+  // 42. Nike Air Force 1
+  { src: "/images/product/fashion-nike-af1.webp", alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
 ];
-
-// Seeded shuffle function for consistent but mixed order
-function shuffleWithSeed(array: typeof productPhotographyImages, seed: number) {
-  const shuffled = [...array];
-  let currentIndex = shuffled.length;
-  let randomValue;
-  
-  // Simple seeded random
-  const seededRandom = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-
-  while (currentIndex !== 0) {
-    randomValue = Math.floor(seededRandom() * currentIndex);
-    currentIndex--;
-    [shuffled[currentIndex], shuffled[randomValue]] = [shuffled[randomValue], shuffled[currentIndex]];
-  }
-
-  return shuffled;
-}
-
-// Pre-shuffled images for "All" view (seed ensures consistent order)
-const defaultShuffledImages = shuffleWithSeed(productPhotographyImages, 42);
 
 // Simple image component (zoom feature disabled)
 function ProductImage({ 
@@ -149,7 +150,8 @@ export default function ProductPhotography() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [orderedImages, setOrderedImages] = useState(defaultShuffledImages);
+  // Start with the hardcoded order (which now matches database)
+  const [orderedImages, setOrderedImages] = useState(productPhotographyImages);
 
   // Load saved order from database
   const { data: savedOrder } = trpc.gallery.getOrder.useQuery(
@@ -171,7 +173,7 @@ export default function ProductPhotography() {
     }
   }, [savedOrder]);
 
-  // Filter images by category - use ordered for "all", original order for categories
+  // Filter images by category
   const filteredImages = useMemo(() => {
     if (selectedCategory === "all") {
       return orderedImages;
@@ -200,95 +202,99 @@ export default function ProductPhotography() {
     document.body.style.overflow = "auto";
   };
 
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? filteredImages.length - 1 : prev - 1));
+  const navigateLightbox = (direction: "prev" | "next") => {
+    if (direction === "prev") {
+      setCurrentIndex((prev) => (prev === 0 ? filteredImages.length - 1 : prev - 1));
+    } else {
+      setCurrentIndex((prev) => (prev === filteredImages.length - 1 ? 0 : prev + 1));
+    }
   };
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === filteredImages.length - 1 ? 0 : prev + 1));
-  };
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") navigateLightbox("prev");
+      if (e.key === "ArrowRight") navigateLightbox("next");
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, filteredImages.length]);
 
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") closeLightbox();
-    if (e.key === "ArrowLeft") goToPrevious();
-    if (e.key === "ArrowRight") goToNext();
-  };
+  // SEO data
+  const seoImages = filteredImages.slice(0, 10).map(img => ({
+    src: `https://allenhenson.com${img.src}`,
+    alt: img.alt
+  }));
 
   return (
     <>
       <SEOHead
-        title="Product Photography"
-        description="High-end commercial product photography by Allen Henson. Luxury watches, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision for brands like Rolex, Porsche, Dom Pérignon, and more."
-        image="/images/product/rolex-pepsi-gmt.webp"
+        title="Product Photography | Allen Henson"
+        description="High-end commercial product photography for luxury brands, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision by Allen Henson."
+        image="/images/product/rolex-yacht-master.webp"
+        url="https://allenhenson.com/product-photography"
       />
       <ImageGallerySchema
-        name="Product Photography Portfolio"
-        description="Commercial product photography portfolio featuring luxury watches, automotive, spirits, and consumer goods."
-        images={filteredImages}
+        name="Allen Henson Product Photography Portfolio"
+        description="Commercial product photography showcasing luxury watches, automotive details, premium spirits, and consumer goods"
+        images={seoImages}
       />
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://www.allenhenson.com/" },
-          { name: "Product Photography", url: "https://www.allenhenson.com/product-photography" },
+          { name: "Home", url: "https://allenhenson.com" },
+          { name: "Product Photography", url: "https://allenhenson.com/product-photography" }
         ]}
       />
-      <div className="min-h-screen" onKeyDown={handleKeyDown} tabIndex={0}>
-        {/* Hero Section */}
-      <section className="relative py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="w-full h-full bg-gradient-to-b from-secondary/50 to-background" />
-        </div>
 
-        <div className="relative z-10 container text-center">
+      <div className="min-h-screen pt-24 pb-16">
+        {/* Header */}
+        <div className="container mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="text-center"
           >
             <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
               COMMERCIAL PORTFOLIO
             </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
               Product Photography
             </h1>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
-            <p className="max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed text-foreground/80">
-              High-end commercial product photography for luxury brands, automotive, 
-              spirits, and consumer goods. Campaign-ready imagery with cinematic precision.
+            <p className="max-w-2xl mx-auto text-base font-light leading-relaxed text-foreground/80">
+              High-end commercial product photography for luxury brands, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision.
             </p>
           </motion.div>
         </div>
-      </section>
 
-      {/* Category Filter */}
-      <section className="py-8 border-b border-border/30">
-        <div className="container">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+        {/* Category Filter */}
+        <div className="container mb-8">
+          <div className="flex flex-wrap justify-center gap-2">
             {categoriesWithCounts.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`text-sm tracking-cinematic font-light transition-all duration-300 ${
+                className={`px-4 py-2 text-sm tracking-cinematic transition-all duration-300 ${
                   selectedCategory === category.id
-                    ? "text-gold"
-                    : "text-foreground/60 hover:text-foreground"
+                    ? "bg-gold text-background"
+                    : "border border-foreground/20 text-foreground/70 hover:border-gold hover:text-gold"
                 }`}
               >
                 {category.name}
-                <span className="ml-2 text-xs text-foreground/40">({category.count})</span>
+                <span className="ml-1 opacity-60">({category.count})</span>
               </button>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Gallery Grid - Masonry-style with uncropped images */}
-      <section className="py-16 md:py-24">
+        {/* Image Grid */}
         <div className="container">
-          <motion.div 
-            className="columns-1 md:columns-2 lg:columns-3 gap-4 md:gap-6"
+          <motion.div
             layout
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             <AnimatePresence mode="popLayout">
               {filteredImages.map((image, index) => (
@@ -298,127 +304,119 @@ export default function ProductPhotography() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className="group cursor-pointer mb-4 md:mb-6 break-inside-avoid"
+                  transition={{ duration: 0.3 }}
+                  className="group cursor-pointer"
                   onClick={() => openLightbox(index)}
                 >
-                  <div className="relative overflow-hidden bg-secondary/20 rounded-sm">
-                    {/* Product image - shows full uncropped image */}
+                  <div className="relative overflow-hidden bg-secondary/30">
                     <ProductImage
                       src={image.src}
                       alt={image.alt}
-                      className="object-contain w-full"
+                      className="image-hover"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
+                    <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
-                    {/* Hover overlay with info */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 pointer-events-none" />
-                    <div className="absolute inset-0 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
-                      <p className="text-white text-sm font-light drop-shadow-lg">{image.alt}</p>
-                      <p className="text-white/80 text-xs font-light mt-1 drop-shadow-lg">{image.description}</p>
+                    {/* Hover Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-black/80 to-transparent">
+                      <h3 className="text-sm font-medium text-white mb-1">{image.alt}</h3>
+                      <p className="text-xs text-white/70">{image.description}</p>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
-
-          {/* Empty state */}
-          {filteredImages.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-foreground/60 font-light">No images in this category yet.</p>
-            </div>
-          )}
         </div>
-      </section>
 
-      {/* Services CTA */}
-      <section className="py-24 md:py-32 bg-secondary/30">
-        <div className="container text-center">
+        {/* Lightbox */}
+        <AnimatePresence>
+          {lightboxOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+              onClick={closeLightbox}
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeLightbox}
+                className="absolute top-4 right-4 z-50 p-2 text-white/70 hover:text-white transition-colors"
+              >
+                <X className="w-8 h-8" />
+              </button>
+
+              {/* Navigation */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigateLightbox("prev");
+                }}
+                className="absolute left-4 z-50 p-2 text-white/70 hover:text-white transition-colors"
+              >
+                <ChevronLeft className="w-10 h-10" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigateLightbox("next");
+                }}
+                className="absolute right-4 z-50 p-2 text-white/70 hover:text-white transition-colors"
+              >
+                <ChevronRight className="w-10 h-10" />
+              </button>
+
+              {/* Image */}
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                className="max-w-[90vw] max-h-[90vh] relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={filteredImages[currentIndex]?.src}
+                  alt={filteredImages[currentIndex]?.alt}
+                  className="max-w-full max-h-[85vh] object-contain"
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                  <h3 className="text-lg font-medium text-white mb-1">
+                    {filteredImages[currentIndex]?.alt}
+                  </h3>
+                  <p className="text-sm text-white/70">
+                    {filteredImages[currentIndex]?.description}
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Counter */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+                {currentIndex + 1} / {filteredImages.length}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* CTA Section */}
+        <div className="container mt-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="text-center"
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
-              COMMERCIAL SERVICES
-            </p>
-            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-6">
-              Elevate Your Brand
-            </h2>
-            <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-foreground/80 mb-10">
-              From luxury watches to automotive campaigns, I deliver campaign-ready imagery 
-              that communicates brand authority and craftsmanship at the highest commercial level.
-            </p>
             <a
               href="/contact"
-              className="inline-flex items-center gap-2 px-10 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 transition-all duration-300"
             >
               DISCUSS YOUR PROJECT
             </a>
           </motion.div>
         </div>
-      </section>
-
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightboxOpen && filteredImages[currentIndex] && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-            onClick={closeLightbox}
-          >
-            {/* Close button */}
-            <button
-              onClick={closeLightbox}
-              className="absolute top-6 right-6 z-50 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white cinematic-transition"
-              aria-label="Close lightbox"
-            >
-              <X className="w-8 h-8" />
-            </button>
-
-            {/* Navigation buttons */}
-            <button
-              onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
-              className="absolute left-4 md:left-8 z-50 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white cinematic-transition"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-8 h-8" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); goToNext(); }}
-              className="absolute right-4 md:right-8 z-50 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white cinematic-transition"
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-8 h-8" />
-            </button>
-
-            {/* Main image */}
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-[90vw] max-h-[85vh] flex flex-col items-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img
-                src={filteredImages[currentIndex].src}
-                alt={filteredImages[currentIndex].alt}
-                className="max-w-full max-h-[75vh] object-contain"
-              />
-              <div className="mt-4 text-center">
-                <p className="text-white text-lg font-light">{filteredImages[currentIndex].alt}</p>
-                <p className="text-white/60 text-sm font-light mt-1">{filteredImages[currentIndex].description}</p>
-                <p className="text-white/40 text-xs mt-2">{currentIndex + 1} / {filteredImages.length}</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       </div>
     </>
   );
