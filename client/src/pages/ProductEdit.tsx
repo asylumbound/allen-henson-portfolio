@@ -23,68 +23,94 @@ interface ProductImage {
   description: string;
 }
 
-// Initial images from ProductPhotography page - used as fallback if no saved order exists
+// Initial images - MATCHES DATABASE ORDER (42 images)
+// This is the fallback list if no saved order exists
+// Deleted images are NOT included here
 const initialImages: ProductImage[] = [
-  // Watches & Jewelry (11)
-  { id: "1", src: "/images/product/rolex-pepsi-gmt.webp", alt: "Rolex GMT-Master II 'Pepsi'", category: "watches", description: "Studio: bezel color separation + sapphire control" },
-  { id: "2", src: "/images/product/omega-speedmaster.webp", alt: "Omega Speedmaster Moonwatch", category: "watches", description: "Studio: black dial contrast, tachymeter detail" },
-  { id: "3", src: "/images/product/cartier-tank.webp", alt: "Cartier Tank", category: "watches", description: "Studio: high-key minimal, Parisian restraint" },
-  { id: "4", src: "/images/product/ap-royal-oak.webp", alt: "Audemars Piguet Royal Oak", category: "watches", description: "Studio: bracelet geometry + brushed/polished contrast" },
-  { id: "5", src: "/images/product/patek-calatrava.webp", alt: "Patek Philippe Calatrava", category: "watches", description: "Studio: dress watch elegance, guilloché dial" },
-  { id: "6", src: "/images/product/tag-monaco.webp", alt: "TAG Heuer Monaco", category: "watches", description: "Studio: square case, racing heritage" },
-  { id: "7", src: "/images/product/breitling-navitimer.webp", alt: "Breitling Navitimer", category: "watches", description: "Studio: aviation instrument, slide rule bezel" },
-  { id: "8", src: "/images/product/tudor-black-bay.webp", alt: "Tudor Black Bay", category: "watches", description: "Studio: dive watch heritage, snowflake hands" },
-  { id: "9", src: "/images/product/jlc-reverso.webp", alt: "Jaeger-LeCoultre Reverso", category: "watches", description: "Studio: art-deco geometry, reversible case" },
-  { id: "10", src: "/images/product/tiffany-jewelry.webp", alt: "Tiffany & Co. Diamond Ring", category: "watches", description: "Studio: gem specular control, platinum setting" },
-  { id: "11", src: "/images/product/rolex-yacht-master.webp", alt: "Rolex Yacht-Master II", category: "watches", description: "Studio: water splash, rose gold + steel, ceramic bezel" },
-  
-  // Automotive (10)
-  { id: "12", src: "/images/product/porsche-911-crest.webp", alt: "Porsche 911 Hood Crest", category: "automotive", description: "Studio: paint reflections, emblem detail" },
-  { id: "13", src: "/images/product/ferrari-steering.webp", alt: "Ferrari Steering Wheel", category: "automotive", description: "Lifestyle: cockpit drama, leather + carbon" },
-  { id: "14", src: "/images/product/mercedes-g-headlight.webp", alt: "Mercedes-Benz G-Class Headlight", category: "automotive", description: "Studio: hard-edge highlight, brutal luxury" },
-  { id: "15", src: "/images/product/range-rover-interior.webp", alt: "Range Rover Interior", category: "automotive", description: "Lifestyle: calm wealth, glass/wood" },
-  { id: "16", src: "/images/product/tesla-cybertruck.webp", alt: "Tesla Cybertruck Surface", category: "automotive", description: "Studio: geometry + steel texture" },
-  { id: "17", src: "/images/product/lamborghini-exhaust.webp", alt: "Lamborghini Exhaust", category: "automotive", description: "Studio: titanium heat patina, hexagonal tips" },
-  { id: "18", src: "/images/product/bentley-flying-b.webp", alt: "Bentley Flying B", category: "automotive", description: "Studio: chrome wings, ultra-luxury emblem" },
-  { id: "19", src: "/images/product/aston-martin-grille.webp", alt: "Aston Martin Grille", category: "automotive", description: "Studio: mesh detail, British craftsmanship" },
-  { id: "20", src: "/images/product/mclaren-wheel.webp", alt: "McLaren Carbon Wheel", category: "automotive", description: "Studio: carbon weave, orange caliper" },
-  { id: "21", src: "/images/product/rolls-royce-spirit.webp", alt: "Rolls-Royce Spirit of Ecstasy", category: "automotive", description: "Studio: iconic chrome figure, dramatic light" },
-  
-  // Spirits & Alcohol (10)
-  { id: "22", src: "/images/product/macallan-whisky.webp", alt: "The Macallan 18 Year", category: "spirits", description: "Studio: amber gradients, heritage bottle" },
+  // 1. Rolex Yacht-Master
+  { id: "1", src: "/images/product/rolex-yacht-master.webp", alt: "Rolex Yacht-Master II", category: "watches", description: "Studio: water splash, rose gold + steel, ceramic bezel" },
+  // 2. Don Julio Tequila
+  { id: "2", src: "/images/product/don-julio-tequila.webp", alt: "Don Julio 1942", category: "spirits", description: "Studio: tall amber bottle, gold accents" },
+  // 3. Aesop Bottles
+  { id: "3", src: "/images/product/consumer-aesop-bottles.webp", alt: "Aesop Bottle Set", category: "tech-fashion", description: "Studio: editorial minimal, warm neutrals" },
+  // 4. McLaren Wheel
+  { id: "4", src: "/images/product/mclaren-wheel.webp", alt: "McLaren Carbon Wheel", category: "automotive", description: "Studio: carbon weave, orange caliper" },
+  // 5. Louis Vuitton Leather
+  { id: "5", src: "/images/product/fashion-lv-leather.webp", alt: "Louis Vuitton Leather Good", category: "tech-fashion", description: "Studio: grain + stitching macro" },
+  // 6. Bang & Olufsen Speaker
+  { id: "6", src: "/images/product/tech-bo-speaker.webp", alt: "Bang & Olufsen Speaker", category: "tech-fashion", description: "Studio: industrial sculpture" },
+  // 7. Audemars Piguet Royal Oak
+  { id: "7", src: "/images/product/ap-royal-oak.webp", alt: "Audemars Piguet Royal Oak", category: "watches", description: "Studio: bracelet geometry + brushed/polished contrast" },
+  // 8. Jaeger-LeCoultre Reverso
+  { id: "8", src: "/images/product/jlc-reverso.webp", alt: "Jaeger-LeCoultre Reverso", category: "watches", description: "Studio: art-deco geometry, reversible case" },
+  // 9. Omega Speedmaster
+  { id: "9", src: "/images/product/omega-speedmaster.webp", alt: "Omega Speedmaster Moonwatch", category: "watches", description: "Studio: black dial contrast, tachymeter detail" },
+  // 10. Porsche 911 Crest
+  { id: "10", src: "/images/product/porsche-911-crest.webp", alt: "Porsche 911 Hood Crest", category: "automotive", description: "Studio: paint reflections, emblem detail" },
+  // 11. Tiffany Jewelry
+  { id: "11", src: "/images/product/tiffany-jewelry.webp", alt: "Tiffany & Co. Diamond Ring", category: "watches", description: "Studio: gem specular control, platinum setting" },
+  // 12. Patek Philippe Calatrava
+  { id: "12", src: "/images/product/patek-calatrava.webp", alt: "Patek Philippe Calatrava", category: "watches", description: "Studio: dress watch elegance, guilloché dial" },
+  // 13. TAG Heuer Monaco
+  { id: "13", src: "/images/product/tag-monaco.webp", alt: "TAG Heuer Monaco", category: "watches", description: "Studio: square case, racing heritage" },
+  // 14. Cartier Tank
+  { id: "14", src: "/images/product/cartier-tank.webp", alt: "Cartier Tank", category: "watches", description: "Studio: high-key minimal, Parisian restraint" },
+  // 15. Mercedes G-Class Headlight
+  { id: "15", src: "/images/product/mercedes-g-headlight.webp", alt: "Mercedes-Benz G-Class Headlight", category: "automotive", description: "Studio: hard-edge highlight, brutal luxury" },
+  // 16. Breitling Navitimer
+  { id: "16", src: "/images/product/breitling-navitimer.webp", alt: "Breitling Navitimer", category: "watches", description: "Studio: aviation instrument, slide rule bezel" },
+  // 17. Tudor Black Bay
+  { id: "17", src: "/images/product/tudor-black-bay.webp", alt: "Tudor Black Bay", category: "watches", description: "Studio: dive watch heritage, snowflake hands" },
+  // 18. Macallan Whisky
+  { id: "18", src: "/images/product/macallan-whisky.webp", alt: "The Macallan 18 Year", category: "spirits", description: "Studio: amber gradients, heritage bottle" },
+  // 19. Ferrari Steering
+  { id: "19", src: "/images/product/ferrari-steering.webp", alt: "Ferrari Steering Wheel", category: "automotive", description: "Lifestyle: cockpit drama, leather + carbon" },
+  // 20. Range Rover Interior
+  { id: "20", src: "/images/product/range-rover-interior.webp", alt: "Range Rover Interior", category: "automotive", description: "Lifestyle: calm wealth, glass/wood" },
+  // 21. Tesla Cybertruck
+  { id: "21", src: "/images/product/tesla-cybertruck.webp", alt: "Tesla Cybertruck Surface", category: "automotive", description: "Studio: geometry + steel texture" },
+  // 22. Rolls-Royce Spirit
+  { id: "22", src: "/images/product/rolls-royce-spirit.webp", alt: "Rolls-Royce Spirit of Ecstasy", category: "automotive", description: "Studio: iconic chrome figure, dramatic light" },
+  // 23. Hennessy Cognac
   { id: "23", src: "/images/product/hennessy-cognac.webp", alt: "Hennessy XO Cognac", category: "spirits", description: "Studio: dark luxe, snifter glass" },
-  { id: "24", src: "/images/product/grey-goose-vodka.webp", alt: "Grey Goose Vodka", category: "spirits", description: "Studio: frosted glass, French elegance" },
-  { id: "25", src: "/images/product/don-julio-tequila.webp", alt: "Don Julio 1942", category: "spirits", description: "Studio: tall amber bottle, gold accents" },
-  { id: "26", src: "/images/product/champagne-dom-perignon.webp", alt: "Dom Perignon", category: "spirits", description: "Studio: condensation droplets, celebration" },
+  // 24. Rémy Martin XO
+  { id: "24", src: "/images/product/remy-martin-xo.webp", alt: "Rémy Martin XO", category: "spirits", description: "Studio: frosted decanter, centaur logo" },
+  // 25. Lamborghini Exhaust
+  { id: "25", src: "/images/product/lamborghini-exhaust.webp", alt: "Lamborghini Exhaust", category: "automotive", description: "Studio: titanium heat patina, hexagonal tips" },
+  // 26. Bentley Flying B
+  { id: "26", src: "/images/product/bentley-flying-b.webp", alt: "Bentley Flying B", category: "automotive", description: "Studio: chrome wings, ultra-luxury emblem" },
+  // 27. Johnnie Walker Blue
   { id: "27", src: "/images/product/johnnie-walker-blue.webp", alt: "Johnnie Walker Blue Label", category: "spirits", description: "Studio: iconic blue bottle, gold label" },
-  { id: "28", src: "/images/product/patron-tequila.webp", alt: "Patrón Silver", category: "spirits", description: "Studio: hand-blown glass, bee logo" },
-  { id: "29", src: "/images/product/bombay-sapphire-gin.webp", alt: "Bombay Sapphire Gin", category: "spirits", description: "Studio: blue glass facets, Queen Victoria" },
-  { id: "30", src: "/images/product/remy-martin-xo.webp", alt: "Rémy Martin XO", category: "spirits", description: "Studio: frosted decanter, centaur logo" },
-  { id: "31", src: "/images/product/veuve-clicquot.webp", alt: "Veuve Clicquot", category: "spirits", description: "Studio: iconic yellow label, celebration" },
-  
-  // Beverages (10)
-  { id: "32", src: "/images/product/coca-cola-classic.webp", alt: "Coca-Cola Classic Bottle", category: "beverages", description: "Studio: iconic contour bottle, condensation" },
-  { id: "33", src: "/images/product/pepsi-can.webp", alt: "Pepsi Can Splash", category: "beverages", description: "Studio: dynamic water splash, frozen motion" },
-  { id: "34", src: "/images/product/red-bull-energy.webp", alt: "Red Bull Energy", category: "beverages", description: "Studio: silver can, bulls logo" },
-  { id: "35", src: "/images/product/starbucks-frappuccino.webp", alt: "Starbucks Frappuccino", category: "beverages", description: "Studio: glass bottle, siren logo" },
-  { id: "36", src: "/images/product/perrier-sparkling.webp", alt: "Perrier Sparkling Water", category: "beverages", description: "Studio: green glass, rising bubbles" },
+  // 28. Aston Martin Grille
+  { id: "28", src: "/images/product/aston-martin-grille.webp", alt: "Aston Martin Grille", category: "automotive", description: "Studio: mesh detail, British craftsmanship" },
+  // 29. Adidas Samba
+  { id: "29", src: "/images/product/fashion-adidas-samba.webp", alt: "Adidas Samba", category: "tech-fashion", description: "Lifestyle: street + shadow geometry" },
+  // 30. Grey Goose Vodka
+  { id: "30", src: "/images/product/grey-goose-vodka.webp", alt: "Grey Goose Vodka", category: "spirits", description: "Studio: frosted glass, French elegance" },
+  // 31. Dom Perignon
+  { id: "31", src: "/images/product/champagne-dom-perignon.webp", alt: "Dom Perignon", category: "spirits", description: "Studio: condensation droplets, celebration" },
+  // 32. Sprite Lemon
+  { id: "32", src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
+  // 33. Veuve Clicquot
+  { id: "33", src: "/images/product/veuve-clicquot.webp", alt: "Veuve Clicquot", category: "spirits", description: "Studio: iconic yellow label, celebration" },
+  // 34. Bombay Sapphire Gin
+  { id: "34", src: "/images/product/bombay-sapphire-gin.webp", alt: "Bombay Sapphire Gin", category: "spirits", description: "Studio: blue glass facets, Queen Victoria" },
+  // 35. Coca-Cola Classic
+  { id: "35", src: "/images/product/coca-cola-classic.webp", alt: "Coca-Cola Classic Bottle", category: "beverages", description: "Studio: iconic contour bottle, condensation" },
+  // 36. Pepsi Can
+  { id: "36", src: "/images/product/pepsi-can.webp", alt: "Pepsi Can Splash", category: "beverages", description: "Studio: dynamic water splash, frozen motion" },
+  // 37. Monster Energy
   { id: "37", src: "/images/product/monster-energy.webp", alt: "Monster Energy", category: "beverages", description: "Studio: green claw logo, ice crystals" },
+  // 38. San Pellegrino
   { id: "38", src: "/images/product/san-pellegrino.webp", alt: "San Pellegrino", category: "beverages", description: "Studio: Italian elegance, red star" },
-  { id: "39", src: "/images/product/gatorade-orange.webp", alt: "Gatorade Orange", category: "beverages", description: "Studio: athletic energy, lightning bolt" },
-  { id: "40", src: "/images/product/fanta-orange.webp", alt: "Fanta Orange", category: "beverages", description: "Studio: vibrant orange, playful" },
-  { id: "41", src: "/images/product/sprite-lemon.webp", alt: "Sprite Lemon-Lime", category: "beverages", description: "Studio: citrus freshness, clear bubbles" },
-  
-  // Tech / Fashion / Consumer Icons (10)
-  { id: "42", src: "/images/product/tech-iphone-backplate.webp", alt: "Apple iPhone Backplate Macro", category: "tech-fashion", description: "Studio: ultra-clean specular control" },
-  { id: "43", src: "/images/product/tech-leica-camera.webp", alt: "Leica Camera Body", category: "tech-fashion", description: "Studio: heritage engineering, low-key" },
-  { id: "44", src: "/images/product/tech-sony-headphones.webp", alt: "Sony Headphones", category: "tech-fashion", description: "Studio: matte textures, soft gradients" },
-  { id: "45", src: "/images/product/tech-bo-speaker.webp", alt: "Bang & Olufsen Speaker", category: "tech-fashion", description: "Studio: industrial sculpture" },
-  { id: "46", src: "/images/product/fashion-nike-af1.webp", alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
-  { id: "47", src: "/images/product/fashion-adidas-samba.webp", alt: "Adidas Samba", category: "tech-fashion", description: "Lifestyle: street + shadow geometry" },
-  { id: "48", src: "/images/product/fashion-rayban-wayfarer.webp", alt: "Ray-Ban Wayfarer", category: "tech-fashion", description: "Studio: lens reflection discipline" },
-  { id: "49", src: "/images/product/fashion-lv-leather.webp", alt: "Louis Vuitton Leather Good", category: "tech-fashion", description: "Studio: grain + stitching macro" },
-  { id: "50", src: "/images/product/consumer-aesop-bottles.webp", alt: "Aesop Bottle Set", category: "tech-fashion", description: "Studio: editorial minimal, warm neutrals" },
-  { id: "51", src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
+  // 39. Dyson Hair Tool
+  { id: "39", src: "/images/product/consumer-dyson-hairtool.webp", alt: "Dyson Hair Tool", category: "tech-fashion", description: "Studio: chrome + matte, modern premium" },
+  // 40. Leica Camera
+  { id: "40", src: "/images/product/tech-leica-camera.webp", alt: "Leica Camera Body", category: "tech-fashion", description: "Studio: heritage engineering, low-key" },
+  // 41. Sony Headphones
+  { id: "41", src: "/images/product/tech-sony-headphones.webp", alt: "Sony Headphones", category: "tech-fashion", description: "Studio: matte textures, soft gradients" },
+  // 42. Nike Air Force 1
+  { id: "42", src: "/images/product/fashion-nike-af1.webp", alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
 ];
 
 // Create a lookup map for quick access to image metadata by src

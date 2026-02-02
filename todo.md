@@ -183,4 +183,6 @@
   - [x] Public page should ONLY show images from saved database order, not hardcoded fallback
 
 - [x] Reorganize ProductPhotography.tsx hardcoded array to match database order (42 images)
-- [ ] Investigate why /product_edit changes aren't syncing to live site
+- [x] Investigate why /product_edit changes aren't syncing to live site
+  - Root cause: ProductEdit.tsx had different fallback list (51 images) vs ProductPhotography.tsx (42 images)
+  - Fixed by syncing both files to use the same 42-image list matching database order
