@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 import { storagePut } from "./storage";
 import { generateResponsiveImages } from "./imageProcessing";
+import { generateAltText } from "./altTextGenerator";
 
 // Admin password for the /edit page
 const ADMIN_PASSWORD = "&&77VAnguard";
@@ -70,11 +71,22 @@ export const appRouter = router({
           try {
             // Generate responsive images (400w, 800w, 1200w) + original
             const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
+            
+            // Generate AI alt text for the uploaded image
+            let altTextResult = null;
+            try {
+              altTextResult = await generateAltText(result.original.url, input.gallery);
+              console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
+            } catch (altError) {
+              console.error("[Upload] Failed to generate alt text:", altError);
+            }
+            
             return {
               success: true,
               url: result.original.url,
               fileKey: result.original.fileKey,
               variants: result.variants,
+              altText: altTextResult,
             };
           } catch (error) {
             console.error("Failed to generate responsive images, falling back to single upload:", error);
@@ -88,7 +100,16 @@ export const appRouter = router({
         const fileKey = `${baseFileKey}${extension}`;
         const { url } = await storagePut(fileKey, buffer, input.contentType);
         
-        return { success: true, url, fileKey, variants: [] };
+        // Generate AI alt text for the uploaded image
+        let altTextResult = null;
+        try {
+          altTextResult = await generateAltText(url, input.gallery);
+          console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
+        } catch (altError) {
+          console.error("[Upload] Failed to generate alt text:", altError);
+        }
+        
+        return { success: true, url, fileKey, variants: [], altText: altTextResult };
       }),
     
     // Delete an image (removes from order, actual S3 deletion optional)
@@ -138,6 +159,22 @@ export const appRouter = router({
         
         await saveImageOrder(input.gallery, input.order);
         return { success: true };
+      }),
+    
+    // Generate alt text for an existing image
+    generateAltText: publicProcedure
+      .input(z.object({
+        imageUrl: z.string(),
+        context: z.string().optional(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.password !== ADMIN_PASSWORD) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        
+        const result = await generateAltText(input.imageUrl, input.context);
+        return result;
       }),
   }),
 

@@ -172,3 +172,7 @@
 - [x] Add SEO metadata to Contact page
 - [x] Add SEO metadata to Home page
 - [x] Review and update image alt tags across all pages (already well-implemented)
+
+- [x] Create AI alt text generation service using built-in LLM (server/altTextGenerator.ts)
+- [x] Integrate alt text generation into image upload workflow (auto-generates on upload)
+- [x] Add alt text generation endpoint for admin panel (gallery.generateAltText)
