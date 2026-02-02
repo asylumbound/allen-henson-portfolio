@@ -83,7 +83,7 @@ describe('Gallery Router', () => {
       const result = await caller.gallery.saveOrder({
         gallery: 'photos',
         order: ['/images/photo1.jpg', '/images/photo2.jpg'],
-        password: 'allenhenson2026',
+        password: '&&77VAnguard',
       });
       
       expect(result.success).toBe(true);
@@ -104,7 +104,7 @@ describe('Gallery Router', () => {
     it('should accept correct password', async () => {
       const ctx = createTestContext();
       const caller = appRouter.createCaller(ctx);
-      const result = await caller.admin.verifyPassword({ password: 'allenhenson2026' });
+      const result = await caller.admin.verifyPassword({ password: '&&77VAnguard' });
       
       expect(result.success).toBe(true);
       expect(result.token).toBe('admin-verified');

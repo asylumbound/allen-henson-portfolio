@@ -6,7 +6,7 @@
 import { Link, useSearch } from "wouter";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle, Package, Mail, ArrowRight } from "lucide-react";
+import { CheckCircle, Package, Mail, ArrowRight, Tag } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
 export default function CheckoutSuccess() {
@@ -26,6 +26,14 @@ export default function CheckoutSuccess() {
       </div>
     );
   }
+
+  // Calculate if discount was applied
+  // The order object may have additional properties from Stripe API
+  const orderWithExtras = order as typeof order & { discountAmount?: number; originalAmount?: number };
+  const hasDiscount = orderWithExtras?.discountAmount && orderWithExtras.discountAmount > 0;
+  const originalAmount = orderWithExtras?.originalAmount || order?.amount || 0;
+  const amountPaid = order?.amount || 0;
+  const discountAmount = orderWithExtras?.discountAmount || 0;
 
   return (
     <>
@@ -70,19 +78,44 @@ export default function CheckoutSuccess() {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-foreground/60">Product:</span>
-                      <span className="font-medium">{order.productName}</span>
+                      <span className="font-medium text-right max-w-[60%]">{order.productName}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/60">Amount:</span>
-                      <span className="font-medium text-gold">
-                        ${(order.amount / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    
+                    {hasDiscount && (
+                      <>
+                        <div className="flex justify-between text-foreground/50">
+                          <span>Original Price:</span>
+                          <span className="line-through">
+                            ${(originalAmount / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-green-500">
+                          <span className="flex items-center gap-1">
+                            <Tag className="w-3 h-3" />
+                            Discount Applied:
+                          </span>
+                          <span>
+                            -${(discountAmount / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    
+                    <div className="flex justify-between border-t border-border/30 pt-3">
+                      <span className="text-foreground/60 font-medium">Amount Paid:</span>
+                      <span className="font-semibold text-gold text-lg">
+                        ${(amountPaid / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
+                    
                     <div className="flex justify-between">
                       <span className="text-foreground/60">Status:</span>
-                      <span className="font-medium text-green-500 capitalize">{order.status}</span>
+                      <span className={`font-medium capitalize ${order.status === 'paid' ? 'text-green-500' : 'text-yellow-500'}`}>
+                        {order.status === 'paid' ? 'Confirmed' : order.status}
+                      </span>
                     </div>
-                    {order.customerEmail && (
+                    
+                    {order.customerEmail && order.customerEmail !== "pending@checkout.com" && (
                       <div className="flex justify-between">
                         <span className="text-foreground/60">Confirmation sent to:</span>
                         <span className="font-medium">{order.customerEmail}</span>

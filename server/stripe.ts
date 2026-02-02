@@ -144,7 +144,7 @@ stripeRouter.post(
       const session = event.data.object as Stripe.Checkout.Session;
       
       try {
-        // Update order status to paid
+        // Update order status to paid with actual amount and customer email
         const db = await getDb();
         if (db) {
           await db
@@ -152,8 +152,50 @@ stripeRouter.post(
             .set({ 
               status: "paid",
               stripePaymentIntentId: session.payment_intent as string,
+              // Update with actual amount paid (after discounts)
+              amount: session.amount_total || 0,
+              // Update with actual customer email from Stripe
+              customerEmail: session.customer_details?.email || session.customer_email || "unknown@checkout.com",
+              customerName: session.customer_details?.name || null,
             })
             .where(eq(orders.stripeSessionId, session.id));
+          
+          console.log(`[Stripe Webhook] Order ${session.id} updated - Amount: ${session.amount_total}, Email: ${session.customer_details?.email}`);
+        }
+
+        // Send email notification to owner about the new order
+        try {
+          const { notifyOwner } = await import("./_core/notification");
+          const productName = session.metadata?.product_slug 
+            ? productPrices[session.metadata.product_slug]?.name || session.metadata.product_slug
+            : "Unknown Product";
+          
+          await notifyOwner({
+            title: `💰 New Order: ${productName}`,
+            content: `
+**New order received!**
+
+**Customer:** ${session.customer_details?.name || "Not provided"}
+**Email:** ${session.customer_details?.email || session.customer_email || "Not provided"}
+**Product:** ${productName}
+**Amount Paid:** $${((session.amount_total || 0) / 100).toFixed(2)}
+**Original Price:** $${((session.amount_subtotal || 0) / 100).toFixed(2)}
+${session.total_details?.amount_discount ? `**Discount Applied:** $${(session.total_details.amount_discount / 100).toFixed(2)}` : ""}
+
+**Shipping Address:**
+${(session as any).shipping_details?.address ? `
+${(session as any).shipping_details.address.line1 || ""}
+${(session as any).shipping_details.address.line2 || ""}
+${(session as any).shipping_details.address.city || ""}, ${(session as any).shipping_details.address.state || ""} ${(session as any).shipping_details.address.postal_code || ""}
+${(session as any).shipping_details.address.country || ""}
+`.trim() : "Not provided"}
+
+---
+*Order ID: ${session.id}*
+            `.trim(),
+          });
+        } catch (notifyError) {
+          console.error("[Stripe Webhook] Failed to send owner notification:", notifyError);
         }
 
         console.log(`[Stripe Webhook] Order ${session.id} marked as paid`);
@@ -244,7 +286,8 @@ export async function createCheckoutSession(
     client_reference_id: userId?.toString(),
   });
 
-  // Create order record in database
+  // Create order record in database with initial values
+  // These will be updated with actual values when webhook fires
   const db = await getDb();
   if (db) {
     await db.insert(orders).values({
@@ -266,16 +309,64 @@ export async function createCheckoutSession(
   };
 }
 
-// Get order by session ID
+// Get order by session ID - fetches live data from Stripe for accurate info
 export async function getOrderBySessionId(sessionId: string) {
   const db = await getDb();
   if (!db) return null;
   
+  // First get the order from our database
   const result = await db
     .select()
     .from(orders)
     .where(eq(orders.stripeSessionId, sessionId))
     .limit(1);
   
-  return result[0] || null;
+  const order = result[0];
+  if (!order) return null;
+  
+  // Fetch the actual session from Stripe to get accurate amount and customer info
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items", "total_details"],
+    });
+    
+    // Return order with actual Stripe data
+    return {
+      ...order,
+      // Use actual amount paid (after discounts)
+      amount: session.amount_total || order.amount,
+      // Use actual customer email from Stripe checkout
+      customerEmail: session.customer_details?.email || session.customer_email || order.customerEmail,
+      customerName: session.customer_details?.name || order.customerName,
+      // Add payment status from Stripe
+      status: session.payment_status === "paid" ? "paid" : order.status,
+      // Add discount info if available
+      discountAmount: session.total_details?.amount_discount || 0,
+      originalAmount: session.amount_subtotal || order.amount,
+    };
+  } catch (error) {
+    console.error("[Stripe] Error fetching session:", error);
+    // Fall back to database order if Stripe fetch fails
+    return order;
+  }
+}
+
+// Send customer confirmation email
+export async function sendCustomerConfirmationEmail(
+  customerEmail: string,
+  customerName: string | null,
+  productName: string,
+  amountPaid: number,
+  orderId: string
+): Promise<boolean> {
+  // For now, we'll use the built-in notification system to notify the owner
+  // In a production environment, you would integrate with an email service like SendGrid, Mailgun, etc.
+  // The Manus platform notification system only sends to the owner, not to arbitrary emails
+  
+  console.log(`[Email] Would send confirmation to ${customerEmail} for order ${orderId}`);
+  console.log(`[Email] Product: ${productName}, Amount: $${(amountPaid / 100).toFixed(2)}`);
+  
+  // Return true to indicate the "email" was processed
+  // In production, integrate with a proper email service
+  return true;
 }

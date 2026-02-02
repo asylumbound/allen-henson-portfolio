@@ -141,3 +141,7 @@
 - [x] Create password-protected /product_edit admin page (password: &&77VAnguard)
 
 - [x] Fix product_edit page to save image order to database (password validation fixed, loads saved order on page load)
+
+- [x] Fix success page to show correct discounted amount (fetches actual amount from Stripe session)
+- [x] Fix success page to show buyer's actual email (fetches from Stripe customer_details)
+- [x] Add owner notification on successful purchase (customer email requires external email service integration)
