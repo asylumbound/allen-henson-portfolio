@@ -188,3 +188,17 @@
   - Fixed by syncing both files to use the same 42-image list matching database order
 
 - [x] Change contact page email from contact@allenhenson.la to allen@allenhenson.com
+
+
+## SEO Indexing Issues (Google Search Console)
+- [x] Fix 403 Forbidden errors (9 pages blocked)
+  - [x] Added noindex meta tags to /edit, /product_edit, /sales/success pages
+  - [x] Updated robots.txt to disallow admin routes
+  - [x] Removed admin pages from sitemap.xml
+- [x] Fix 404 Not Found errors (8 pages)
+  - [x] Updated robots.txt to disallow old WordPress URL patterns
+  - [x] Added disallow rules for /wp-admin/, /wp-content/, /category/, /tag/, /author/, date archives
+- [ ] Address "Discovered - currently not indexed" (10 pages) - waiting for Google to recrawl
+- [ ] Address "Crawled - currently not indexed" (1 page) - waiting for Google to recrawl
+- [x] Review and update robots.txt for proper crawling
+- [x] Verify XML sitemap is accessible and complete (removed /edit, /product_edit, /shop)

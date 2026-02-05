@@ -15,7 +15,36 @@ Disallow: /product_edit
 Disallow: /edit
 Disallow: /api/
 Disallow: /checkout/
+Disallow: /sales/success
 Disallow: /*.json$
+
+# Disallow old WordPress paths that no longer exist
+# These prevent 404 errors from being crawled
+Disallow: /wp-admin/
+Disallow: /wp-content/
+Disallow: /wp-includes/
+Disallow: /wp-json/
+Disallow: /xmlrpc.php
+Disallow: /feed/
+Disallow: /comments/
+Disallow: /trackback/
+Disallow: /author/
+Disallow: /tag/
+Disallow: /category/
+Disallow: /page/
+Disallow: /?p=
+Disallow: /?s=
+Disallow: /attachment/
+Disallow: /embed/
+
+# Disallow date-based archive URLs (old WordPress permalinks)
+Disallow: /2019/
+Disallow: /2020/
+Disallow: /2021/
+Disallow: /2022/
+Disallow: /2023/
+Disallow: /2024/
+Disallow: /2025/
 
 # Allow important resources
 Allow: /images/

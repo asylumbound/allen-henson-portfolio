@@ -8,8 +8,23 @@ import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { CheckCircle, Package, Mail, ArrowRight, Tag } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import { useEffect } from "react";
 
 export default function CheckoutSuccess() {
+  // Prevent search engine indexing of checkout success page
+  useEffect(() => {
+    // Add noindex meta tag
+    const metaRobots = document.createElement('meta');
+    metaRobots.name = 'robots';
+    metaRobots.content = 'noindex, nofollow';
+    document.head.appendChild(metaRobots);
+    
+    return () => {
+      // Clean up on unmount
+      document.head.removeChild(metaRobots);
+    };
+  }, []);
+
   const searchString = useSearch();
   const params = new URLSearchParams(searchString);
   const sessionId = params.get("session_id");

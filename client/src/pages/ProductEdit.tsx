@@ -125,6 +125,20 @@ const categories = [
 ];
 
 export default function ProductEdit() {
+  // Prevent search engine indexing of admin pages
+  useEffect(() => {
+    // Add noindex meta tag
+    const metaRobots = document.createElement('meta');
+    metaRobots.name = 'robots';
+    metaRobots.content = 'noindex, nofollow';
+    document.head.appendChild(metaRobots);
+    
+    return () => {
+      // Clean up on unmount
+      document.head.removeChild(metaRobots);
+    };
+  }, []);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [images, setImages] = useState<ProductImage[]>([]);
