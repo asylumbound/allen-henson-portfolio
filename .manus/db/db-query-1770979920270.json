@@ -1,0 +1,37 @@
+{
+  "query": "SELECT COUNT(*) as cnt FROM products; SELECT COUNT(*) as cnt FROM users; SELECT COUNT(*) as cnt FROM orders; SELECT COUNT(*) as cnt FROM image_orders; SELECT COUNT(*) as cnt FROM blog_posts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2QmWxs7iH8DQva8.399ef5379b66 --database hJWfWNqWwMf8C4JGAEuS5b --execute SELECT COUNT(*) as cnt FROM products; SELECT COUNT(*) as cnt FROM users; SELECT COUNT(*) as cnt FROM orders; SELECT COUNT(*) as cnt FROM image_orders; SELECT COUNT(*) as cnt FROM blog_posts",
+  "rows": [
+    {
+      "cnt": "0"
+    },
+    {
+      "cnt": "cnt"
+    },
+    {
+      "cnt": "1"
+    },
+    {
+      "cnt": "cnt"
+    },
+    {
+      "cnt": "7"
+    },
+    {
+      "cnt": "cnt"
+    },
+    {
+      "cnt": "1"
+    },
+    {
+      "cnt": "cnt"
+    },
+    {
+      "cnt": "20"
+    }
+  ],
+  "messages": [],
+  "stdout": "cnt\n0\ncnt\n1\ncnt\n7\ncnt\n1\ncnt\n20\n",
+  "stderr": "",
+  "execution_time_ms": 76
+}

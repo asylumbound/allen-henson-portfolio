@@ -202,3 +202,20 @@
 - [ ] Address "Crawled - currently not indexed" (1 page) - waiting for Google to recrawl
 - [x] Review and update robots.txt for proper crawling
 - [x] Verify XML sitemap is accessible and complete (removed /edit, /product_edit, /shop)
+
+## Supabase Migration (for Railway deployment)
+- [x] Export current Manus database schema and data (1 user, 20 blog posts, 7 orders, 1 image order)
+- [x] Create Supabase database schema (Postgres) - all 5 tables created
+- [x] Import all data to Supabase (29 rows migrated)
+- [x] Migrate S3 storage assets - N/A (all images served from /images/ in public dir, no S3 files)
+- [x] Update project code for Postgres/Supabase compatibility
+  - [x] Convert drizzle/schema.ts from mysql-core to pg-core
+  - [x] Convert server/db.ts from mysql2 to postgres-js driver
+  - [x] Update drizzle.config.ts to postgresql dialect
+  - [x] Replace onDuplicateKeyUpdate with onConflictDoUpdate
+  - [x] Remove onUpdateNow() (Postgres doesn't support it)
+  - [x] Replace int() with integer(), mysqlTable with pgTable, mysqlEnum with pgEnum
+  - [x] Swap mysql2 package for postgres package
+  - [x] Clean old MySQL migrations
+- [x] Test migration and verify data integrity (66 tests passing)
+- [ ] Prepare Railway deployment instructions with Supabase env vars

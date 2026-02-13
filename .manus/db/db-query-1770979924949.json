@@ -1,0 +1,30 @@
+{
+  "query": "SELECT 'products' as tbl, COUNT(*) as cnt FROM products UNION ALL SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'orders', COUNT(*) FROM orders UNION ALL SELECT 'image_orders', COUNT(*) FROM image_orders UNION ALL SELECT 'blog_posts', COUNT(*) FROM blog_posts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2QmWxs7iH8DQva8.399ef5379b66 --database hJWfWNqWwMf8C4JGAEuS5b --execute SELECT 'products' as tbl, COUNT(*) as cnt FROM products UNION ALL SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'orders', COUNT(*) FROM orders UNION ALL SELECT 'image_orders', COUNT(*) FROM image_orders UNION ALL SELECT 'blog_posts', COUNT(*) FROM blog_posts",
+  "rows": [
+    {
+      "tbl": "orders",
+      "cnt": "7"
+    },
+    {
+      "tbl": "image_orders",
+      "cnt": "1"
+    },
+    {
+      "tbl": "users",
+      "cnt": "1"
+    },
+    {
+      "tbl": "products",
+      "cnt": "0"
+    },
+    {
+      "tbl": "blog_posts",
+      "cnt": "20"
+    }
+  ],
+  "messages": [],
+  "stdout": "tbl\tcnt\norders\t7\nimage_orders\t1\nusers\t1\nproducts\t0\nblog_posts\t20\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

@@ -1,0 +1,13 @@
+{
+  "query": "SELECT CONCAT('products:', (SELECT COUNT(*) FROM products), ' users:', (SELECT COUNT(*) FROM users), ' orders:', (SELECT COUNT(*) FROM orders), ' image_orders:', (SELECT COUNT(*) FROM image_orders), ' blog_posts:', (SELECT COUNT(*) FROM blog_posts)) as counts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2QmWxs7iH8DQva8.399ef5379b66 --database hJWfWNqWwMf8C4JGAEuS5b --execute SELECT CONCAT('products:', (SELECT COUNT(*) FROM products), ' users:', (SELECT COUNT(*) FROM users), ' orders:', (SELECT COUNT(*) FROM orders), ' image_orders:', (SELECT COUNT(*) FROM image_orders), ' blog_posts:', (SELECT COUNT(*) FROM blog_posts)) as counts",
+  "rows": [
+    {
+      "counts": "products:0 users:1 orders:7 image_orders:1 blog_posts:20"
+    }
+  ],
+  "messages": [],
+  "stdout": "counts\nproducts:0 users:1 orders:7 image_orders:1 blog_posts:20\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}
