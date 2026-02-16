@@ -219,3 +219,32 @@
   - [x] Clean old MySQL migrations
 - [x] Test migration and verify data integrity (66 tests passing)
 - [ ] Prepare Railway deployment instructions with Supabase env vars
+
+## Supabase Auth Migration (replace Manus OAuth)
+- [x] Audit all Manus OAuth touchpoints (server/_core/oauth.ts, context.ts, cookies.ts, etc.)
+- [x] Install @supabase/supabase-js and configure Supabase Auth
+- [x] Rewrite server-side auth context to use Supabase JWT verification
+  - [x] Created server/_core/supabase.ts (admin + user-scoped clients)
+  - [x] Rewrote server/_core/context.ts (verifies Supabase JWT via getUser)
+  - [x] Rewrote server/_core/oauth.ts (Supabase callback handler)
+  - [x] Updated server/_core/env.ts (removed Manus OAuth vars, added Supabase)
+  - [x] Updated server/_core/index.ts (removed Manus OAuth routes)
+  - [x] Backed up server/_core/sdk.ts to sdk.ts.bak
+- [x] Rewrite client-side useAuth hook to use Supabase Auth
+  - [x] Created client/src/lib/supabase.ts (frontend Supabase client)
+  - [x] Rewrote client/src/_core/hooks/useAuth.ts (Supabase session + tRPC)
+  - [x] Updated client/src/main.tsx (attaches Supabase access_token to tRPC)
+  - [x] Updated client/src/const.ts (login URL points to /login)
+- [x] Add Supabase login/signup UI (email/password)
+  - [x] Created client/src/pages/Login.tsx with cinematic noir styling
+  - [x] Added /login route to App.tsx
+- [x] Update protected routes and admin functionality
+  - [x] Created Supabase auth user (allen@allenhenson.com)
+  - [x] Updated database user openId to Supabase auth UUID
+  - [x] Updated user name/email in database
+- [x] Remove Manus OAuth dependencies and env vars
+- [x] Write tests for new auth flow (17 Supabase auth tests + updated logout test)
+- [x] All 87 tests passing across 11 test files
+
+## Bug Fixes
+- [x] Fix broken hero image on Sales page (L1009868.webp → L1009868.jpg)

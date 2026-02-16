@@ -18,11 +18,15 @@ import ProductPhotography from "./pages/ProductPhotography";
 import ProductDetail from "./pages/ProductDetail";
 import ProductEdit from "./pages/ProductEdit";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import Login from "./pages/Login";
 import Layout from "./components/Layout";
+
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
+      {/* Auth pages have their own layout */}
+      <Route path="/login" component={Login} />
       {/* Edit pages have their own layout (no header/footer) */}
       <Route path="/edit" component={Edit} />
       <Route path="/product_edit" component={ProductEdit} />

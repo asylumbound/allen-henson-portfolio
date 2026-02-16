@@ -184,7 +184,7 @@ export default function Sales() {
       <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="/images/L1009868.webp"
+            src="/images/L1009868.jpg"
             alt="Sales hero"
             className="w-full h-full object-cover object-top opacity-40"
           />

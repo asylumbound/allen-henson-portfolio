@@ -1,53 +1,37 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
-import * as db from "../db";
-import { getSessionCookieOptions } from "./cookies";
-import { sdk } from "./sdk";
 
-function getQueryParam(req: Request, key: string): string | undefined {
-  const value = req.query[key];
-  return typeof value === "string" ? value : undefined;
-}
-
+/**
+ * Supabase Auth callback handler.
+ * After Supabase email confirmation or OAuth provider redirect,
+ * the user is sent to /api/auth/callback with a code that we exchange
+ * for a session. The session is then stored client-side by the Supabase JS client.
+ * 
+ * For this portfolio site, auth is primarily used for the admin panel.
+ * The main auth flow is handled client-side by the Supabase JS SDK.
+ * This server route handles the OAuth callback redirect.
+ */
 export function registerOAuthRoutes(app: Express) {
-  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
+  // Supabase auth callback - handles the redirect after email confirmation
+  // or OAuth provider login. The actual token exchange is done client-side
+  // by the Supabase JS SDK.
+  app.get("/api/auth/callback", async (req: Request, res: Response) => {
+    const code = req.query.code as string | undefined;
+    const next = (req.query.next as string) || "/";
 
-    if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
-      return;
+    if (code) {
+      // The code exchange will be handled by the Supabase client on the frontend.
+      // We just redirect to the frontend with the code in the URL hash.
+      const redirectUrl = `${next}#code=${code}`;
+      res.redirect(redirectUrl);
+    } else {
+      // No code provided, redirect to home
+      res.redirect("/");
     }
+  });
 
-    try {
-      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
-      const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-
-      if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
-      }
-
-      await db.upsertUser({
-        openId: userInfo.openId,
-        name: userInfo.name || null,
-        email: userInfo.email ?? null,
-        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: new Date(),
-      });
-
-      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        name: userInfo.name || "",
-        expiresInMs: ONE_YEAR_MS,
-      });
-
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-
-      res.redirect(302, "/");
-    } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
-    }
+  // Keep the old OAuth callback path for backwards compatibility
+  // (in case any bookmarks or links point to it)
+  app.get("/api/oauth/callback", (_req: Request, res: Response) => {
+    res.redirect("/login");
   });
 }
