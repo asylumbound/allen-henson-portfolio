@@ -179,6 +179,16 @@ export default function Layout({ children }: LayoutProps) {
               ))}
             </nav>
 
+            {/* Legal Links */}
+            <div className="flex items-center gap-4">
+              <Link
+                href="/data-security-incident-notice"
+                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+              >
+                Data Security Incident Notice
+              </Link>
+            </div>
+
             {/* Copyright */}
             <p className="text-xs tracking-wide font-extralight text-muted-foreground">
               © 2026 ALLEN HENSON

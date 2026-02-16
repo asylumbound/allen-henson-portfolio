@@ -19,6 +19,7 @@ import ProductDetail from "./pages/ProductDetail";
 import ProductEdit from "./pages/ProductEdit";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Login from "./pages/Login";
+import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
             <Route path="/product-photography" component={ProductPhotography} />
             <Route path="/sales/success" component={CheckoutSuccess} />
             <Route path="/sales/:slug" component={ProductDetail} />
+            <Route path="/data-security-incident-notice" component={DataSecurityIncidentNotice} />
             <Route path="/404" component={NotFound} />
             <Route component={NotFound} />
           </Switch>

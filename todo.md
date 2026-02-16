@@ -248,3 +248,10 @@
 
 ## Bug Fixes
 - [x] Fix broken hero image on Sales page (L1009868.webp → L1009868.jpg)
+
+## Data Security Incident Notice Page
+- [x] Create /data-security-incident-notice page with verbatim legal content
+- [x] Add footer link labeled "Data Security Incident Notice" (footer only, NOT header/nav)
+- [x] Match existing typography and spacing
+- [x] Add SEO meta title
+- [x] Added page to sitemap.xml
