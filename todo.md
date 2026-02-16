@@ -263,3 +263,16 @@
 - [x] Match existing cinematic noir typography and spacing
 - [x] Add SEO meta titles for both pages
 - [x] Add both pages to sitemap.xml
+
+## Critical Bug: Live website is blank (Railway)
+- [x] Diagnosed: Stripe SDK crashes at startup when STRIPE_SECRET_KEY is missing (top-level init)
+- [x] Fixed: Made Stripe initialize lazily via getStripe() instead of top-level `new Stripe()`
+- [ ] Verify Railway deployment works after pushing fix
+
+## Cookie Consent Banner (GDPR/CCPA)
+- [x] Create cookie consent banner component (CookieConsent.tsx)
+- [x] Store consent preference in localStorage (with versioning for policy updates)
+- [x] Link to Privacy Policy page
+- [x] Match cinematic noir styling (gold accent, tracking-cinematic, backdrop blur)
+- [x] Added to Layout.tsx (renders on all pages)
+- [x] 18 tests written and passing

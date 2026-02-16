@@ -11,6 +11,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun, Menu, X } from "lucide-react";
+import CookieConsent from "@/components/CookieConsent";
 
 interface LayoutProps {
   children: ReactNode;
@@ -210,6 +211,8 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </footer>
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
     </div>
   );
 }

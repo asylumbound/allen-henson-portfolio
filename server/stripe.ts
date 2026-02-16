@@ -9,10 +9,20 @@ import { getDb } from "./db";
 import { orders } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-// Initialize Stripe with secret key from platform environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-01-28.clover",
-});
+// Lazily initialize Stripe to prevent crashes when STRIPE_SECRET_KEY is not set
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error("STRIPE_SECRET_KEY is not configured. Please set it in your environment variables.");
+    }
+    _stripe = new Stripe(key, {
+      apiVersion: "2026-01-28.clover",
+    });
+  }
+  return _stripe;
+}
 
 // Product price mapping (slug -> Stripe price in cents)
 // These match the products in Sales.tsx exactly
@@ -124,7 +134,7 @@ stripeRouter.post(
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+      event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err: any) {
       console.error("[Stripe Webhook] Signature verification failed:", err.message);
       // Return JSON even on error for Manus platform compatibility
@@ -280,7 +290,7 @@ export async function createCheckoutSession(
   const baseUrl = origin || "https://www.allenhenson.com";
 
   // Create Stripe checkout session
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
       {
@@ -353,7 +363,7 @@ export async function getOrderBySessionId(sessionId: string) {
   
   // Fetch the actual session from Stripe to get accurate amount and customer info
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId, {
       expand: ["line_items", "total_details"],
     });
     
