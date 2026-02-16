@@ -182,10 +182,24 @@ export default function Layout({ children }: LayoutProps) {
             {/* Legal Links */}
             <div className="flex items-center gap-4">
               <Link
+                href="/privacy-policy"
+                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-muted-foreground/40">·</span>
+              <Link
+                href="/terms-of-service"
+                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+              >
+                Terms of Service
+              </Link>
+              <span className="text-muted-foreground/40">·</span>
+              <Link
                 href="/data-security-incident-notice"
                 className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
               >
-                Data Security Incident Notice
+                Data Security Notice
               </Link>
             </div>
 

@@ -255,3 +255,11 @@
 - [x] Match existing typography and spacing
 - [x] Add SEO meta title
 - [x] Added page to sitemap.xml
+
+## Privacy Policy & Terms of Service Pages
+- [x] Create /privacy-policy page with comprehensive privacy policy content
+- [x] Create /terms-of-service page with comprehensive terms content
+- [x] Add footer links for both pages (footer only, NOT header/nav)
+- [x] Match existing cinematic noir typography and spacing
+- [x] Add SEO meta titles for both pages
+- [x] Add both pages to sitemap.xml

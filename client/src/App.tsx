@@ -20,6 +20,8 @@ import ProductEdit from "./pages/ProductEdit";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Login from "./pages/Login";
 import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -48,6 +50,8 @@ function Router() {
             <Route path="/sales/success" component={CheckoutSuccess} />
             <Route path="/sales/:slug" component={ProductDetail} />
             <Route path="/data-security-incident-notice" component={DataSecurityIncidentNotice} />
+            <Route path="/privacy-policy" component={PrivacyPolicy} />
+            <Route path="/terms-of-service" component={TermsOfService} />
             <Route path="/404" component={NotFound} />
             <Route component={NotFound} />
           </Switch>
