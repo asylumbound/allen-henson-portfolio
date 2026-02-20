@@ -13,6 +13,8 @@ Crawl-delay: 1
 # Disallow admin and private areas
 Disallow: /product_edit
 Disallow: /edit
+Disallow: /duke
+Disallow: /images/duke/
 Disallow: /api/
 Disallow: /checkout/
 Disallow: /sales/success
@@ -48,5 +50,6 @@ Disallow: /2025/
 
 # Allow important resources
 Allow: /images/
+Disallow: /images/duke/
 Allow: /*.css
 Allow: /*.js

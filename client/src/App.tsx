@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Duke from "./pages/Duke";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -33,6 +34,8 @@ function Router() {
       {/* Edit pages have their own layout (no header/footer) */}
       <Route path="/edit" component={Edit} />
       <Route path="/product_edit" component={ProductEdit} />
+      {/* Duke - password-protected private collection (own layout) */}
+      <Route path="/duke" component={Duke} />
       {/* All other pages use the standard Layout */}
       <Route>
         <Layout>

@@ -204,6 +204,18 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             </div>
 
+            {/* Duke - visible only on About page */}
+            {location === "/about" && (
+              <div className="flex items-center">
+                <Link
+                  href="/duke"
+                  className="text-xs tracking-cinematic font-light text-muted-foreground/30 hover:text-gold cinematic-transition"
+                >
+                  Duke
+                </Link>
+              </div>
+            )}
+
             {/* Copyright */}
             <p className="text-xs tracking-wide font-extralight text-muted-foreground">
               © 2026 ALLEN HENSON
