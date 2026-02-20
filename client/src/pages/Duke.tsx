@@ -24,7 +24,24 @@ const SESSION_KEY = "duke_session";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // Duke gallery images - will be populated when images are uploaded
-const dukeImages: { src: string; alt: string }[] = [];
+const dukeImages: { src: string; webp: string; alt: string }[] = [
+  { src: "/images/duke/duke-12.jpeg", webp: "/images/duke/duke-12.webp", alt: "Duke Collection 1" },
+  { src: "/images/duke/duke-10.jpeg", webp: "/images/duke/duke-10.webp", alt: "Duke Collection 2" },
+  { src: "/images/duke/duke-14.jpeg", webp: "/images/duke/duke-14.webp", alt: "Duke Collection 3" },
+  { src: "/images/duke/duke-01.jpeg", webp: "/images/duke/duke-01.webp", alt: "Duke Collection 4" },
+  { src: "/images/duke/duke-13.jpeg", webp: "/images/duke/duke-13.webp", alt: "Duke Collection 5" },
+  { src: "/images/duke/duke-11.jpeg", webp: "/images/duke/duke-11.webp", alt: "Duke Collection 6" },
+  { src: "/images/duke/duke-07.jpeg", webp: "/images/duke/duke-07.webp", alt: "Duke Collection 7" },
+  { src: "/images/duke/duke-09.jpeg", webp: "/images/duke/duke-09.webp", alt: "Duke Collection 8" },
+  { src: "/images/duke/duke-08.jpeg", webp: "/images/duke/duke-08.webp", alt: "Duke Collection 9" },
+  { src: "/images/duke/duke-02.jpeg", webp: "/images/duke/duke-02.webp", alt: "Duke Collection 10" },
+  { src: "/images/duke/duke-06.jpeg", webp: "/images/duke/duke-06.webp", alt: "Duke Collection 11" },
+  { src: "/images/duke/duke-03.jpeg", webp: "/images/duke/duke-03.webp", alt: "Duke Collection 12" },
+  { src: "/images/duke/duke-04.jpeg", webp: "/images/duke/duke-04.webp", alt: "Duke Collection 13" },
+  { src: "/images/duke/duke-05.jpeg", webp: "/images/duke/duke-05.webp", alt: "Duke Collection 14" },
+  { src: "/images/duke/duke-16.jpeg", webp: "/images/duke/duke-16.webp", alt: "Duke Collection 15" },
+  { src: "/images/duke/duke-15.jpeg", webp: "/images/duke/duke-15.webp", alt: "Duke Collection 16" },
+];
 
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -421,13 +438,17 @@ export default function Duke() {
                       }
                     }}
                   >
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-auto image-hover select-none"
-                      loading="lazy"
-                      draggable={false}
-                    />
+                    <picture>
+                      <source srcSet={image.webp} type="image/webp" />
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-auto image-hover select-none"
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                      />
+                    </picture>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 cinematic-transition" />
                     <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 cinematic-transition" />
 
@@ -499,13 +520,16 @@ export default function Duke() {
                   className="max-w-[90vw] max-h-[90vh]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <img
-                    src={dukeImages[selectedIndex].src}
-                    alt={dukeImages[selectedIndex].alt}
-                    className="max-w-full max-h-[90vh] object-contain select-none"
-                    draggable={false}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+                  <picture>
+                    <source srcSet={dukeImages[selectedIndex].webp} type="image/webp" />
+                    <img
+                      src={dukeImages[selectedIndex].src}
+                      alt={dukeImages[selectedIndex].alt}
+                      className="max-w-full max-h-[90vh] object-contain select-none"
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  </picture>
                 </motion.div>
 
                 {/* Counter */}
