@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { stripeRouter } from "../stripe";
+import { dukeEditorRouter } from "../dukeEditor";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -71,6 +72,9 @@ async function startServer() {
 
   // Stripe routes for actual checkout functionality
   app.use("/api/stripe", express.raw({ type: "application/json" }), stripeRouter);
+  
+  // Duke editor routes for image crop/rotate
+  app.use("/api/duke", dukeEditorRouter);
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));

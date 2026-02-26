@@ -15,13 +15,21 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { SEOHead } from "@/components/SEOHead";
+import DukeImageEditor from "@/components/DukeImageEditor";
 
 // SHA-256 hash of the password "&&77KYoto"
 // Generated via: crypto.subtle.digest('SHA-256', new TextEncoder().encode('&&77KYoto'))
 const VALID_HASH = "a1b2c3d4"; // Placeholder - will be computed at build time
 
+// User roles
+type DukeRole = "viewer" | "editor";
+
 const SESSION_KEY = "duke_session";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Editor credentials
+const EDITOR_EMAIL = "editor";
+const EDITOR_PASSWORD = "&&77LEica";
 
 // Duke gallery images - 403 images (16 original + 387 from Google Drive)
 const dukeImages: { src: string; webp: string; alt: string }[] = [
@@ -448,28 +456,28 @@ let computedExpectedHash = "";
   computedExpectedHash = await hashPassword("&&77KYoto");
 })();
 
-function getSession(): boolean {
+function getSession(): { authenticated: boolean; role: DukeRole } {
   try {
     const stored = localStorage.getItem(SESSION_KEY);
-    if (!stored) return false;
+    if (!stored) return { authenticated: false, role: "viewer" };
     const parsed = JSON.parse(stored);
-    if (!parsed.timestamp || !parsed.hash) return false;
+    if (!parsed.timestamp || !parsed.hash) return { authenticated: false, role: "viewer" };
     const elapsed = Date.now() - parsed.timestamp;
     if (elapsed > SESSION_DURATION_MS) {
       localStorage.removeItem(SESSION_KEY);
-      return false;
+      return { authenticated: false, role: "viewer" };
     }
-    return true;
+    return { authenticated: true, role: parsed.role || "viewer" };
   } catch {
     localStorage.removeItem(SESSION_KEY);
-    return false;
+    return { authenticated: false, role: "viewer" };
   }
 }
 
-function setSession(hash: string): void {
+function setSession(hash: string, role: DukeRole = "viewer"): void {
   localStorage.setItem(
     SESSION_KEY,
-    JSON.stringify({ hash, timestamp: Date.now() })
+    JSON.stringify({ hash, timestamp: Date.now(), role })
   );
 }
 
@@ -479,13 +487,18 @@ function clearSession(): void {
 
 export default function Duke() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<DukeRole>("viewer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [imageRefreshKey, setImageRefreshKey] = useState(0);
   const touchStartX = useRef<number | null>(null);
+
+  const isEditor = userRole === "editor";
 
   // Prevent indexing
   useEffect(() => {
@@ -513,8 +526,10 @@ export default function Duke() {
 
   // Check existing session
   useEffect(() => {
-    if (getSession()) {
+    const session = getSession();
+    if (session.authenticated) {
       setIsAuthenticated(true);
+      setUserRole(session.role);
     }
   }, []);
 
@@ -551,9 +566,20 @@ export default function Duke() {
     setError(null);
 
     try {
-      // Validate email
+      const trimmedEmail = email.toLowerCase().trim();
+
+      // Check editor credentials first
+      if (trimmedEmail === EDITOR_EMAIL && password === EDITOR_PASSWORD) {
+        const hash = await hashPassword(password);
+        setSession(hash, "editor");
+        setUserRole("editor");
+        setIsAuthenticated(true);
+        return;
+      }
+
+      // Check viewer credentials
       const expectedEmail = "bios159@protonmail.com";
-      if (email.toLowerCase().trim() !== expectedEmail) {
+      if (trimmedEmail !== expectedEmail) {
         setError("Invalid credentials.");
         setLoading(false);
         return;
@@ -564,7 +590,8 @@ export default function Duke() {
 
       // Compare against the expected hash
       if (hash === computedExpectedHash) {
-        setSession(hash);
+        setSession(hash, "viewer");
+        setUserRole("viewer");
         setIsAuthenticated(true);
       } else {
         setError("Invalid credentials.");
@@ -579,8 +606,22 @@ export default function Duke() {
   const handleLogout = () => {
     clearSession();
     setIsAuthenticated(false);
+    setUserRole("viewer");
     setEmail("");
     setPassword("");
+  };
+
+  // Editor: extract image name from src path (e.g., "/images/duke/duke-42.jpeg" -> "duke-42")
+  const getImageName = (src: string): string => {
+    const filename = src.split("/").pop() || "";
+    return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
+  };
+
+  // Editor: handle image saved callback
+  const handleImageSaved = () => {
+    setEditingIndex(null);
+    // Force refresh all images by incrementing the key
+    setImageRefreshKey((prev) => prev + 1);
   };
 
   // Lightbox controls
@@ -677,7 +718,7 @@ export default function Duke() {
                 </label>
                 <input
                   id="duke-email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -773,7 +814,13 @@ export default function Duke() {
           </motion.div>
 
           {/* Session controls */}
-          <div className="flex justify-end mb-8">
+          <div className="flex items-center justify-between mb-8">
+            {isEditor && (
+              <span className="text-xs tracking-cinematic font-light text-gold/70 border border-gold/30 px-3 py-1">
+                EDITOR MODE
+              </span>
+            )}
+            <div className="flex-1" />
             <button
               onClick={handleLogout}
               className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
@@ -826,9 +873,9 @@ export default function Duke() {
                     }}
                   >
                     <picture>
-                      <source srcSet={image.webp} type="image/webp" />
+                      <source srcSet={`${image.webp}?v=${imageRefreshKey}`} type="image/webp" />
                       <img
-                        src={image.src}
+                        src={`${image.src}?v=${imageRefreshKey}`}
                         alt={image.alt}
                         className="w-full h-auto image-hover select-none"
                         loading="lazy"
@@ -841,9 +888,26 @@ export default function Duke() {
 
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cinematic-transition">
-                      <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
-                        <div className="w-6 h-6 border border-gold" />
-                      </div>
+                      {isEditor ? (
+                        <div className="flex gap-3">
+                          <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
+                            <div className="w-6 h-6 border border-gold" />
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingIndex(index);
+                            }}
+                            className="px-3 py-2 bg-gold/90 text-background text-xs tracking-cinematic font-medium hover:bg-gold cinematic-transition"
+                          >
+                            EDIT
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
+                          <div className="w-6 h-6 border border-gold" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -908,9 +972,9 @@ export default function Duke() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <picture>
-                    <source srcSet={dukeImages[selectedIndex].webp} type="image/webp" />
+                    <source srcSet={`${dukeImages[selectedIndex].webp}?v=${imageRefreshKey}`} type="image/webp" />
                     <img
-                      src={dukeImages[selectedIndex].src}
+                      src={`${dukeImages[selectedIndex].src}?v=${imageRefreshKey}`}
                       alt={dukeImages[selectedIndex].alt}
                       className="max-w-full max-h-[90vh] object-contain select-none"
                       draggable={false}
@@ -919,11 +983,38 @@ export default function Duke() {
                   </picture>
                 </motion.div>
 
-                {/* Counter */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm tracking-cinematic font-light">
-                  {selectedIndex + 1} / {dukeImages.length}
+                {/* Bottom bar: counter + editor button */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                  <span className="text-white/50 text-sm tracking-cinematic font-light">
+                    {selectedIndex + 1} / {dukeImages.length}
+                  </span>
+                  {isEditor && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeLightbox();
+                        setEditingIndex(selectedIndex);
+                      }}
+                      className="px-4 py-1.5 bg-gold/90 text-background text-xs tracking-cinematic font-medium hover:bg-gold cinematic-transition"
+                    >
+                      EDIT IMAGE
+                    </button>
+                  )}
                 </div>
               </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Image Editor Modal (editor role only) */}
+          <AnimatePresence>
+            {isEditor && editingIndex !== null && (
+              <DukeImageEditor
+                imageSrc={dukeImages[editingIndex].src}
+                imageName={getImageName(dukeImages[editingIndex].src)}
+                editorPassword={EDITOR_PASSWORD}
+                onClose={() => setEditingIndex(null)}
+                onSaved={handleImageSaved}
+              />
             )}
           </AnimatePresence>
         </div>
