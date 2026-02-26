@@ -28,7 +28,7 @@ const SESSION_KEY = "duke_session";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // Editor credentials
-const EDITOR_EMAIL = "editor";
+const EDITOR_USERNAME = "editor";
 const EDITOR_PASSWORD = "&&77LEica";
 
 // Duke gallery images - 403 images (16 original + 387 from Google Drive)
@@ -488,7 +488,7 @@ function clearSession(): void {
 export default function Duke() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<DukeRole>("viewer");
-  const [email, setEmail] = useState("");
+  const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -566,10 +566,10 @@ export default function Duke() {
     setError(null);
 
     try {
-      const trimmedEmail = email.toLowerCase().trim();
+      const trimmedIdentity = identity.toLowerCase().trim();
 
       // Check editor credentials first
-      if (trimmedEmail === EDITOR_EMAIL && password === EDITOR_PASSWORD) {
+      if (trimmedIdentity === EDITOR_USERNAME && password === EDITOR_PASSWORD) {
         const hash = await hashPassword(password);
         setSession(hash, "editor");
         setUserRole("editor");
@@ -578,8 +578,8 @@ export default function Duke() {
       }
 
       // Check viewer credentials
-      const expectedEmail = "bios159@protonmail.com";
-      if (trimmedEmail !== expectedEmail) {
+      const expectedIdentity = "bios159@protonmail.com";
+      if (trimmedIdentity !== expectedIdentity) {
         setError("Invalid credentials.");
         setLoading(false);
         return;
@@ -607,7 +607,7 @@ export default function Duke() {
     clearSession();
     setIsAuthenticated(false);
     setUserRole("viewer");
-    setEmail("");
+    setIdentity("");
     setPassword("");
   };
 
@@ -711,20 +711,20 @@ export default function Duke() {
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label
-                  htmlFor="duke-email"
+                  htmlFor="duke-identity"
                   className="block text-xs tracking-cinematic font-light text-muted-foreground mb-2"
                 >
-                  EMAIL
+                  USERNAME / EMAIL
                 </label>
                 <input
-                  id="duke-email"
+                  id="duke-identity"
                   type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identity}
+                  onChange={(e) => setIdentity(e.target.value)}
                   required
-                  autoComplete="email"
+                  autoComplete="username"
                   className="w-full px-4 py-3 bg-background/50 border border-border/50 text-foreground text-sm font-light tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
-                  placeholder="your@email.com"
+                  placeholder="username or email"
                 />
               </div>
 
