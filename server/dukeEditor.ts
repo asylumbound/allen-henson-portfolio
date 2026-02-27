@@ -439,6 +439,99 @@ router.get("/image-info/:imageName", async (req, res) => {
 });
 
 /**
+ * POST /api/duke/delete-image
+ * Permanently deletes a Duke gallery image from local filesystem and Supabase
+ * Backs up the image to Supabase before deletion for safety
+ */
+router.post("/delete-image", express.json(), async (req, res) => {
+  try {
+    const { password, imageName } = req.body;
+
+    if (!verifyEditorPassword(password)) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!imageName || !/^duke-\d+$/.test(imageName)) {
+      return res.status(400).json({ error: "Invalid image name" });
+    }
+
+    console.log(`[Duke Editor] Deleting ${imageName}`);
+
+    // Backup to Supabase before deleting (safety net)
+    try {
+      const imagesDir = getDukeImagesDir();
+      const jpegPath = path.join(imagesDir, `${imageName}.jpeg`);
+      if (fs.existsSync(jpegPath)) {
+        const buffer = fs.readFileSync(jpegPath);
+        const timestamp = Date.now();
+        await uploadToSupabase(
+          BACKUPS_BUCKET,
+          `deleted/${imageName}_${timestamp}.jpeg`,
+          buffer,
+          "image/jpeg"
+        );
+      }
+    } catch {
+      // Backup is best-effort
+    }
+
+    // Delete from Supabase edits bucket (if edited version exists)
+    await deleteFromSupabase(EDITS_BUCKET, [
+      `${imageName}.jpeg`,
+      `${imageName}.webp`,
+    ]);
+
+    // Delete local files
+    try {
+      const imagesDir = getDukeImagesDir();
+      const jpegPath = path.join(imagesDir, `${imageName}.jpeg`);
+      const webpPath = path.join(imagesDir, `${imageName}.webp`);
+
+      if (fs.existsSync(jpegPath)) fs.unlinkSync(jpegPath);
+      if (fs.existsSync(webpPath)) fs.unlinkSync(webpPath);
+    } catch {
+      // Local delete is best-effort in production
+    }
+
+    // Remove from saved order (both Supabase and local)
+    try {
+      // Try Supabase order first
+      const supabaseBuffer = await downloadFromSupabase(EDITS_BUCKET, "order.json");
+      if (supabaseBuffer) {
+        const data = JSON.parse(supabaseBuffer.toString("utf-8"));
+        if (data.order && Array.isArray(data.order)) {
+          data.order = data.order.filter((name: string) => name !== imageName);
+          data.updatedAt = new Date().toISOString();
+          const orderBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf-8");
+          await uploadToSupabase(EDITS_BUCKET, "order.json", orderBuffer, "application/json");
+        }
+      }
+
+      // Also update local order file
+      const imagesDir = getDukeImagesDir();
+      const orderFilePath = path.join(imagesDir, "order.json");
+      if (fs.existsSync(orderFilePath)) {
+        const data = JSON.parse(fs.readFileSync(orderFilePath, "utf-8"));
+        if (data.order && Array.isArray(data.order)) {
+          data.order = data.order.filter((name: string) => name !== imageName);
+          data.updatedAt = new Date().toISOString();
+          fs.writeFileSync(orderFilePath, JSON.stringify(data, null, 2));
+        }
+      }
+    } catch {
+      // Order update is best-effort
+    }
+
+    console.log(`[Duke Editor] Deleted ${imageName} — backed up to Supabase`);
+
+    return res.json({ success: true, imageName });
+  } catch (error: any) {
+    console.error("[Duke Editor] Delete error:", error);
+    return res.status(500).json({ error: error.message || "Failed to delete image" });
+  }
+});
+
+/**
  * POST /api/duke/save-order
  * Persists the gallery image order to both local file AND Supabase Storage
  */

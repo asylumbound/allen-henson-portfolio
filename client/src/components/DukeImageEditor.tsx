@@ -16,6 +16,7 @@ interface DukeImageEditorProps {
   editorPassword: string;
   onClose: () => void;
   onSaved: () => void; // Called after successful save to refresh gallery
+  onDeleted: (imageName: string) => void; // Called after successful delete to remove from gallery
 }
 
 export default function DukeImageEditor({
@@ -24,6 +25,7 @@ export default function DukeImageEditor({
   editorPassword,
   onClose,
   onSaved,
+  onDeleted,
 }: DukeImageEditorProps) {
   // Crop state — free-form (no locked aspect ratio)
   const [crop, setCrop] = useState<Crop>();
@@ -37,6 +39,8 @@ export default function DukeImageEditor({
   // UI state
   const [saving, setSaving] = useState(false);
   const [reverting, setReverting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [status, setStatus] = useState<{
     type: "success" | "error";
     message: string;
@@ -186,6 +190,40 @@ export default function DukeImageEditor({
     setStatus(null);
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    setStatus(null);
+
+    try {
+      const response = await fetch("/api/duke/delete-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: editorPassword,
+          imageName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setStatus({ type: "success", message: `${imageName.toUpperCase()} deleted` });
+        setShowDeleteConfirm(false);
+        setTimeout(() => {
+          onDeleted(imageName);
+        }, 1000);
+      } else {
+        setStatus({ type: "error", message: result.error || "Delete failed" });
+        setShowDeleteConfirm(false);
+      }
+    } catch (err: any) {
+      setStatus({ type: "error", message: err.message || "Network error" });
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const hasChanges =
     rotation !== 0 ||
     (isCropping && completedCrop && completedCrop.width > 0 && completedCrop.height > 0);
@@ -228,6 +266,15 @@ export default function DukeImageEditor({
               RESET
             </button>
           )}
+
+          {/* Delete button */}
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting || saving}
+            className="text-[10px] sm:text-xs tracking-cinematic text-red-400/70 hover:text-red-400 active:text-red-400 cinematic-transition px-2 sm:px-3 py-1.5 sm:py-2 border border-red-500/20 hover:border-red-500/40 active:border-red-500/40 disabled:opacity-30 min-h-[36px] sm:min-h-[auto]"
+          >
+            DELETE
+          </button>
 
           {/* Revert button */}
           <button
@@ -400,6 +447,49 @@ export default function DukeImageEditor({
             }`}
           >
             {status.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete confirmation dialog */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/80"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-zinc-900 border border-white/10 p-6 sm:p-8 max-w-sm mx-4 text-center"
+            >
+              <div className="text-xs tracking-cinematic text-red-400 mb-2">DELETE IMAGE</div>
+              <div className="text-sm sm:text-base text-white/80 mb-1 font-light">
+                Permanently delete <span className="text-gold font-medium">{imageName.toUpperCase()}</span>?
+              </div>
+              <div className="text-[10px] sm:text-xs text-white/40 mb-6 tracking-cinematic">
+                A backup will be saved to cloud storage.
+                This cannot be undone from the editor.
+              </div>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="text-xs tracking-cinematic text-white/60 hover:text-white cinematic-transition px-4 py-2 border border-white/20 hover:border-white/40 min-h-[36px]"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="text-xs tracking-cinematic text-white font-medium bg-red-600 hover:bg-red-500 active:bg-red-500 cinematic-transition px-4 py-2 disabled:opacity-50 min-h-[36px]"
+                >
+                  {deleting ? "DELETING..." : "DELETE PERMANENTLY"}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

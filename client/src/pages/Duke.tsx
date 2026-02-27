@@ -788,6 +788,19 @@ export default function Duke() {
     fetchEditedImages();
   };
 
+  // Editor: handle image deleted callback
+  const handleImageDeleted = useCallback((deletedName: string) => {
+    setEditingIndex(null);
+    setLightboxIndex(null);
+    // Remove the image from the ordered list
+    setOrderedImages((prev) => prev.filter((img) => {
+      const name = img.src.replace(/\/images\/duke\/|\.jpeg|\.webp/g, "");
+      return name !== deletedName;
+    }));
+    // Re-fetch edited images map
+    fetchEditedImages();
+  }, [fetchEditedImages]);
+
   // Fetch edited image URLs from Supabase on auth
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -1349,6 +1362,7 @@ export default function Duke() {
                 editorPassword={EDITOR_PASSWORD}
                 onClose={() => setEditingIndex(null)}
                 onSaved={handleImageSaved}
+                onDeleted={handleImageDeleted}
               />
             )}
           </AnimatePresence>
