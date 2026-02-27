@@ -1,12 +1,13 @@
 /**
  * DukeImageEditor - Full-screen image editor for the Duke gallery
- * Features: Free-form crop (react-easy-crop), Rotate (90° increments), Save to server
+ * Features: Free-form crop (react-image-crop), Rotate (90° increments), Save to server
  * Optimized for desktop and iPad
  * Only accessible when logged in as "editor" role
  */
 
-import { useState, useCallback, useEffect } from "react";
-import Cropper, { Area } from "react-easy-crop";
+import { useState, useCallback, useEffect, useRef } from "react";
+import ReactCrop, { type Crop, type PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DukeImageEditorProps {
@@ -24,11 +25,11 @@ export default function DukeImageEditor({
   onClose,
   onSaved,
 }: DukeImageEditorProps) {
-  // Crop state
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  // Crop state — free-form (no locked aspect ratio)
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const [isCropping, setIsCropping] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // Rotate state
   const [rotation, setRotation] = useState(0);
@@ -41,7 +42,7 @@ export default function DukeImageEditor({
     message: string;
   } | null>(null);
 
-  // Responsive: detect touch device / viewport
+  // Responsive: detect touch device
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
@@ -64,13 +65,31 @@ export default function DukeImageEditor({
     };
   }, []);
 
-  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
-    setCroppedAreaPixels(croppedPixels);
-  }, []);
-
   const handleRotate = (degrees: number) => {
     setRotation((prev) => (prev + degrees) % 360);
   };
+
+  // Convert the displayed crop coordinates to actual image pixel coordinates
+  // accounting for the CSS scaling of the image in the viewport
+  const getPixelCrop = useCallback((): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null => {
+    if (!completedCrop || !imgRef.current) return null;
+
+    const img = imgRef.current;
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+
+    return {
+      x: Math.round(completedCrop.x * scaleX),
+      y: Math.round(completedCrop.y * scaleY),
+      width: Math.round(completedCrop.width * scaleX),
+      height: Math.round(completedCrop.height * scaleY),
+    };
+  }, [completedCrop]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -84,14 +103,12 @@ export default function DukeImageEditor({
         crop: null,
       };
 
-      // Only send crop if user has been cropping
-      if (isCropping && croppedAreaPixels) {
-        body.crop = {
-          x: croppedAreaPixels.x,
-          y: croppedAreaPixels.y,
-          width: croppedAreaPixels.width,
-          height: croppedAreaPixels.height,
-        };
+      // Only send crop if user has been cropping and has a valid selection
+      if (isCropping && completedCrop && completedCrop.width > 0 && completedCrop.height > 0) {
+        const pixelCrop = getPixelCrop();
+        if (pixelCrop) {
+          body.crop = pixelCrop;
+        }
       }
 
       const response = await fetch("/api/duke/edit-image", {
@@ -109,8 +126,8 @@ export default function DukeImageEditor({
         });
         // Reset editor state
         setRotation(0);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
+        setCrop(undefined);
+        setCompletedCrop(null);
         setIsCropping(false);
         // Notify parent to refresh
         setTimeout(() => {
@@ -145,8 +162,8 @@ export default function DukeImageEditor({
       if (result.success) {
         setStatus({ type: "success", message: "Reverted to backup" });
         setRotation(0);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
+        setCrop(undefined);
+        setCompletedCrop(null);
         setIsCropping(false);
         setTimeout(() => {
           onSaved();
@@ -163,14 +180,15 @@ export default function DukeImageEditor({
 
   const handleReset = () => {
     setRotation(0);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
+    setCrop(undefined);
+    setCompletedCrop(null);
     setIsCropping(false);
-    setCroppedAreaPixels(null);
     setStatus(null);
   };
 
-  const hasChanges = rotation !== 0 || (isCropping && croppedAreaPixels);
+  const hasChanges =
+    rotation !== 0 ||
+    (isCropping && completedCrop && completedCrop.width > 0 && completedCrop.height > 0);
 
   // Cache-busted image source
   const cacheBustedSrc = imageSrc + "?t=" + Date.now();
@@ -231,15 +249,19 @@ export default function DukeImageEditor({
         </div>
       </div>
 
-      {/* Tool bar — wraps gracefully on smaller screens */}
+      {/* Tool bar */}
       <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 px-3 sm:px-4 py-2 sm:py-3 bg-black/80 border-b border-white/5 flex-wrap">
         {/* Crop toggle */}
         <button
           onClick={() => {
-            setIsCropping(!isCropping);
-            if (!isCropping) {
-              setZoom(1);
-              setCrop({ x: 0, y: 0 });
+            if (isCropping) {
+              // Exiting crop mode
+              setIsCropping(false);
+              setCrop(undefined);
+              setCompletedCrop(null);
+            } else {
+              // Entering crop mode
+              setIsCropping(true);
             }
           }}
           className={`flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs tracking-cinematic cinematic-transition px-2.5 sm:px-3 py-1.5 sm:py-2 border min-h-[36px] sm:min-h-[auto] ${
@@ -260,6 +282,9 @@ export default function DukeImageEditor({
             <path d="M18 22V8a2 2 0 0 0-2-2H2" />
           </svg>
           CROP
+          {isCropping && (
+            <span className="text-[9px] text-gold/60 ml-1">FREE</span>
+          )}
         </button>
 
         {/* Rotate buttons */}
@@ -306,29 +331,15 @@ export default function DukeImageEditor({
           </span>
         )}
 
-        {/* Zoom slider (visible when cropping) — wider on desktop, touch-friendly on iPad */}
-        {isCropping && (
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] sm:text-xs tracking-cinematic text-white/40">
-              ZOOM
-            </span>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-20 sm:w-28 md:w-36 h-2 sm:h-1 accent-gold appearance-none bg-white/20 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:sm:w-3 [&::-webkit-slider-thumb]:sm:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gold"
-            />
-            <span className="text-[10px] sm:text-xs tracking-cinematic text-white/40 w-8">
-              {zoom.toFixed(1)}x
-            </span>
-          </div>
+        {/* Crop dimensions indicator */}
+        {isCropping && completedCrop && completedCrop.width > 0 && (
+          <span className="text-[10px] sm:text-xs tracking-cinematic text-white/40">
+            {Math.round(completedCrop.width)}×{Math.round(completedCrop.height)}px
+          </span>
         )}
       </div>
 
-      {/* Image name on mobile (shown below toolbar when hidden from top bar) */}
+      {/* Image name on mobile */}
       <div className="xs:hidden sm:hidden text-center py-1 bg-black/60">
         <span className="text-[9px] tracking-cinematic text-gold/60 font-light">
           {imageName.toUpperCase()}
@@ -336,47 +347,46 @@ export default function DukeImageEditor({
       </div>
 
       {/* Image area — fills remaining space */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-black p-4 sm:p-6 md:p-8">
         {isCropping ? (
-          <Cropper
-            image={cacheBustedSrc}
+          <ReactCrop
             crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={undefined}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropComplete}
-            showGrid={true}
-            zoomWithScroll={!isTouchDevice}
-            style={{
-              containerStyle: {
-                background: "#000",
-                touchAction: "none",
-              },
-              cropAreaStyle: {
-                border: "2px solid #C9A96E",
-                color: "rgba(0, 0, 0, 0.6)",
-              },
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-black p-4 sm:p-6 md:p-8">
+            onChange={(c) => setCrop(c)}
+            onComplete={(c) => setCompletedCrop(c)}
+            style={{ maxHeight: "100%", maxWidth: "100%" }}
+            className="duke-crop-area"
+          >
             <img
+              ref={imgRef}
               src={cacheBustedSrc}
               alt={`Editing ${imageName}`}
-              className="max-w-full max-h-full object-contain select-none"
               style={{
+                maxHeight: "calc(100vh - 180px)",
+                maxWidth: "100%",
+                objectFit: "contain",
                 transform: `rotate(${rotation}deg)`,
                 transition: "transform 0.3s ease",
               }}
               draggable={false}
             />
-          </div>
+          </ReactCrop>
+        ) : (
+          <img
+            ref={imgRef}
+            src={cacheBustedSrc}
+            alt={`Editing ${imageName}`}
+            className="max-w-full max-h-full object-contain select-none"
+            style={{
+              maxHeight: "calc(100vh - 180px)",
+              transform: `rotate(${rotation}deg)`,
+              transition: "transform 0.3s ease",
+            }}
+            draggable={false}
+          />
         )}
       </div>
 
-      {/* Status bar — positioned above bottom on iPad to avoid home indicator */}
+      {/* Status bar */}
       <AnimatePresence>
         {status && (
           <motion.div
@@ -397,9 +407,32 @@ export default function DukeImageEditor({
       {/* Touch hint for iPad users */}
       {isTouchDevice && isCropping && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-[10px] tracking-cinematic text-white/20 z-10 pointer-events-none">
-          PINCH TO ZOOM · DRAG TO PAN · DRAG CORNERS TO CROP
+          DRAG TO SELECT CROP AREA · DRAG CORNERS TO RESIZE
         </div>
       )}
+
+      {/* Custom styles for react-image-crop to match Cinematic Noir theme */}
+      <style>{`
+        .duke-crop-area .ReactCrop__crop-selection {
+          border: 2px solid #C9A96E !important;
+          box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6) !important;
+        }
+        .duke-crop-area .ReactCrop__drag-handle {
+          background-color: #C9A96E !important;
+          border: none !important;
+          width: ${isTouchDevice ? '14px' : '10px'} !important;
+          height: ${isTouchDevice ? '14px' : '10px'} !important;
+        }
+        .duke-crop-area .ReactCrop__drag-bar {
+          background-color: transparent !important;
+        }
+        .duke-crop-area .ReactCrop__rule-of-thirds-hz::before,
+        .duke-crop-area .ReactCrop__rule-of-thirds-hz::after,
+        .duke-crop-area .ReactCrop__rule-of-thirds-vt::before,
+        .duke-crop-area .ReactCrop__rule-of-thirds-vt::after {
+          background-color: rgba(201, 169, 110, 0.3) !important;
+        }
+      `}</style>
     </motion.div>
   );
 }
