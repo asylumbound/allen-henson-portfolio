@@ -235,4 +235,63 @@ router.get("/image-info/:imageName", async (req, res) => {
   }
 });
 
+/**
+ * POST /api/duke/save-order
+ * Persists the gallery image order to a JSON file
+ * Body: { password: string, order: string[] } — array of image names in desired order
+ */
+router.post("/save-order", express.json({ limit: "2mb" }), async (req, res) => {
+  try {
+    const { password, order } = req.body;
+
+    if (!verifyEditorPassword(password)) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!Array.isArray(order) || order.length === 0) {
+      return res.status(400).json({ error: "Invalid order array" });
+    }
+
+    // Validate all entries are valid duke image names
+    for (const name of order) {
+      if (!/^duke-\d+$/.test(name)) {
+        return res.status(400).json({ error: `Invalid image name in order: ${name}` });
+      }
+    }
+
+    const imagesDir = getDukeImagesDir();
+    const orderFilePath = path.join(imagesDir, "order.json");
+
+    fs.writeFileSync(orderFilePath, JSON.stringify({ order, updatedAt: new Date().toISOString() }, null, 2));
+
+    console.log(`[Duke Editor] Saved image order — ${order.length} images`);
+
+    return res.json({ success: true, count: order.length });
+  } catch (error: any) {
+    console.error("[Duke Editor] Save order error:", error);
+    return res.status(500).json({ error: error.message || "Failed to save order" });
+  }
+});
+
+/**
+ * GET /api/duke/get-order
+ * Returns the saved gallery image order (if any)
+ */
+router.get("/get-order", async (_req, res) => {
+  try {
+    const imagesDir = getDukeImagesDir();
+    const orderFilePath = path.join(imagesDir, "order.json");
+
+    if (!fs.existsSync(orderFilePath)) {
+      return res.json({ order: null });
+    }
+
+    const data = JSON.parse(fs.readFileSync(orderFilePath, "utf-8"));
+    return res.json({ order: data.order || null, updatedAt: data.updatedAt || null });
+  } catch (error: any) {
+    console.error("[Duke Editor] Get order error:", error);
+    return res.json({ order: null });
+  }
+});
+
 export { router as dukeEditorRouter };

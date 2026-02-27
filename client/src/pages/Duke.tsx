@@ -11,11 +11,29 @@
  * LAFC CONSULTING
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { SEOHead } from "@/components/SEOHead";
 import DukeImageEditor from "@/components/DukeImageEditor";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 // SHA-256 hash of the password "&&77KYoto"
 // Generated via: crypto.subtle.digest('SHA-256', new TextEncoder().encode('&&77KYoto'))
@@ -485,6 +503,69 @@ function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
+// ─── Sortable Image Item for DnD Reorder ──────────────────────────────
+function SortableImageItem({
+  id,
+  image,
+  index,
+  imageRefreshKey,
+}: {
+  id: string;
+  image: { src: string; webp: string; alt: string };
+  index: number;
+  imageRefreshKey: number;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 50 : "auto" as any,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative aspect-square overflow-hidden cursor-grab active:cursor-grabbing group border border-white/5 hover:border-gold/40 cinematic-transition"
+    >
+      <img
+        src={`${image.src}?v=${imageRefreshKey}`}
+        alt={image.alt}
+        className="w-full h-full object-cover select-none pointer-events-none"
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+      />
+      {/* Position number overlay */}
+      <div className="absolute top-1 left-1 bg-black/70 text-white/60 text-[9px] tracking-cinematic px-1.5 py-0.5 font-mono">
+        {index + 1}
+      </div>
+      {/* Drag grip icon */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cinematic-transition bg-black/30">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold">
+          <circle cx="9" cy="5" r="1" fill="currentColor" />
+          <circle cx="15" cy="5" r="1" fill="currentColor" />
+          <circle cx="9" cy="12" r="1" fill="currentColor" />
+          <circle cx="15" cy="12" r="1" fill="currentColor" />
+          <circle cx="9" cy="19" r="1" fill="currentColor" />
+          <circle cx="15" cy="19" r="1" fill="currentColor" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function Duke() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<DukeRole>("viewer");
@@ -498,7 +579,26 @@ export default function Duke() {
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
+  // Reorder state
+  const [isReordering, setIsReordering] = useState(false);
+  const [orderedImages, setOrderedImages] = useState(dukeImages);
+  const [orderDirty, setOrderDirty] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [orderStatus, setOrderStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
   const isEditor = userRole === "editor";
+
+  // DnD sensors — pointer for desktop, touch for iPad (with activation distance to prevent accidental drags)
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
+  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
+  const sensors = useSensors(pointerSensor, touchSensor);
+
+  // Generate unique IDs for sortable items
+  const imageIds = useMemo(() => orderedImages.map((img) => {
+    const filename = img.src.split("/").pop() || "";
+    return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
+  }), [orderedImages]);
 
   // Prevent indexing
   useEffect(() => {
@@ -532,6 +632,36 @@ export default function Duke() {
       setUserRole(session.role);
     }
   }, []);
+
+  // Load saved image order from server
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/duke/get-order");
+        const data = await res.json();
+        if (data.order && Array.isArray(data.order)) {
+          // Build a map for quick lookup
+          const imageMap = new Map(dukeImages.map((img) => {
+            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
+            return [name, img];
+          }));
+          const reordered = data.order
+            .map((name: string) => imageMap.get(name))
+            .filter(Boolean) as typeof dukeImages;
+          // Append any images not in the saved order (new additions)
+          const orderedSet = new Set(data.order);
+          const remaining = dukeImages.filter((img) => {
+            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
+            return !orderedSet.has(name);
+          });
+          setOrderedImages([...reordered, ...remaining]);
+        }
+      } catch {
+        // Silently fail — use default order
+      }
+    })();
+  }, [isAuthenticated]);
 
   // Disable right-click and drag on images for protection
   useEffect(() => {
@@ -624,6 +754,91 @@ export default function Duke() {
     setImageRefreshKey((prev) => prev + 1);
   };
 
+  // DnD handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = imageIds.indexOf(active.id as string);
+    const newIndex = imageIds.indexOf(over.id as string);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    setOrderedImages((prev) => arrayMove(prev, oldIndex, newIndex));
+    setOrderDirty(true);
+  };
+
+  const handleSaveOrder = async () => {
+    setSavingOrder(true);
+    setOrderStatus(null);
+    try {
+      const order = orderedImages.map((img) => {
+        const filename = img.src.split("/").pop() || "";
+        return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
+      });
+      const res = await fetch("/api/duke/save-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: EDITOR_PASSWORD, order }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrderDirty(false);
+        setOrderStatus({ type: "success", message: `Order saved — ${data.count} images` });
+        setTimeout(() => setOrderStatus(null), 3000);
+      } else {
+        setOrderStatus({ type: "error", message: data.error || "Failed to save" });
+      }
+    } catch (err: any) {
+      setOrderStatus({ type: "error", message: err.message || "Network error" });
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
+  const handleCancelReorder = () => {
+    setIsReordering(false);
+    setOrderDirty(false);
+    // Reload saved order
+    (async () => {
+      try {
+        const res = await fetch("/api/duke/get-order");
+        const data = await res.json();
+        if (data.order && Array.isArray(data.order)) {
+          const imageMap = new Map(dukeImages.map((img) => {
+            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
+            return [name, img];
+          }));
+          const reordered = data.order
+            .map((name: string) => imageMap.get(name))
+            .filter(Boolean) as typeof dukeImages;
+          const orderedSet = new Set(data.order);
+          const remaining = dukeImages.filter((img) => {
+            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
+            return !orderedSet.has(name);
+          });
+          setOrderedImages([...reordered, ...remaining]);
+        } else {
+          setOrderedImages(dukeImages);
+        }
+      } catch {
+        setOrderedImages(dukeImages);
+      }
+    })();
+  };
+
+  // Get active drag image for overlay
+  const activeDragImage = activeId
+    ? orderedImages.find((img) => {
+        const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
+        return name === activeId;
+      })
+    : null;
+
   // Lightbox controls
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);
@@ -631,18 +846,18 @@ export default function Duke() {
   const goToPrevious = useCallback(() => {
     if (selectedIndex !== null) {
       setSelectedIndex(
-        selectedIndex === 0 ? dukeImages.length - 1 : selectedIndex - 1
+        selectedIndex === 0 ? orderedImages.length - 1 : selectedIndex - 1
       );
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, orderedImages.length]);
 
   const goToNext = useCallback(() => {
     if (selectedIndex !== null) {
       setSelectedIndex(
-        selectedIndex === dukeImages.length - 1 ? 0 : selectedIndex + 1
+        selectedIndex === orderedImages.length - 1 ? 0 : selectedIndex + 1
       );
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, orderedImages.length]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -814,23 +1029,68 @@ export default function Duke() {
           </motion.div>
 
           {/* Session controls */}
-          <div className="flex items-center justify-between mb-8">
-            {isEditor && (
-              <span className="text-xs tracking-cinematic font-light text-gold/70 border border-gold/30 px-3 py-1">
-                EDITOR MODE
-              </span>
-            )}
-            <div className="flex-1" />
-            <button
-              onClick={handleLogout}
-              className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
-            >
-              SIGN OUT
-            </button>
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              {isEditor && (
+                <span className="text-xs tracking-cinematic font-light text-gold/70 border border-gold/30 px-3 py-1">
+                  EDITOR MODE
+                </span>
+              )}
+              {isEditor && (
+                <button
+                  onClick={() => {
+                    if (isReordering && orderDirty) {
+                      if (!confirm("Discard unsaved order changes?")) return;
+                    }
+                    if (isReordering) {
+                      handleCancelReorder();
+                    } else {
+                      setIsReordering(true);
+                    }
+                  }}
+                  className={`text-xs tracking-cinematic font-light cinematic-transition px-3 py-1 border ${
+                    isReordering
+                      ? "text-gold border-gold/50 bg-gold/10"
+                      : "text-white/60 border-white/20 hover:text-white hover:border-white/40"
+                  }`}
+                >
+                  {isReordering ? "EXIT REORDER" : "REORDER"}
+                </button>
+              )}
+              {isReordering && orderDirty && (
+                <button
+                  onClick={handleSaveOrder}
+                  disabled={savingOrder}
+                  className="text-xs tracking-cinematic font-medium bg-gold text-background px-4 py-1 hover:bg-gold/90 cinematic-transition disabled:opacity-50"
+                >
+                  {savingOrder ? "SAVING..." : "SAVE ORDER"}
+                </button>
+              )}
+              {isReordering && (
+                <span className="text-[10px] tracking-cinematic text-white/30">
+                  {orderDirty ? "UNSAVED CHANGES" : "DRAG TO REORDER"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {orderStatus && (
+                <span className={`text-[10px] tracking-cinematic ${
+                  orderStatus.type === "success" ? "text-green-400" : "text-red-400"
+                }`}>
+                  {orderStatus.message}
+                </span>
+              )}
+              <button
+                onClick={handleLogout}
+                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+              >
+                SIGN OUT
+              </button>
+            </div>
           </div>
 
           {/* Gallery */}
-          {dukeImages.length === 0 ? (
+          {orderedImages.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -846,11 +1106,46 @@ export default function Duke() {
               </p>
               <div className="w-24 h-px bg-border mx-auto mt-8" />
             </motion.div>
+          ) : isReordering ? (
+            /* ─── REORDER MODE: Flat grid with DnD ─── */
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={imageIds} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                  {orderedImages.map((image, index) => (
+                    <SortableImageItem
+                      key={imageIds[index]}
+                      id={imageIds[index]}
+                      image={image}
+                      index={index}
+                      imageRefreshKey={imageRefreshKey}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+              <DragOverlay adjustScale={false}>
+                {activeDragImage ? (
+                  <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl shadow-gold/20 opacity-90">
+                    <img
+                      src={`${activeDragImage.src}?v=${imageRefreshKey}`}
+                      alt="Dragging"
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           ) : (
+            /* ─── NORMAL MODE: Masonry columns ─── */
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-              {dukeImages.map((image, index) => (
+              {orderedImages.map((image, index) => (
                 <motion.div
-                  key={index}
+                  key={imageIds[index] || index}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -972,10 +1267,10 @@ export default function Duke() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <picture>
-                    <source srcSet={`${dukeImages[selectedIndex].webp}?v=${imageRefreshKey}`} type="image/webp" />
+                    <source srcSet={`${orderedImages[selectedIndex].webp}?v=${imageRefreshKey}`} type="image/webp" />
                     <img
-                      src={`${dukeImages[selectedIndex].src}?v=${imageRefreshKey}`}
-                      alt={dukeImages[selectedIndex].alt}
+                      src={`${orderedImages[selectedIndex].src}?v=${imageRefreshKey}`}
+                      alt={orderedImages[selectedIndex].alt}
                       className="max-w-full max-h-[90vh] object-contain select-none"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
@@ -986,7 +1281,7 @@ export default function Duke() {
                 {/* Bottom bar: counter + editor button */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4">
                   <span className="text-white/50 text-sm tracking-cinematic font-light">
-                    {selectedIndex + 1} / {dukeImages.length}
+                    {selectedIndex + 1} / {orderedImages.length}
                   </span>
                   {isEditor && (
                     <button
@@ -1009,8 +1304,8 @@ export default function Duke() {
           <AnimatePresence>
             {isEditor && editingIndex !== null && (
               <DukeImageEditor
-                imageSrc={dukeImages[editingIndex].src}
-                imageName={getImageName(dukeImages[editingIndex].src)}
+                imageSrc={orderedImages[editingIndex].src}
+                imageName={getImageName(orderedImages[editingIndex].src)}
                 editorPassword={EDITOR_PASSWORD}
                 onClose={() => setEditingIndex(null)}
                 onSaved={handleImageSaved}
