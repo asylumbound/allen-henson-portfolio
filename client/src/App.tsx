@@ -23,6 +23,7 @@ import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Duke from "./pages/Duke";
+import Agency from "./pages/Agency";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -36,6 +37,8 @@ function Router() {
       <Route path="/product_edit" component={ProductEdit} />
       {/* Duke - password-protected private collection (own layout) */}
       <Route path="/duke" component={Duke} />
+      {/* Agency - password-protected agency database (own layout) */}
+      <Route path="/agency" component={Agency} />
       {/* All other pages use the standard Layout */}
       <Route>
         <Layout>
