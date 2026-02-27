@@ -66,7 +66,7 @@ export default function DukeImageEditor({
   }, []);
 
   const handleRotate = (degrees: number) => {
-    setRotation((prev) => (prev + degrees) % 360);
+    setRotation((prev) => ((prev + degrees) % 360 + 360) % 360);
   };
 
   // Convert the displayed crop coordinates to actual image pixel coordinates

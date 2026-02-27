@@ -2,101 +2,229 @@
  * Duke Image Editor - Server-side image processing
  * Handles crop and rotate operations for the Duke gallery editor role
  * Uses Sharp for high-quality image processing
+ * Persists edited images to Supabase Storage for production durability
  */
 
 import express from "express";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
-import crypto from "crypto";
 
 const router = express.Router();
 
-// Editor credentials - SHA-256 hash of "&&77LEica"
+// Editor credentials
 const EDITOR_PASSWORD = "&&77LEica";
+
+// Supabase Storage config — uses env vars in production, fallback for dev
+const SUPABASE_URL = process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
+const EDITS_BUCKET = "duke-edits";
+const BACKUPS_BUCKET = "duke-backups";
 
 function verifyEditorPassword(password: string): boolean {
   return password === EDITOR_PASSWORD;
 }
 
-// Resolve the duke images directory
+// Resolve the duke images directory (local static files)
 function getDukeImagesDir(): string {
-  // In development, images are in client/public/images/duke/
-  // In production, images are in dist/public/images/duke/
   const devPath = path.resolve(process.cwd(), "client/public/images/duke");
   const prodPath = path.resolve(process.cwd(), "dist/public/images/duke");
-  
+
   if (fs.existsSync(devPath)) return devPath;
   if (fs.existsSync(prodPath)) return prodPath;
-  
+
   // Fallback for Railway deployment
   const serverDir = path.dirname(new URL(import.meta.url).pathname);
   const railwayPath = path.resolve(serverDir, "public/images/duke");
   if (fs.existsSync(railwayPath)) return railwayPath;
-  
+
   throw new Error("Duke images directory not found");
 }
+
+// ─── Supabase Storage Helpers ───────────────────────────────────────────────
+
+async function uploadToSupabase(
+  bucket: string,
+  filePath: string,
+  buffer: Buffer,
+  contentType: string
+): Promise<boolean> {
+  if (!SUPABASE_SERVICE_KEY) {
+    console.warn("[Duke Editor] No Supabase service key — skipping cloud upload");
+    return false;
+  }
+
+  try {
+    // Use upsert (PUT) to overwrite if exists
+    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": contentType,
+        "x-upsert": "true",
+      },
+      body: buffer,
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error(`[Duke Editor] Supabase upload failed for ${bucket}/${filePath}:`, err);
+      return false;
+    }
+
+    console.log(`[Duke Editor] Uploaded to Supabase: ${bucket}/${filePath}`);
+    return true;
+  } catch (error: any) {
+    console.error(`[Duke Editor] Supabase upload error:`, error.message);
+    return false;
+  }
+}
+
+async function downloadFromSupabase(
+  bucket: string,
+  filePath: string
+): Promise<Buffer | null> {
+  if (!SUPABASE_SERVICE_KEY) return null;
+
+  try {
+    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch {
+    return null;
+  }
+}
+
+async function deleteFromSupabase(
+  bucket: string,
+  filePaths: string[]
+): Promise<boolean> {
+  if (!SUPABASE_SERVICE_KEY) return false;
+
+  try {
+    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prefixes: filePaths }),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function supabaseFileExists(
+  bucket: string,
+  filePath: string
+): Promise<boolean> {
+  if (!SUPABASE_SERVICE_KEY) return false;
+
+  try {
+    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const response = await fetch(url, {
+      method: "HEAD",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Get the source image buffer — prefer Supabase edited version, fall back to local
+async function getSourceImage(imageName: string): Promise<{ buffer: Buffer; source: "supabase" | "local" }> {
+  // First check if there's an edited version in Supabase
+  const supabaseBuffer = await downloadFromSupabase(EDITS_BUCKET, `${imageName}.jpeg`);
+  if (supabaseBuffer) {
+    console.log(`[Duke Editor] Using Supabase edited version for ${imageName}`);
+    return { buffer: supabaseBuffer, source: "supabase" };
+  }
+
+  // Fall back to local file
+  const imagesDir = getDukeImagesDir();
+  const jpegPath = path.join(imagesDir, `${imageName}.jpeg`);
+  if (!fs.existsSync(jpegPath)) {
+    throw new Error(`Image not found: ${imageName}`);
+  }
+
+  return { buffer: fs.readFileSync(jpegPath), source: "local" };
+}
+
+// ─── Routes ─────────────────────────────────────────────────────────────────
 
 /**
  * POST /api/duke/edit-image
  * Applies crop and/or rotate to a Duke gallery image
- * 
- * Body:
- * - password: string (editor password)
- * - imageName: string (e.g., "duke-42" - without extension)
- * - rotate: number (0, 90, 180, 270)
- * - crop: { x: number, y: number, width: number, height: number } | null
- *   (pixel coordinates relative to the original image dimensions)
+ * Saves result to both local filesystem AND Supabase Storage
  */
 router.post("/edit-image", express.json({ limit: "10mb" }), async (req, res) => {
   try {
     const { password, imageName, rotate, crop } = req.body;
 
-    // Verify editor credentials
     if (!verifyEditorPassword(password)) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Validate imageName format
     if (!imageName || !/^duke-\d+$/.test(imageName)) {
       return res.status(400).json({ error: "Invalid image name" });
     }
 
-    const imagesDir = getDukeImagesDir();
-    const jpegPath = path.join(imagesDir, `${imageName}.jpeg`);
-    const webpPath = path.join(imagesDir, `${imageName}.webp`);
-
-    // Verify the JPEG source exists
-    if (!fs.existsSync(jpegPath)) {
-      return res.status(404).json({ error: `Image not found: ${imageName}` });
-    }
-
     console.log(`[Duke Editor] Processing ${imageName} - rotate: ${rotate}, crop: ${JSON.stringify(crop)}`);
 
-    // Create backup before editing
-    const backupDir = path.join(imagesDir, ".backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
+    // Get the source image (prefers Supabase edited version if exists)
+    const { buffer: sourceBuffer, source } = await getSourceImage(imageName);
+    console.log(`[Duke Editor] Source: ${source} for ${imageName}`);
+
+    // Backup the current version to Supabase before editing
     const timestamp = Date.now();
-    fs.copyFileSync(jpegPath, path.join(backupDir, `${imageName}_${timestamp}.jpeg`));
-    if (fs.existsSync(webpPath)) {
-      fs.copyFileSync(webpPath, path.join(backupDir, `${imageName}_${timestamp}.webp`));
+    await uploadToSupabase(
+      BACKUPS_BUCKET,
+      `${imageName}_${timestamp}.jpeg`,
+      sourceBuffer,
+      "image/jpeg"
+    );
+
+    // Also backup locally if possible
+    try {
+      const imagesDir = getDukeImagesDir();
+      const backupDir = path.join(imagesDir, ".backups");
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(backupDir, `${imageName}_${timestamp}.jpeg`), sourceBuffer);
+    } catch {
+      // Local backup is best-effort
     }
 
-    // Start with the JPEG source
-    let pipeline = sharp(jpegPath);
+    // Build Sharp pipeline from the source buffer
+    let pipeline = sharp(sourceBuffer);
 
     // Apply rotation first (if specified)
     if (rotate && rotate !== 0) {
-      const validRotations = [90, 180, 270];
-      if (validRotations.includes(rotate)) {
-        pipeline = pipeline.rotate(rotate);
+      const normalized = ((rotate % 360) + 360) % 360;
+      if ([90, 180, 270].includes(normalized)) {
+        pipeline = pipeline.rotate(normalized);
       }
     }
 
     // Apply crop (if specified)
-    // Crop coordinates are in pixels relative to the (possibly rotated) image
     if (crop && crop.width > 0 && crop.height > 0) {
       pipeline = pipeline.extract({
         left: Math.round(crop.x),
@@ -106,24 +234,34 @@ router.post("/edit-image", express.json({ limit: "10mb" }), async (req, res) => 
       });
     }
 
-    // Process and save JPEG
+    // Process to JPEG
     const jpegBuffer = await pipeline
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer();
 
-    // Process and save WebP from the same pipeline result
+    // Process to WebP
     const webpBuffer = await sharp(jpegBuffer)
       .webp({ quality: 80, effort: 6 })
       .toBuffer();
 
-    // Write both files
-    fs.writeFileSync(jpegPath, jpegBuffer);
-    fs.writeFileSync(webpPath, webpBuffer);
+    // Save to Supabase Storage (persistent — survives redeploys)
+    const [jpegUploaded, webpUploaded] = await Promise.all([
+      uploadToSupabase(EDITS_BUCKET, `${imageName}.jpeg`, jpegBuffer, "image/jpeg"),
+      uploadToSupabase(EDITS_BUCKET, `${imageName}.webp`, webpBuffer, "image/webp"),
+    ]);
 
-    // Get new dimensions
+    // Also save locally (for immediate serving, even if ephemeral)
+    try {
+      const imagesDir = getDukeImagesDir();
+      fs.writeFileSync(path.join(imagesDir, `${imageName}.jpeg`), jpegBuffer);
+      fs.writeFileSync(path.join(imagesDir, `${imageName}.webp`), webpBuffer);
+    } catch {
+      // Local save is best-effort in production
+    }
+
     const metadata = await sharp(jpegBuffer).metadata();
 
-    console.log(`[Duke Editor] Saved ${imageName} - ${metadata.width}x${metadata.height}`);
+    console.log(`[Duke Editor] Saved ${imageName} - ${metadata.width}x${metadata.height} (supabase: ${jpegUploaded})`);
 
     return res.json({
       success: true,
@@ -131,6 +269,7 @@ router.post("/edit-image", express.json({ limit: "10mb" }), async (req, res) => 
       dimensions: { width: metadata.width, height: metadata.height },
       jpegSize: jpegBuffer.length,
       webpSize: webpBuffer.length,
+      supabaseUploaded: jpegUploaded && webpUploaded,
     });
   } catch (error: any) {
     console.error("[Duke Editor] Error:", error);
@@ -140,7 +279,7 @@ router.post("/edit-image", express.json({ limit: "10mb" }), async (req, res) => 
 
 /**
  * POST /api/duke/revert-image
- * Reverts an image to its most recent backup
+ * Reverts an image to the original (removes Supabase edited version)
  */
 router.post("/revert-image", express.json(), async (req, res) => {
   try {
@@ -154,47 +293,100 @@ router.post("/revert-image", express.json(), async (req, res) => {
       return res.status(400).json({ error: "Invalid image name" });
     }
 
-    const imagesDir = getDukeImagesDir();
-    const backupDir = path.join(imagesDir, ".backups");
+    // Delete the edited versions from Supabase — this reverts to the original static file
+    await deleteFromSupabase(EDITS_BUCKET, [
+      `${imageName}.jpeg`,
+      `${imageName}.webp`,
+    ]);
 
-    // Find the most recent backup
-    if (!fs.existsSync(backupDir)) {
-      return res.status(404).json({ error: "No backups found" });
+    // Also try to restore locally from backup
+    try {
+      const imagesDir = getDukeImagesDir();
+      const backupDir = path.join(imagesDir, ".backups");
+
+      if (fs.existsSync(backupDir)) {
+        const backups = fs.readdirSync(backupDir)
+          .filter(f => f.startsWith(`${imageName}_`) && f.endsWith(".jpeg"))
+          .sort()
+          .reverse();
+
+        if (backups.length > 0) {
+          const latestBackup = backups[0];
+          const backupTimestamp = latestBackup.replace(`${imageName}_`, "").replace(".jpeg", "");
+
+          fs.copyFileSync(
+            path.join(backupDir, latestBackup),
+            path.join(imagesDir, `${imageName}.jpeg`)
+          );
+
+          const webpBackup = `${imageName}_${backupTimestamp}.webp`;
+          if (fs.existsSync(path.join(backupDir, webpBackup))) {
+            fs.copyFileSync(
+              path.join(backupDir, webpBackup),
+              path.join(imagesDir, `${imageName}.webp`)
+            );
+          }
+        }
+      }
+    } catch {
+      // Local revert is best-effort
     }
 
-    const backups = fs.readdirSync(backupDir)
-      .filter(f => f.startsWith(`${imageName}_`) && f.endsWith(".jpeg"))
-      .sort()
-      .reverse();
+    console.log(`[Duke Editor] Reverted ${imageName} — removed Supabase edits`);
 
-    if (backups.length === 0) {
-      return res.status(404).json({ error: "No backup found for this image" });
-    }
-
-    const latestBackup = backups[0];
-    const backupTimestamp = latestBackup.replace(`${imageName}_`, "").replace(".jpeg", "");
-
-    // Restore JPEG
-    fs.copyFileSync(
-      path.join(backupDir, latestBackup),
-      path.join(imagesDir, `${imageName}.jpeg`)
-    );
-
-    // Restore WebP if backup exists
-    const webpBackup = `${imageName}_${backupTimestamp}.webp`;
-    if (fs.existsSync(path.join(backupDir, webpBackup))) {
-      fs.copyFileSync(
-        path.join(backupDir, webpBackup),
-        path.join(imagesDir, `${imageName}.webp`)
-      );
-    }
-
-    console.log(`[Duke Editor] Reverted ${imageName} from backup ${latestBackup}`);
-
-    return res.json({ success: true, imageName, restoredFrom: latestBackup });
+    return res.json({ success: true, imageName });
   } catch (error: any) {
     console.error("[Duke Editor] Revert error:", error);
     return res.status(500).json({ error: error.message || "Failed to revert image" });
+  }
+});
+
+/**
+ * GET /api/duke/edited-images
+ * Returns a map of which images have edited versions in Supabase Storage
+ * The client uses this to know which images to serve from Supabase vs static
+ */
+router.get("/edited-images", async (_req, res) => {
+  if (!SUPABASE_SERVICE_KEY) {
+    return res.json({ editedImages: {} });
+  }
+
+  try {
+    // List all files in the duke-edits bucket
+    const url = `${SUPABASE_URL}/storage/v1/object/list/${EDITS_BUCKET}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prefix: "", limit: 1000 }),
+    });
+
+    if (!response.ok) {
+      return res.json({ editedImages: {} });
+    }
+
+    const files: Array<{ name: string }> = await response.json();
+
+    // Build a map: imageName -> { jpeg: publicUrl, webp: publicUrl }
+    const editedImages: Record<string, { jpeg?: string; webp?: string }> = {};
+    const publicBase = `${SUPABASE_URL}/storage/v1/object/public/${EDITS_BUCKET}`;
+
+    for (const file of files) {
+      if (!file.name) continue;
+      const match = file.name.match(/^(duke-\d+)\.(jpeg|webp)$/);
+      if (match) {
+        const [, name, ext] = match;
+        if (!editedImages[name]) editedImages[name] = {};
+        (editedImages[name] as any)[ext] = `${publicBase}/${file.name}`;
+      }
+    }
+
+    return res.json({ editedImages });
+  } catch (error: any) {
+    console.error("[Duke Editor] List edited images error:", error);
+    return res.json({ editedImages: {} });
   }
 });
 
@@ -210,6 +402,20 @@ router.get("/image-info/:imageName", async (req, res) => {
       return res.status(400).json({ error: "Invalid image name" });
     }
 
+    // Try Supabase first
+    const supabaseBuffer = await downloadFromSupabase(EDITS_BUCKET, `${imageName}.jpeg`);
+    if (supabaseBuffer) {
+      const metadata = await sharp(supabaseBuffer).metadata();
+      return res.json({
+        imageName,
+        width: metadata.width,
+        height: metadata.height,
+        jpegSize: supabaseBuffer.length,
+        source: "supabase",
+      });
+    }
+
+    // Fall back to local
     const imagesDir = getDukeImagesDir();
     const jpegPath = path.join(imagesDir, `${imageName}.jpeg`);
 
@@ -220,15 +426,12 @@ router.get("/image-info/:imageName", async (req, res) => {
     const metadata = await sharp(jpegPath).metadata();
     const jpegStats = fs.statSync(jpegPath);
 
-    const webpPath = path.join(imagesDir, `${imageName}.webp`);
-    const webpStats = fs.existsSync(webpPath) ? fs.statSync(webpPath) : null;
-
     return res.json({
       imageName,
       width: metadata.width,
       height: metadata.height,
       jpegSize: jpegStats.size,
-      webpSize: webpStats?.size || null,
+      source: "local",
     });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
@@ -237,8 +440,7 @@ router.get("/image-info/:imageName", async (req, res) => {
 
 /**
  * POST /api/duke/save-order
- * Persists the gallery image order to a JSON file
- * Body: { password: string, order: string[] } — array of image names in desired order
+ * Persists the gallery image order to both local file AND Supabase Storage
  */
 router.post("/save-order", express.json({ limit: "2mb" }), async (req, res) => {
   try {
@@ -252,17 +454,25 @@ router.post("/save-order", express.json({ limit: "2mb" }), async (req, res) => {
       return res.status(400).json({ error: "Invalid order array" });
     }
 
-    // Validate all entries are valid duke image names
     for (const name of order) {
       if (!/^duke-\d+$/.test(name)) {
         return res.status(400).json({ error: `Invalid image name in order: ${name}` });
       }
     }
 
-    const imagesDir = getDukeImagesDir();
-    const orderFilePath = path.join(imagesDir, "order.json");
+    const orderData = JSON.stringify({ order, updatedAt: new Date().toISOString() }, null, 2);
+    const orderBuffer = Buffer.from(orderData, "utf-8");
 
-    fs.writeFileSync(orderFilePath, JSON.stringify({ order, updatedAt: new Date().toISOString() }, null, 2));
+    // Save to Supabase (persistent)
+    await uploadToSupabase(EDITS_BUCKET, "order.json", orderBuffer, "application/json");
+
+    // Save locally (best-effort)
+    try {
+      const imagesDir = getDukeImagesDir();
+      fs.writeFileSync(path.join(imagesDir, "order.json"), orderData);
+    } catch {
+      // Local save is best-effort
+    }
 
     console.log(`[Duke Editor] Saved image order — ${order.length} images`);
 
@@ -275,10 +485,18 @@ router.post("/save-order", express.json({ limit: "2mb" }), async (req, res) => {
 
 /**
  * GET /api/duke/get-order
- * Returns the saved gallery image order (if any)
+ * Returns the saved gallery image order — prefers Supabase, falls back to local
  */
 router.get("/get-order", async (_req, res) => {
   try {
+    // Try Supabase first (persistent)
+    const supabaseBuffer = await downloadFromSupabase(EDITS_BUCKET, "order.json");
+    if (supabaseBuffer) {
+      const data = JSON.parse(supabaseBuffer.toString("utf-8"));
+      return res.json({ order: data.order || null, updatedAt: data.updatedAt || null, source: "supabase" });
+    }
+
+    // Fall back to local file
     const imagesDir = getDukeImagesDir();
     const orderFilePath = path.join(imagesDir, "order.json");
 
@@ -287,7 +505,7 @@ router.get("/get-order", async (_req, res) => {
     }
 
     const data = JSON.parse(fs.readFileSync(orderFilePath, "utf-8"));
-    return res.json({ order: data.order || null, updatedAt: data.updatedAt || null });
+    return res.json({ order: data.order || null, updatedAt: data.updatedAt || null, source: "local" });
   } catch (error: any) {
     console.error("[Duke Editor] Get order error:", error);
     return res.json({ order: null });

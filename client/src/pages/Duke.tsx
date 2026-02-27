@@ -587,6 +587,9 @@ export default function Duke() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // Supabase edited images map: imageName -> { jpeg: url, webp: url }
+  const [editedImageUrls, setEditedImageUrls] = useState<Record<string, { jpeg?: string; webp?: string }>>({});
+
   const isEditor = userRole === "editor";
 
   // DnD sensors — pointer for desktop, touch for iPad (with activation distance to prevent accidental drags)
@@ -747,12 +750,49 @@ export default function Duke() {
     return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
   };
 
+  // Fetch edited image URLs from Supabase
+  const fetchEditedImages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/duke/edited-images");
+      const data = await res.json();
+      if (data.editedImages) {
+        setEditedImageUrls(data.editedImages);
+      }
+    } catch {
+      // Silently fail — use local images
+    }
+  }, []);
+
+  // Helper: get the correct image URLs (Supabase edited version or local static)
+  const getImageSrc = useCallback((image: { src: string; webp: string }) => {
+    const name = getImageName(image.src);
+    const edited = editedImageUrls[name];
+    if (edited) {
+      return {
+        src: `${edited.jpeg || image.src}?v=${imageRefreshKey}`,
+        webp: `${edited.webp || image.webp}?v=${imageRefreshKey}`,
+      };
+    }
+    return {
+      src: `${image.src}?v=${imageRefreshKey}`,
+      webp: `${image.webp}?v=${imageRefreshKey}`,
+    };
+  }, [editedImageUrls, imageRefreshKey]);
+
   // Editor: handle image saved callback
   const handleImageSaved = () => {
     setEditingIndex(null);
     // Force refresh all images by incrementing the key
     setImageRefreshKey((prev) => prev + 1);
+    // Re-fetch edited images map from Supabase
+    fetchEditedImages();
   };
+
+  // Fetch edited image URLs from Supabase on auth
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchEditedImages();
+  }, [isAuthenticated, fetchEditedImages]);
 
   // DnD handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -1131,7 +1171,7 @@ export default function Duke() {
                 {activeDragImage ? (
                   <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl shadow-gold/20 opacity-90">
                     <img
-                      src={`${activeDragImage.src}?v=${imageRefreshKey}`}
+                      src={getImageSrc(activeDragImage).src}
                       alt="Dragging"
                       className="w-full h-full object-cover"
                       draggable={false}
@@ -1168,9 +1208,9 @@ export default function Duke() {
                     }}
                   >
                     <picture>
-                      <source srcSet={`${image.webp}?v=${imageRefreshKey}`} type="image/webp" />
+                      <source srcSet={getImageSrc(image).webp} type="image/webp" />
                       <img
-                        src={`${image.src}?v=${imageRefreshKey}`}
+                        src={getImageSrc(image).src}
                         alt={image.alt}
                         className="w-full h-auto image-hover select-none"
                         loading="lazy"
@@ -1267,9 +1307,9 @@ export default function Duke() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <picture>
-                    <source srcSet={`${orderedImages[selectedIndex].webp}?v=${imageRefreshKey}`} type="image/webp" />
+                    <source srcSet={getImageSrc(orderedImages[selectedIndex]).webp} type="image/webp" />
                     <img
-                      src={`${orderedImages[selectedIndex].src}?v=${imageRefreshKey}`}
+                      src={getImageSrc(orderedImages[selectedIndex]).src}
                       alt={orderedImages[selectedIndex].alt}
                       className="max-w-full max-h-[90vh] object-contain select-none"
                       draggable={false}
@@ -1304,7 +1344,7 @@ export default function Duke() {
           <AnimatePresence>
             {isEditor && editingIndex !== null && (
               <DukeImageEditor
-                imageSrc={orderedImages[editingIndex].src}
+                imageSrc={getImageSrc(orderedImages[editingIndex]).src.split('?')[0]}
                 imageName={getImageName(orderedImages[editingIndex].src)}
                 editorPassword={EDITOR_PASSWORD}
                 onClose={() => setEditingIndex(null)}
