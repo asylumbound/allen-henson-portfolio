@@ -48,7 +48,7 @@ export default function Home() {
             className="w-full h-full object-cover opacity-60"
             poster="/images/XUQX2322-scaled.jpg"
           >
-            <source src="https://www.allenhenson.nyc/wp-content/uploads/2025/10/allen_henson_-_the_reel-1080p.mp4" type="video/mp4" />
+            <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="absolute inset-0 vignette" />

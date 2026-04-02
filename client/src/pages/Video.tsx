@@ -59,7 +59,7 @@ export default function Video() {
               className="w-full h-full object-contain"
               poster="/images/portfolio-01.png"
             >
-              <source src="https://www.allenhenson.nyc/wp-content/uploads/2025/10/allen_henson_-_the_reel-1080p.mp4" type="video/mp4" />
+              <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             <div className="absolute inset-0 pointer-events-none vignette opacity-30" />
