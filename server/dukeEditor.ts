@@ -64,7 +64,7 @@ async function uploadToSupabase(
         "Content-Type": contentType,
         "x-upsert": "true",
       },
-      body: buffer,
+      body: buffer as unknown as BodyInit,
     });
 
     if (!response.ok) {
