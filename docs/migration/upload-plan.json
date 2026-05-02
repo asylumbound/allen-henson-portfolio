@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-05-02T21:17:45.806Z",
+  "sourceManifest": "docs/migration/asset-manifest.json",
+  "dryRun": true,
+  "totalManifestEntries": 1780,
+  "processedEntries": 10,
+  "entries": [
+    {
+      "sourceUrl": "/client/public/images/1-2-scaled.jpg",
+      "sourceLocation": "client/public/images/1-2-scaled.jpg",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1-2-scaled.jpg",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1-2-scaled.jpg",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1075842E-5BB5-49D3-9345-D3996E9C31C9.png",
+      "sourceLocation": "client/public/images/1075842E-5BB5-49D3-9345-D3996E9C31C9.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1075842E-5BB5-49D3-9345-D3996E9C31C9.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1075842E-5BB5-49D3-9345-D3996E9C31C9.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1E55A0DC-6817-4165-B0EC-A3982798EA60.png",
+      "sourceLocation": "client/public/images/1E55A0DC-6817-4165-B0EC-A3982798EA60.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1E55A0DC-6817-4165-B0EC-A3982798EA60.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1E55A0DC-6817-4165-B0EC-A3982798EA60.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A0044-Edit-Edit.png",
+      "sourceLocation": "client/public/images/1J3A0044-Edit-Edit.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A0044-Edit-Edit.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A0044-Edit-Edit.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A0083-Edit.jpg",
+      "sourceLocation": "client/public/images/1J3A0083-Edit.jpg",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A0083-Edit.jpg",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A0083-Edit.jpg",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A0475-Edit-Edit-Edit-Edit-Edit.png",
+      "sourceLocation": "client/public/images/1J3A0475-Edit-Edit-Edit-Edit-Edit.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A0475-Edit-Edit-Edit-Edit-Edit.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A0475-Edit-Edit-Edit-Edit-Edit.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A0778-Edit-Edit-Edit-2-Edit-Edit.png",
+      "sourceLocation": "client/public/images/1J3A0778-Edit-Edit-Edit-2-Edit-Edit.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A0778-Edit-Edit-Edit-2-Edit-Edit.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A0778-Edit-Edit-Edit-2-Edit-Edit.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A1882-Edit.png",
+      "sourceLocation": "client/public/images/1J3A1882-Edit.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A1882-Edit.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A1882-Edit.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A2008.png",
+      "sourceLocation": "client/public/images/1J3A2008.png",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A2008.png",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A2008.png",
+      "status": "pending",
+      "error": null
+    },
+    {
+      "sourceUrl": "/client/public/images/1J3A2144-1-scaled.jpg",
+      "sourceLocation": "client/public/images/1J3A2144-1-scaled.jpg",
+      "assetType": "gallery-photos",
+      "targetBucket": "gallery",
+      "targetPath": "gallery/photos/1J3A2144-1-scaled.jpg",
+      "newUrl": "https://YOUR_PROJECT.supabase.co/storage/v1/object/public/gallery/gallery/photos/1J3A2144-1-scaled.jpg",
+      "status": "pending",
+      "error": null
+    }
+  ]
+}
