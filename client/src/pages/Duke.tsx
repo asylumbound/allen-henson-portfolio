@@ -791,7 +791,7 @@ export default function Duke() {
   // Editor: handle image deleted callback
   const handleImageDeleted = useCallback((deletedName: string) => {
     setEditingIndex(null);
-    setLightboxIndex(null);
+    setSelectedIndex(null);
     // Remove the image from the ordered list
     setOrderedImages((prev) => prev.filter((img) => {
       const name = img.src.replace(/\/images\/duke\/|\.jpeg|\.webp/g, "");
