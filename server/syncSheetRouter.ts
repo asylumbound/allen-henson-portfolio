@@ -154,7 +154,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       const data = await sbFetch("photo_video_sync_shoots", {
@@ -184,7 +184,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, id, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       const data = await sbFetch(
@@ -200,7 +200,7 @@ export const syncSheetRouter = router({
   deleteShoot: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       await sbFetch(`photo_video_sync_shoots?id=eq.${input.id}`, {
@@ -231,7 +231,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
 
@@ -313,7 +313,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
 
@@ -357,7 +357,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, id, shoot_id, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
 
@@ -401,7 +401,7 @@ export const syncSheetRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
 
@@ -456,7 +456,7 @@ export const syncSheetRouter = router({
   deleteOperatorCard: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       await sbFetch(`photo_video_sync_operator_cards?id=eq.${input.id}`, {
@@ -494,7 +494,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77VAnguard") {
+      if (password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       const data = await sbFetch("photo_video_sync_presets", {
@@ -507,7 +507,7 @@ export const syncSheetRouter = router({
   deletePreset: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       // Don't allow deleting built-in presets
@@ -534,7 +534,7 @@ export const syncSheetRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
 
@@ -639,7 +639,7 @@ export const syncSheetRouter = router({
   deleteDataDrop: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77VAnguard") {
+      if (input.password !== "&&77JFR") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
       }
       // Get the storage path before deleting the DB record
@@ -663,7 +663,182 @@ export const syncSheetRouter = router({
       });
       return { success: true };
     }),
+
+  // ── Share Links ────────────────────────────────────────────────────────────
+  shareLinks: router({
+    // List all share links for a shoot (admin only)
+    list: publicProcedure
+      .input(z.object({ password: z.string(), shoot_id: z.string() }))
+      .query(async ({ input }) => {
+        if (input.password !== "&&77JFR") {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const rows = await sbFetch(
+          `photo_video_sync_share_links?shoot_id=eq.${encodeURIComponent(input.shoot_id)}&order=created_at.desc`
+        );
+        return rows as ShareLinkRecord[];
+      }),
+
+    // Create a new share link (admin only)
+    create: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        shoot_id: z.string(),
+        project_name: z.string(),
+        shoot_date: z.string().optional(),
+        label: z.string().optional(),
+        is_public: z.boolean().default(true),
+        link_password: z.string().optional(),
+        expires_at: z.string().optional(),
+        allow_download: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.password !== "&&77JFR") {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        let password_hash: string | null = null;
+        if (!input.is_public && input.link_password) {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(input.link_password);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        const payload: Record<string, unknown> = {
+          shoot_id: input.shoot_id,
+          project_name: input.project_name,
+          shoot_date: input.shoot_date,
+          label: input.label || input.project_name,
+          is_public: input.is_public,
+          password_hash,
+          expires_at: input.expires_at || null,
+          allow_download: input.allow_download,
+          created_by: 'admin',
+        };
+        const rows = await sbFetch('photo_video_sync_share_links', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        return (rows as ShareLinkRecord[])[0];
+      }),
+
+    // Delete a share link (admin only)
+    delete: publicProcedure
+      .input(z.object({ password: z.string(), id: z.string() }))
+      .mutation(async ({ input }) => {
+        if (input.password !== "&&77JFR") {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        await sbFetch(`photo_video_sync_share_links?id=eq.${input.id}`, {
+          method: 'DELETE',
+          headers: { Prefer: 'return=minimal' },
+        });
+        return { success: true };
+      }),
+
+    // Public: verify a share link token (no admin password needed)
+    verify: publicProcedure
+      .input(z.object({
+        token: z.string(),
+        link_password: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const rows = await sbFetch(
+          `photo_video_sync_share_links?token=eq.${encodeURIComponent(input.token)}&limit=1`
+        ) as ShareLinkRecord[];
+        if (!rows || rows.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Share link not found" });
+        }
+        const link = rows[0];
+        if (link.expires_at && new Date(link.expires_at) < new Date()) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This link has expired" });
+        }
+        if (!link.is_public) {
+          if (!input.link_password) {
+            return { requires_password: true as const, shoot_id: null, project_name: link.project_name, label: link.label, allow_download: link.allow_download, shoot_date: link.shoot_date };
+          }
+          const encoder = new TextEncoder();
+          const data = encoder.encode(input.link_password);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          if (hash !== link.password_hash) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Incorrect password" });
+          }
+        }
+        // Update access stats
+        await sbFetch(`photo_video_sync_share_links?id=eq.${link.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ last_accessed_at: new Date().toISOString(), access_count: (link.access_count || 0) + 1 }),
+          headers: { Prefer: 'return=minimal' },
+        });
+        return {
+          requires_password: false as const,
+          shoot_id: link.shoot_id,
+          project_name: link.project_name,
+          shoot_date: link.shoot_date,
+          label: link.label,
+          allow_download: link.allow_download,
+        };
+      }),
+
+    // Public: list files for a verified share link
+    listFiles: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const rows = await sbFetch(
+          `photo_video_sync_share_links?token=eq.${encodeURIComponent(input.token)}&limit=1`
+        ) as ShareLinkRecord[];
+        if (!rows || rows.length === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Share link not found" });
+        }
+        const link = rows[0];
+        if (link.expires_at && new Date(link.expires_at) < new Date()) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Link expired" });
+        }
+        const files = await sbFetch(
+          `photo_video_sync_data_drops?shoot_id=eq.${encodeURIComponent(link.shoot_id)}&order=created_at.asc`
+        ) as DataDropRecord[];
+        const filesWithUrls = await Promise.all(
+          (files || []).map(async (f) => {
+            try {
+              const signRes = await fetch(
+                `${SUPABASE_URL}/storage/v1/object/sign/sync-data-drops/${encodeURIComponent(f.storage_path)}`,
+                {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${SERVICE_KEY}`, apikey: SERVICE_KEY, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ expiresIn: 3600 }),
+                }
+              );
+              const signData = await signRes.json() as { signedURL?: string };
+              const signedUrl = signData.signedURL ? `${SUPABASE_URL}/storage/v1${signData.signedURL}` : null;
+              return { ...f, signedUrl };
+            } catch {
+              return { ...f, signedUrl: null };
+            }
+          })
+        );
+        return { files: filesWithUrls, allow_download: link.allow_download, project_name: link.project_name, shoot_date: link.shoot_date, label: link.label };
+      }),
+  }),
 });
+
+interface ShareLinkRecord {
+  id: string;
+  shoot_id: string;
+  project_name: string;
+  shoot_date?: string;
+  token: string;
+  label?: string;
+  is_public: boolean;
+  password_hash?: string;
+  expires_at?: string;
+  allow_download: boolean;
+  created_by?: string;
+  created_at: string;
+  last_accessed_at?: string;
+  access_count?: number;
+}
 
 interface DataDropRecord {
   id: string;

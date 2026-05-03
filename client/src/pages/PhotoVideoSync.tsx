@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import {
-  Lock, Camera, Video, RefreshCw, Plus, Trash2, ChevronDown, ChevronUp,
+  Lock, RefreshCw, Plus, Trash2, ChevronDown, ChevronUp,
   Check, AlertTriangle, X, Settings, BookOpen, Clock, Zap, Copy, Save,
   Eye, EyeOff, ArrowRight, Upload, File, Download, Folder, Share2, Globe,
   Shield, ChevronLeft, Menu, CloudUpload, FolderOpen
@@ -158,7 +158,7 @@ interface ChangeLogEntry {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const ADMIN_PASSWORD = "&&77VAnguard";
+const ADMIN_PASSWORD = "&&77JFR";
 
 const PHOTO_FIELDS = [
   { key: "photo_iso", label: "ISO" },
@@ -217,14 +217,9 @@ function SyncBadge({ status }: { status: string }) {
 }
 
 function CaptureModeIcon({ mode }: { mode: string }) {
-  if (mode === "photo") return <Camera size={14} className="text-blue-400" />;
-  if (mode === "video") return <Video size={14} className="text-purple-400" />;
-  return (
-    <span className="inline-flex gap-0.5">
-      <Camera size={12} className="text-blue-400" />
-      <Video size={12} className="text-purple-400" />
-    </span>
-  );
+  // Icons removed — mode shown via text badge only
+  const label = mode === "photo" ? "PHOTO" : mode === "video" ? "VIDEO" : "HYBRID";
+  return <span className="text-white/25 text-[10px] tracking-widest font-mono">{label}</span>;
 }
 
 // ── Drop Widget ──────────────────────────────────────────────────────────────
@@ -1016,12 +1011,8 @@ export default function PhotoVideoSync() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Camera size={20} className="text-white/60" />
-              <Video size={20} className="text-white/60" />
-            </div>
             <h1 className="text-white text-xl font-light tracking-widest uppercase mb-1">
-              Photo / Video Sync
+              SYNC
             </h1>
             <p className="text-white/40 text-xs tracking-wider">PRODUCTION TOOL — RESTRICTED ACCESS</p>
           </div>
@@ -1171,10 +1162,6 @@ export default function PhotoVideoSync() {
       {!selectedShootId ? (
         <div className="flex items-center justify-center h-64 border border-white/5 rounded">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-3 opacity-20">
-              <Camera size={24} />
-              <Video size={24} />
-            </div>
             <p className="text-white/30 text-sm">Select a shoot to view settings</p>
             <p className="text-white/15 text-xs mt-1">or create a new one</p>
           </div>
@@ -1290,8 +1277,8 @@ export default function PhotoVideoSync() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {showPhotoFields && (
                         <div>
-                          <p className="text-blue-400/60 text-xs uppercase tracking-widest mb-2 flex items-center gap-1">
-                            <Camera size={10} /> Photo
+                          <p className="text-blue-400/60 text-xs uppercase tracking-widest mb-2">
+                            Photo
                           </p>
                           <div className="space-y-1">
                             {PHOTO_FIELDS.map(f => {
@@ -1309,8 +1296,8 @@ export default function PhotoVideoSync() {
                       )}
                       {showVideoFields && (
                         <div>
-                          <p className="text-purple-400/60 text-xs uppercase tracking-widest mb-2 flex items-center gap-1">
-                            <Video size={10} /> Video
+                          <p className="text-purple-400/60 text-xs uppercase tracking-widest mb-2">
+                            Video
                           </p>
                           <div className="space-y-1">
                             {VIDEO_FIELDS.map(f => {
@@ -1344,8 +1331,8 @@ export default function PhotoVideoSync() {
                     <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
                       {showPhotoFields && (
                         <div>
-                          <p className="text-blue-400/70 text-xs uppercase tracking-widest mb-3 flex items-center gap-1">
-                            <Camera size={10} /> Photo Settings
+                          <p className="text-blue-400/60 text-xs uppercase tracking-widest mb-3">
+                            Photo Settings
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {PHOTO_FIELDS.map(f => (
@@ -1364,8 +1351,8 @@ export default function PhotoVideoSync() {
                       )}
                       {showVideoFields && (
                         <div>
-                          <p className="text-purple-400/70 text-xs uppercase tracking-widest mb-3 flex items-center gap-1">
-                            <Video size={10} /> Video Settings
+                          <p className="text-purple-400/60 text-xs uppercase tracking-widest mb-3">
+                            Video Settings
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {VIDEO_FIELDS.map(f => (
@@ -1577,8 +1564,8 @@ export default function PhotoVideoSync() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                             {showPhotoFields && (
                               <div>
-                                <p className="text-blue-400/50 text-xs uppercase tracking-widest mb-2 flex items-center gap-1">
-                                  <Camera size={9} /> Photo
+                                <p className="text-blue-400/50 text-xs uppercase tracking-widest mb-2">
+                                  Photo
                                 </p>
                                 <div className="space-y-1">
                                   {PHOTO_FIELDS.map(f => {
@@ -1603,8 +1590,8 @@ export default function PhotoVideoSync() {
                             )}
                             {showVideoFields && (
                               <div>
-                                <p className="text-purple-400/50 text-xs uppercase tracking-widest mb-2 flex items-center gap-1">
-                                  <Video size={9} /> Video
+                                <p className="text-purple-400/50 text-xs uppercase tracking-widest mb-2">
+                                  Video
                                 </p>
                                 <div className="space-y-1">
                                   {VIDEO_FIELDS.map(f => {
@@ -1723,13 +1710,9 @@ export default function PhotoVideoSync() {
               <ChevronLeft size={14} /> Shoots
             </button>
             {/* Mobile: hamburger when in list view */}
-            <div className="flex items-center gap-1.5">
-              <Camera size={15} className="text-blue-400" />
-              <Video size={15} className="text-purple-400" />
-            </div>
             <div>
               <h1 className="text-xs sm:text-sm font-medium tracking-widest uppercase text-white">
-                Photo / Video Sync
+                Sync
               </h1>
               <p className="text-white/30 text-xs hidden sm:block">Camera settings synchronization</p>
             </div>

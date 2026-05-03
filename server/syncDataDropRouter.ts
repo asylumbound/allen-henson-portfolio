@@ -17,7 +17,7 @@ import { createReadStream } from "fs";
 
 const router = express.Router();
 
-const ADMIN_PASSWORD = "&&77VAnguard";
+const ADMIN_PASSWORD = "&&77JFR";
 const SUPABASE_URL =
   process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";

@@ -10,7 +10,7 @@ import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
 
 // Admin password for the /edit page
-const ADMIN_PASSWORD = "&&77VAnguard";
+const ADMIN_PASSWORD = "&&77JFR";
 
 export const appRouter = router({
   system: systemRouter,

@@ -42,6 +42,8 @@ function Router() {
       {/* Agency - password-protected agency database (own layout) */}
       <Route path="/agency" component={Agency} />
       {/* Photo/Video Sync Sheet - production tool (own layout) */}
+      <Route path="/sync" component={PhotoVideoSync} />
+      {/* Legacy redirect: old URL still works */}
       <Route path="/photo-video-sync" component={PhotoVideoSync} />
       {/* Share links - public/protected file share pages */}
       <Route path="/share/:token" component={SyncSharePage} />
