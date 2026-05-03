@@ -13,6 +13,7 @@ import { Send, Instagram, Mail, MapPin } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import { BreadcrumbSchema } from "@/components/StructuredData";
+import { assetUrl } from "@/lib/assets";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -50,7 +51,7 @@ export default function Contact() {
       <SEOHead
         title="Contact Allen Henson"
         description="Get in touch with Allen Henson for photography and film direction inquiries. Available for editorial, commercial, portrait, and product photography projects. Studios in Los Angeles and New York."
-        image="/images/allen-polaroid23gg.jpg"
+        image={assetUrl("/images/allen-polaroid23gg.jpg")}
       />
       <BreadcrumbSchema
         items={[

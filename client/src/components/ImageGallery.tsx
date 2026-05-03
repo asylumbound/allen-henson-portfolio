@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { assetUrl } from "@/lib/assets";
 
 interface ImageGalleryProps {
   images: string[];
@@ -57,7 +58,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.img
             key={currentIndex}
-            src={images[currentIndex] || "/images/placeholder.jpg"}
+            src={images[currentIndex] || assetUrl("/images/placeholder.jpg")}
             alt={`${alt} - Image ${currentIndex + 1}`}
             className="absolute inset-0 w-full h-full object-contain"
             custom={direction}

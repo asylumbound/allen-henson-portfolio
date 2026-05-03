@@ -11,6 +11,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { PersonSchema, BreadcrumbSchema } from "@/components/StructuredData";
+import { assetUrl } from "@/lib/assets";
 
 export default function About() {
   return (
@@ -18,7 +19,7 @@ export default function About() {
       <SEOHead
         title="About Allen Henson"
         description="Allen Henson is an award-winning photographer and film director with over 20 years of experience. A U.S. Army veteran who served with the 22nd Infantry Regiment, he brings discipline and cinematic vision to editorial, commercial, and portrait photography. Based in Los Angeles and New York."
-        image="/images/allen-about-new.png"
+        image={assetUrl("/images/allen-about-new.png")}
       />
       <PersonSchema />
       <BreadcrumbSchema
@@ -54,7 +55,7 @@ export default function About() {
           >
             <div className="relative aspect-[3/4] overflow-hidden sticky top-24">
               <img
-                src="/images/allen-about-new.png"
+                src={assetUrl("/images/allen-about-new.png")}
                 alt="Allen Henson"
                 className="w-full h-full object-cover"
               />

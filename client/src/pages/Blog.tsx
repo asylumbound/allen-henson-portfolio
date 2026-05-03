@@ -10,9 +10,10 @@ import { ArrowRight, Calendar } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import { BreadcrumbSchema } from "@/components/StructuredData";
+import { assetUrl } from "@/lib/assets";
 
 // Hero image for the blog section
-const BLOG_HERO = "/images/L1009868.jpg";
+const BLOG_HERO = assetUrl("/images/L1009868.jpg");
 
 export default function Blog() {
   const { data: posts, isLoading } = trpc.blog.list.useQuery();
@@ -35,7 +36,7 @@ export default function Blog() {
       <SEOHead
         title="Blog"
         description="Essays on cinematography, photography, production, and AI by Allen Henson. Insights from two decades of professional experience in editorial, commercial, and cinematic storytelling."
-        image="/images/L1009868.jpg"
+        image={assetUrl("/images/L1009868.jpg")}
       />
       <BreadcrumbSchema
         items={[

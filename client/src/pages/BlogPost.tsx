@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import ReactMarkdown from "react-markdown";
 import { SEOHead } from "@/components/SEOHead";
+import { assetUrl } from "@/lib/assets";
 
 export default function BlogPost() {
   const params = useParams<{ slug: string }>();
@@ -89,7 +90,7 @@ export default function BlogPost() {
       <SEOHead
         title={post.title}
         description={post.excerpt || post.title}
-        image={post.heroImage || "/images/L1009868.jpg"}
+        image={post.heroImage || assetUrl("/images/L1009868.jpg")}
         type="article"
         publishedTime={ogPublishedTime}
         author="Allen Henson"

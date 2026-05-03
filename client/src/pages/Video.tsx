@@ -9,6 +9,7 @@
 import { motion } from "framer-motion";
 import { SEOHead } from "@/components/SEOHead";
 import { BreadcrumbSchema } from "@/components/StructuredData";
+import { assetUrl } from "@/lib/assets";
 
 export default function Video() {
   return (
@@ -16,7 +17,7 @@ export default function Video() {
       <SEOHead
         title="Video Reel"
         description="Cinematic video work by Allen Henson. Commercial campaigns, music videos, and narrative-driven content. Director's reel showcasing cinematography, direction, and post-production expertise."
-        image="/images/portfolio-01.png"
+        image={assetUrl("/images/portfolio-01.png")}
       />
       <BreadcrumbSchema
         items={[
@@ -57,7 +58,7 @@ export default function Video() {
             <video
               controls
               className="w-full h-full object-contain"
-              poster="/images/portfolio-01.png"
+              poster={assetUrl("/images/portfolio-01.png")}
             >
               <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
               Your browser does not support the video tag.

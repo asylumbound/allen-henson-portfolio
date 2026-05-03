@@ -12,12 +12,13 @@ import { Play, ArrowRight } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { SEOHead } from "@/components/SEOHead";
 import { PersonSchema, OrganizationSchema, WebsiteSchema, ProfessionalServiceSchema } from "@/components/StructuredData";
+import { assetUrl } from "@/lib/assets";
 
 const featuredImages = [
-  { src: "/images/XUQX2322-scaled.jpg", alt: "Portrait photography" },
-  { src: "/images/S-NAVONA_RETOUCH2_CHANEL-Tether_-427.png", alt: "Chanel Campaign" },
-  { src: "/images/L1009868.jpg", alt: "Leica Series" },
-  { src: "/images/BHL0538-Edit.jpg", alt: "Editorial portrait" },
+  { src: assetUrl("/images/XUQX2322-scaled.jpg"), alt: "Portrait photography" },
+  { src: assetUrl("/images/S-NAVONA_RETOUCH2_CHANEL-Tether_-427.png"), alt: "Chanel Campaign" },
+  { src: assetUrl("/images/L1009868.jpg"), alt: "Leica Series" },
+  { src: assetUrl("/images/BHL0538-Edit.jpg"), alt: "Editorial portrait" },
 ];
 
 export default function Home() {
@@ -29,7 +30,7 @@ export default function Home() {
       <SEOHead
         title="Allen Henson | Cinematic Photography, Film Direction & Creative Strategy"
         description="Award-winning photographer and film director Allen Henson. Over 20 years of cinematic storytelling through editorial, commercial, and portrait photography. Campaign work for luxury brands including Chanel. Based in Los Angeles and New York."
-        image="/images/XUQX2322-scaled.jpg"
+        image={assetUrl("/images/XUQX2322-scaled.jpg")}
       />
       <PersonSchema />
       <OrganizationSchema />
@@ -46,7 +47,7 @@ export default function Home() {
             loop
             playsInline
             className="w-full h-full object-cover opacity-60"
-            poster="/images/XUQX2322-scaled.jpg"
+            poster={assetUrl("/images/XUQX2322-scaled.jpg")}
           >
             <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
           </video>
@@ -183,7 +184,7 @@ export default function Home() {
             >
               <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                  src="/images/allen-about-hero.webp"
+                  src={assetUrl("/images/allen-about-hero.webp")}
                   alt="Allen Henson"
                   className="w-full h-full object-cover"
                   loading="lazy"

@@ -12,6 +12,7 @@ import { Link, useLocation } from "wouter";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import CookieConsent from "@/components/CookieConsent";
+import { assetUrl } from "@/lib/assets";
 
 interface LayoutProps {
   children: ReactNode;
@@ -72,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Logo */}
             <Link href="/">
               <img
-                src="/images/AHP-Logo.png"
+                src={assetUrl("/images/AHP-Logo.png")}
                 alt="Allen Henson Productions"
                 className="h-10 md:h-12 w-auto cinematic-transition hover:opacity-80"
               />
