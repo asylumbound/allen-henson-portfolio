@@ -2,12 +2,18 @@
  * Sync Sheet Data Drop Router
  * Handles multipart file uploads to Supabase Storage (sync-data-drops bucket)
  * Stores metadata in photo_video_sync_data_drops table
- * Uses multer for in-memory multipart parsing, streams to Supabase via fetch
+ *
+ * Uses multer diskStorage so large video files are written to /tmp instead of
+ * being buffered in RAM. Files are then streamed to Supabase and cleaned up.
+ *
+ * Supports all file types — photos, videos, LUTs, audio, documents, etc.
  */
 
 import express from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+import { createReadStream } from "fs";
 
 const router = express.Router();
 
@@ -17,11 +23,25 @@ const SUPABASE_URL =
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const BUCKET = "sync-data-drops";
 
-// Store files in memory (no disk I/O) — fine for typical file sizes
-// For very large files this could be swapped to disk temp storage
+// ── Multer: disk storage so large video files don't exhaust RAM ───────────────
+
 const upload = multer({
-  storage: multer.memoryStorage(),
-  // No file size limit — as requested
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const dir = "/tmp/sync-drops";
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      // Unique temp name to avoid collisions
+      cb(null, `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.originalname}`);
+    },
+  }),
+  // No hard limit — allow large video files. The client shows progress.
+  // Supabase Storage handles the actual storage constraints.
+  limits: {
+    fileSize: 4 * 1024 * 1024 * 1024, // 4 GB ceiling (generous for video)
+  },
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -33,25 +53,38 @@ function sanitizeFilename(name: string): string {
     .toLowerCase();
 }
 
+/**
+ * Stream a file from disk to Supabase Storage.
+ * Uses Node.js ReadStream so the entire file is never held in RAM.
+ */
 async function uploadToSupabase(
   storagePath: string,
-  buffer: Buffer,
+  filePath: string,
+  fileSize: number,
   mimeType: string
 ): Promise<boolean> {
   const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${storagePath}`;
+
+  const fileStream = createReadStream(filePath);
+
   const res = await fetch(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${SERVICE_KEY}`,
       apikey: SERVICE_KEY,
       "Content-Type": mimeType || "application/octet-stream",
+      "Content-Length": String(fileSize),
       "x-upsert": "true",
     },
-    body: new Uint8Array(buffer),
+    // @ts-ignore — Node 18+ fetch accepts ReadableStream as body
+    body: fileStream,
+    // @ts-ignore — required for Node fetch to stream the body
+    duplex: "half",
   });
+
   if (!res.ok) {
     const err = await res.text();
-    console.error(`[DataDrop] Supabase upload failed: ${err}`);
+    console.error(`[DataDrop] Supabase upload failed (${res.status}): ${err}`);
     return false;
   }
   return true;
@@ -89,12 +122,22 @@ async function saveMetadata(record: {
   return data?.[0] || null;
 }
 
+/** Remove temp file from disk, ignoring errors */
+function cleanupTempFile(filePath: string) {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    // ignore
+  }
+}
+
 // ── Upload endpoint ───────────────────────────────────────────────────────────
 
 router.post(
   "/upload",
   upload.array("files"),
   async (req: express.Request, res: express.Response) => {
+    const tempFiles: string[] = [];
     try {
       const { password, shoot_id, project_name, shoot_date, field_name, uploaded_by } = req.body;
 
@@ -115,17 +158,28 @@ router.post(
         return;
       }
 
+      // Track temp file paths for cleanup
+      for (const f of files) {
+        if (f.path) tempFiles.push(f.path);
+      }
+
       const results: { filename: string; success: boolean; id?: string; error?: string }[] = [];
 
       for (const file of files) {
         const safeName = sanitizeFilename(file.originalname);
         const timestamp = Date.now();
-        // Folder structure: {shoot_id}/{field_name}/{timestamp}_{filename}
         const storagePath = `${shoot_id}/${field_name.replace(/[^a-zA-Z0-9_\-]/g, "_")}/${timestamp}_${safeName}`;
         const ext = path.extname(file.originalname).toLowerCase().replace(".", "") || "bin";
 
-        // Upload to Supabase Storage
-        const uploaded = await uploadToSupabase(storagePath, file.buffer, file.mimetype);
+        // Determine MIME type — multer may return application/octet-stream for
+        // some video formats on iOS; try to infer from extension if needed.
+        let mimeType = file.mimetype;
+        if (!mimeType || mimeType === "application/octet-stream") {
+          mimeType = inferMimeType(ext) || "application/octet-stream";
+        }
+
+        // Stream file to Supabase Storage
+        const uploaded = await uploadToSupabase(storagePath, file.path, file.size, mimeType);
         if (!uploaded) {
           results.push({ filename: file.originalname, success: false, error: "Storage upload failed" });
           continue;
@@ -141,7 +195,7 @@ router.post(
           storage_path: storagePath,
           file_size: file.size,
           file_type: ext,
-          mime_type: file.mimetype,
+          mime_type: mimeType,
           uploaded_by: uploaded_by || "admin",
         });
 
@@ -158,9 +212,64 @@ router.post(
       const message = err instanceof Error ? err.message : "Unknown error";
       console.error("[DataDrop] Upload error:", message);
       res.status(500).json({ error: message });
+    } finally {
+      // Always clean up temp files from disk
+      for (const p of tempFiles) {
+        cleanupTempFile(p);
+      }
     }
   }
 );
+
+// ── MIME type inference from extension ───────────────────────────────────────
+
+function inferMimeType(ext: string): string | null {
+  const map: Record<string, string> = {
+    // Video
+    mp4: "video/mp4",
+    mov: "video/quicktime",
+    avi: "video/x-msvideo",
+    mkv: "video/x-matroska",
+    webm: "video/webm",
+    mts: "video/mp2t",
+    m2ts: "video/mp2t",
+    mxf: "application/mxf",
+    r3d: "application/octet-stream",
+    braw: "application/octet-stream",
+    // Photo
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    heic: "image/heic",
+    heif: "image/heif",
+    tiff: "image/tiff",
+    tif: "image/tiff",
+    dng: "image/x-adobe-dng",
+    cr2: "image/x-canon-cr2",
+    cr3: "image/x-canon-cr3",
+    arw: "image/x-sony-arw",
+    nef: "image/x-nikon-nef",
+    raf: "image/x-fuji-raf",
+    // Audio
+    wav: "audio/wav",
+    mp3: "audio/mpeg",
+    aac: "audio/aac",
+    flac: "audio/flac",
+    aif: "audio/aiff",
+    aiff: "audio/aiff",
+    // LUT / Color
+    cube: "application/octet-stream",
+    lut: "application/octet-stream",
+    // Documents
+    pdf: "application/pdf",
+    xml: "application/xml",
+    csv: "text/csv",
+    txt: "text/plain",
+    zip: "application/zip",
+  };
+  return map[ext.toLowerCase()] || null;
+}
 
 // ── Signed URL endpoint (for downloading private files) ──────────────────────
 

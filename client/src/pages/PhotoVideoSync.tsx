@@ -346,31 +346,42 @@ function DropWidget({
           </p>
 
           {/* Drop Zone */}
+          {/* Hidden file input — always present, triggered by button or drop zone click */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept="video/*,image/*,audio/*,.dng,.cr2,.cr3,.arw,.nef,.raf,.heic,.heif,.cube,.lut,.pdf,.xml,.csv,.txt,.zip,.mxf,.r3d,.braw"
+            onChange={e => e.target.files && handleUploadFiles(e.target.files)}
+          />
           <div
             onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
             onDragLeave={() => setIsDragOver(false)}
             onDrop={handleDrop}
-            onClick={() => !isUploading && fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-lg py-8 text-center cursor-pointer transition-all ${
+            className={`border-2 border-dashed rounded-lg py-6 text-center transition-all ${
               isDragOver
                 ? "border-white/50 bg-white/8 scale-[1.01]"
                 : isUploading
-                ? "border-white/10 bg-white/2 cursor-not-allowed"
-                : "border-white/15 hover:border-white/35 hover:bg-white/3"
+                ? "border-white/10 bg-white/2"
+                : "border-white/15"
             }`}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={e => e.target.files && handleUploadFiles(e.target.files)}
-            />
-            <CloudUpload size={26} className={`mx-auto mb-2.5 transition-colors ${isDragOver ? "text-white/80" : "text-white/25"}`} />
-            <p className={`text-sm font-light mb-1 transition-colors ${isDragOver ? "text-white/80" : "text-white/40"}`}>
-              {isUploading ? "Uploading..." : isDragOver ? "Release to upload" : "Drag & drop files here"}
+            <CloudUpload size={24} className={`mx-auto mb-2 transition-colors ${isDragOver ? "text-white/80" : "text-white/25"}`} />
+            <p className={`text-sm font-light mb-3 transition-colors ${isDragOver ? "text-white/80" : "text-white/40"}`}>
+              {isUploading ? "Uploading..." : isDragOver ? "Release to upload" : "Drag & drop here"}
             </p>
-            <p className="text-white/20 text-xs">or click to browse — all file types accepted</p>
+            {/* Explicit browse button — works on iOS Safari where drag-drop is unavailable */}
+            {!isUploading && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/20 text-white/50 hover:text-white/80 hover:border-white/40 text-xs transition-colors"
+              >
+                <Upload size={11} /> Browse Files
+              </button>
+            )}
+            <p className="text-white/15 text-xs mt-2">video · photo · audio · LUT · raw · docs</p>
           </div>
 
           {/* Upload Progress */}
@@ -923,13 +934,28 @@ export default function PhotoVideoSync() {
           if (xhr.status === 200 || xhr.status === 207) {
             setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, progress: 100, status: "done" } : p));
           } else {
-            setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: `HTTP ${xhr.status}` } : p));
+            // Try to extract a human-readable error from the response body
+            let errMsg = `HTTP ${xhr.status}`;
+            try {
+              const body = JSON.parse(xhr.responseText);
+              if (body?.error) errMsg = body.error;
+              else if (body?.message) errMsg = body.message;
+            } catch { /* ignore parse errors */ }
+            setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: errMsg } : p));
+            toast.error(`Upload failed: ${errMsg}`);
           }
           resolve();
         };
 
         xhr.onerror = () => {
-          setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: "Network error" } : p));
+          setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: "Network error — check connection" } : p));
+          toast.error("Upload failed: network error. Check your connection and try again.");
+          resolve();
+        };
+
+        xhr.ontimeout = () => {
+          setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: "Timed out" } : p));
+          toast.error("Upload timed out. Try a smaller file or check your connection.");
           resolve();
         };
 
@@ -939,9 +965,14 @@ export default function PhotoVideoSync() {
 
     setIsUploading(false);
     dataDropsQuery.refetch();
-    const doneCount = fileArray.length;
-    toast.success(`${doneCount} file${doneCount > 1 ? "s" : ""} uploaded`);
-    setTimeout(() => setUploadQueue([]), 3000);
+    const successCount = uploadQueue.filter(q => q.status === "done").length || fileArray.length;
+    const errorCount = uploadQueue.filter(q => q.status === "error").length;
+    if (errorCount === 0) {
+      toast.success(`${fileArray.length} file${fileArray.length > 1 ? "s" : ""} uploaded successfully`);
+    } else if (successCount > 0) {
+      toast.warning(`${successCount} uploaded, ${errorCount} failed`);
+    }
+    setTimeout(() => setUploadQueue([]), 4000);
   }, [selectedShootId, selectedShoot, dropFieldName, dataDropsQuery]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
