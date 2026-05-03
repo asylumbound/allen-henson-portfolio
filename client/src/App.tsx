@@ -24,6 +24,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Duke from "./pages/Duke";
 import Agency from "./pages/Agency";
+import PhotoVideoSync from "./pages/PhotoVideoSync";
 import Layout from "./components/Layout";
 
 function Router() {
@@ -39,6 +40,8 @@ function Router() {
       <Route path="/duke" component={Duke} />
       {/* Agency - password-protected agency database (own layout) */}
       <Route path="/agency" component={Agency} />
+      {/* Photo/Video Sync Sheet - production tool (own layout) */}
+      <Route path="/photo-video-sync" component={PhotoVideoSync} />
       {/* All other pages use the standard Layout */}
       <Route>
         <Layout>

@@ -1,4 +1,5 @@
 import { systemRouter } from "./_core/systemRouter";
+import { syncSheetRouter } from "./syncSheetRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { getImageOrder, saveImageOrder, getAllBlogPosts, getBlogPostBySlug, seedBlogPosts, getAllProducts, getProductBySlug, seedProducts } from "./db";
@@ -318,6 +319,8 @@ ${input.message}
   }),
 
   // Stripe checkout
+  syncSheet: syncSheetRouter,
+
   checkout: router({
     createSession: publicProcedure
       .input(z.object({
