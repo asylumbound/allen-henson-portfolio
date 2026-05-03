@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import {
   Lock, Camera, Video, RefreshCw, Plus, Trash2, ChevronDown, ChevronUp,
   Check, AlertTriangle, X, Settings, BookOpen, Clock, Zap, Copy, Save,
-  Eye, EyeOff, ArrowRight
+  Eye, EyeOff, ArrowRight, Upload, File, Download, Folder
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -106,6 +106,29 @@ interface Preset {
   is_builtin: boolean;
 }
 
+interface DataDrop {
+  id: string;
+  shoot_id: string;
+  project_name: string;
+  shoot_date?: string;
+  field_name: string;
+  original_filename: string;
+  storage_path: string;
+  file_size?: number;
+  file_type?: string;
+  mime_type?: string;
+  uploaded_by?: string;
+  notes?: string;
+  created_at: string;
+}
+
+interface UploadProgress {
+  filename: string;
+  progress: number; // 0-100
+  status: "pending" | "uploading" | "done" | "error";
+  error?: string;
+}
+
 interface ChangeLogEntry {
   id: string;
   changed_by: string;
@@ -196,13 +219,20 @@ export default function PhotoVideoSync() {
   const [authError, setAuthError] = useState("");
 
   // View state
-  const [activeTab, setActiveTab] = useState<"shoots" | "presets" | "log">("shoots");
+  const [activeTab, setActiveTab] = useState<"shoots" | "presets" | "log" | "drops">("shoots");
   const [selectedShootId, setSelectedShootId] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [showCreateShoot, setShowCreateShoot] = useState(false);
   const [showCreateOperator, setShowCreateOperator] = useState(false);
   const [showMasterEdit, setShowMasterEdit] = useState(false);
   const [showPresetPicker, setShowPresetPicker] = useState(false);
+
+  // Data Drop state
+  const [dropFieldName, setDropFieldName] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Forms
   const [newShoot, setNewShoot] = useState({
@@ -296,6 +326,16 @@ export default function PhotoVideoSync() {
     onError: (e) => toast.error(e.message),
   });
 
+  const dataDropsQuery = trpc.syncSheet.getDataDrops.useQuery(
+    { shoot_id: selectedShootId! },
+    { enabled: !!selectedShootId && isAuthenticated && activeTab === "drops" }
+  );
+
+  const deleteDataDropMut = trpc.syncSheet.deleteDataDrop.useMutation({
+    onSuccess: () => { dataDropsQuery.refetch(); toast.success("File deleted"); },
+    onError: (e) => toast.error(e.message),
+  });
+
   // ── Auth ──────────────────────────────────────────────────────────────────
 
   const handleAuth = () => {
@@ -368,6 +408,87 @@ export default function PhotoVideoSync() {
       return next;
     });
   };
+
+  // ── Data Drop Upload Handler ─────────────────────────────────────────────
+
+  const handleUploadFiles = useCallback(async (files: FileList | File[]) => {
+    if (!selectedShootId || !selectedShoot) {
+      toast.error("Select a shoot first");
+      return;
+    }
+    if (!dropFieldName.trim()) {
+      toast.error("Enter a field name before dropping files");
+      return;
+    }
+
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    // Initialize progress queue
+    const initial: UploadProgress[] = fileArray.map(f => ({
+      filename: f.name,
+      progress: 0,
+      status: "pending",
+    }));
+    setUploadQueue(initial);
+    setIsUploading(true);
+
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "uploading" } : p));
+
+      await new Promise<void>((resolve) => {
+        const formData = new FormData();
+        formData.append("password", ADMIN_PASSWORD);
+        formData.append("shoot_id", selectedShootId);
+        formData.append("project_name", selectedShoot.project_name);
+        formData.append("shoot_date", selectedShoot.date || "");
+        formData.append("field_name", dropFieldName.trim());
+        formData.append("uploaded_by", "admin");
+        formData.append("files", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/sync-drop/upload");
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, progress: pct } : p));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200 || xhr.status === 207) {
+            setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, progress: 100, status: "done" } : p));
+          } else {
+            setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: `HTTP ${xhr.status}` } : p));
+          }
+          resolve();
+        };
+
+        xhr.onerror = () => {
+          setUploadQueue(prev => prev.map((p, idx) => idx === i ? { ...p, status: "error", error: "Network error" } : p));
+          resolve();
+        };
+
+        xhr.send(formData);
+      });
+    }
+
+    setIsUploading(false);
+    dataDropsQuery.refetch();
+    const doneCount = fileArray.length;
+    toast.success(`${doneCount} file${doneCount > 1 ? "s" : ""} uploaded`);
+    setTimeout(() => setUploadQueue([]), 3000);
+  }, [selectedShootId, selectedShoot, dropFieldName, dataDropsQuery]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleUploadFiles(e.dataTransfer.files);
+    }
+  }, [handleUploadFiles]);
 
   const openMasterEdit = () => {
     const master = (masterQuery.data ?? null) as unknown as MasterSettings | null;
@@ -603,6 +724,14 @@ export default function PhotoVideoSync() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={() => setActiveTab("drops")}
+                    className={`text-xs px-3 py-1.5 rounded border transition-colors flex items-center gap-1 ${
+                      activeTab === "drops" ? "border-white/30 text-white" : "border-white/10 text-white/40 hover:border-white/20"
+                    }`}
+                  >
+                    <Upload size={10} /> Drops
+                  </button>
+                  <button
                     onClick={() => setActiveTab("log")}
                     className={`text-xs px-3 py-1.5 rounded border transition-colors flex items-center gap-1 ${
                       activeTab === "log" ? "border-white/30 text-white" : "border-white/10 text-white/40 hover:border-white/20"
@@ -624,7 +753,7 @@ export default function PhotoVideoSync() {
               </div>
 
               {/* Tab: Main Shoot View */}
-              {activeTab !== "log" && (
+              {activeTab !== "log" && activeTab !== "drops" && (
                 <>
                   {/* Master Settings Card */}
                   <div className="border border-white/10 rounded mb-4">
@@ -1008,6 +1137,189 @@ export default function PhotoVideoSync() {
                     </div>
                   </div>
                 </>
+              )}
+
+              {/* Tab: Data Drop */}
+              {activeTab === "drops" && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-white/50 text-xs tracking-widest uppercase flex items-center gap-1.5">
+                      <Upload size={12} /> Data Drop
+                    </span>
+                    <button
+                      onClick={() => setActiveTab("shoots")}
+                      className="text-white/30 text-xs hover:text-white/60 transition-colors"
+                    >
+                      ← Back
+                    </button>
+                  </div>
+
+                  {/* Field Name + Auto-assigned metadata */}
+                  <div className="border border-white/10 rounded p-4 mb-4">
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div>
+                        <label className="text-white/30 text-xs block mb-1">Field / Category</label>
+                        <input
+                          type="text"
+                          value={dropFieldName}
+                          onChange={e => setDropFieldName(e.target.value)}
+                          placeholder="e.g. raw_footage, stills, luts"
+                          className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 px-3 py-2 text-xs focus:outline-none focus:border-white/30 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-white/30 text-xs block mb-1">Project (auto)</label>
+                        <div className="bg-white/3 border border-white/5 text-white/40 px-3 py-2 text-xs rounded">
+                          {selectedShoot?.project_name || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-white/30 text-xs block mb-1">Date (auto)</label>
+                        <div className="bg-white/3 border border-white/5 text-white/40 px-3 py-2 text-xs rounded">
+                          {selectedShoot?.date || new Date().toISOString().split("T")[0]}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-white/20 text-xs">Files are stored under: <span className="font-mono text-white/35">{selectedShoot?.shoot_id}/{dropFieldName || "<field>"}/</span></p>
+                  </div>
+
+                  {/* Drop Zone */}
+                  <div
+                    onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-all mb-4 ${
+                      isDragOver
+                        ? "border-white/40 bg-white/5"
+                        : isUploading
+                        ? "border-white/10 bg-white/2 cursor-not-allowed"
+                        : "border-white/15 hover:border-white/30 hover:bg-white/3"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={e => e.target.files && handleUploadFiles(e.target.files)}
+                    />
+                    <Upload size={28} className={`mx-auto mb-3 ${isDragOver ? "text-white/70" : "text-white/25"}`} />
+                    <p className={`text-sm mb-1 ${isDragOver ? "text-white/70" : "text-white/40"}`}>
+                      {isUploading ? "Uploading..." : isDragOver ? "Release to upload" : "Drag & drop files here"}
+                    </p>
+                    <p className="text-white/20 text-xs">or click to browse — all file types, no size limit</p>
+                  </div>
+
+                  {/* Upload Progress */}
+                  {uploadQueue.length > 0 && (
+                    <div className="border border-white/10 rounded p-3 mb-4 space-y-2">
+                      <p className="text-white/30 text-xs tracking-widest uppercase mb-2">Upload Progress</p>
+                      {uploadQueue.map((item, idx) => (
+                        <div key={idx}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white/50 text-xs truncate max-w-[70%]">{item.filename}</span>
+                            <span className={`text-xs ${
+                              item.status === "done" ? "text-green-400/70" :
+                              item.status === "error" ? "text-red-400/70" :
+                              "text-white/30"
+                            }`}>
+                              {item.status === "done" ? "✓ Done" :
+                               item.status === "error" ? `✗ ${item.error}` :
+                               item.status === "uploading" ? `${item.progress}%` :
+                               "Pending"}
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1">
+                            <div
+                              className={`h-1 rounded-full transition-all duration-300 ${
+                                item.status === "done" ? "bg-green-500/60" :
+                                item.status === "error" ? "bg-red-500/60" :
+                                "bg-white/40"
+                              }`}
+                              style={{ width: `${item.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Uploaded Files List */}
+                  <div>
+                    <p className="text-white/30 text-xs tracking-widest uppercase mb-2 flex items-center gap-1.5">
+                      <Folder size={11} /> Uploaded Files
+                    </p>
+                    {dataDropsQuery.isLoading && (
+                      <p className="text-white/20 text-xs">Loading...</p>
+                    )}
+                    {!dataDropsQuery.isLoading && (!dataDropsQuery.data || dataDropsQuery.data.length === 0) && (
+                      <p className="text-white/15 text-xs text-center py-6 border border-white/5 rounded">
+                        No files dropped yet for this shoot
+                      </p>
+                    )}
+                    {dataDropsQuery.data && dataDropsQuery.data.length > 0 && (
+                      <div className="space-y-1.5">
+                        {/* Group by field_name */}
+                        {Object.entries(
+                          (dataDropsQuery.data as DataDrop[]).reduce((acc, f) => {
+                            if (!acc[f.field_name]) acc[f.field_name] = [];
+                            acc[f.field_name].push(f);
+                            return acc;
+                          }, {} as Record<string, DataDrop[]>)
+                        ).map(([field, files]) => (
+                          <div key={field} className="border border-white/5 rounded">
+                            <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 bg-white/2">
+                              <Folder size={11} className="text-white/30" />
+                              <span className="text-white/50 text-xs font-medium">{field}</span>
+                              <span className="text-white/20 text-xs">({files.length} file{files.length > 1 ? "s" : ""})</span>
+                            </div>
+                            {files.map(f => (
+                              <div key={f.id} className="flex items-center gap-3 px-3 py-2 border-b border-white/5 last:border-0">
+                                <File size={12} className="text-white/25 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-white/60 text-xs truncate">{f.original_filename}</p>
+                                  <p className="text-white/20 text-xs">
+                                    {f.file_type?.toUpperCase()}
+                                    {f.file_size ? ` · ${(f.file_size / 1024 / 1024).toFixed(1)} MB` : ""}
+                                    {f.created_at ? ` · ${new Date(f.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    const res = await fetch("/api/sync-drop/signed-url", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ password: ADMIN_PASSWORD, storage_path: f.storage_path }),
+                                    });
+                                    const data = await res.json();
+                                    if (data.signedUrl) window.open(data.signedUrl, "_blank");
+                                    else toast.error("Could not generate download link");
+                                  }}
+                                  className="text-white/25 hover:text-white/60 transition-colors p-1"
+                                  title="Download"
+                                >
+                                  <Download size={12} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete ${f.original_filename}?`)) {
+                                      deleteDataDropMut.mutate({ password: ADMIN_PASSWORD, id: f.id });
+                                    }
+                                  }}
+                                  className="text-white/20 hover:text-red-400/60 transition-colors p-1"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Tab: Change Log */}

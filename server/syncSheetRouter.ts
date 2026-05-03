@@ -624,4 +624,59 @@ export const syncSheetRouter = router({
       });
       return { success: true };
     }),
+
+  // ── Data Drops ───────────────────────────────────────────────────────────
+
+  getDataDrops: publicProcedure
+    .input(z.object({ shoot_id: z.string() }))
+    .query(async ({ input }) => {
+      const rows = await sbFetch(
+        `photo_video_sync_data_drops?shoot_id=eq.${input.shoot_id}&order=created_at.desc`
+      );
+      return (rows as DataDropRecord[]) || [];
+    }),
+
+  deleteDataDrop: publicProcedure
+    .input(z.object({ password: z.string(), id: z.string() }))
+    .mutation(async ({ input }) => {
+      if (input.password !== "&&77VAnguard") {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+      }
+      // Get the storage path before deleting the DB record
+      const rows = (await sbFetch(
+        `photo_video_sync_data_drops?id=eq.${input.id}&select=storage_path`
+      )) as { storage_path: string }[];
+      if (rows && rows.length > 0) {
+        const storagePath = rows[0].storage_path;
+        const delUrl = `${SUPABASE_URL}/storage/v1/object/sync-data-drops/${storagePath}`;
+        await fetch(delUrl, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${SERVICE_KEY}`,
+            apikey: SERVICE_KEY,
+          },
+        });
+      }
+      await sbFetch(`photo_video_sync_data_drops?id=eq.${input.id}`, {
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+      });
+      return { success: true };
+    }),
 });
+
+interface DataDropRecord {
+  id: string;
+  shoot_id: string;
+  project_name: string;
+  shoot_date?: string;
+  field_name: string;
+  original_filename: string;
+  storage_path: string;
+  file_size?: number;
+  file_type?: string;
+  mime_type?: string;
+  uploaded_by?: string;
+  notes?: string;
+  created_at: string;
+}

@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { stripeRouter } from "../stripe";
 import { dukeEditorRouter } from "../dukeEditor";
+import { syncDataDropRouter } from "../syncDataDropRouter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -75,6 +76,9 @@ async function startServer() {
   
   // Duke editor routes for image crop/rotate
   app.use("/api/duke", dukeEditorRouter);
+
+  // Sync sheet data drop upload routes (multipart, no size limit)
+  app.use("/api/sync-drop", syncDataDropRouter);
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
