@@ -5,7 +5,7 @@
  * Features: Uncropped images, database-driven order, zoom-on-hover
  */
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
@@ -148,7 +148,6 @@ function ProductImage({
 }
 
 export default function ProductPhotography() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   // Start with the hardcoded order (which now matches database)
@@ -174,23 +173,7 @@ export default function ProductPhotography() {
     }
   }, [savedOrder]);
 
-  // Filter images by category
-  const filteredImages = useMemo(() => {
-    if (selectedCategory === "all") {
-      return orderedImages;
-    }
-    return orderedImages.filter(img => img.category === selectedCategory);
-  }, [selectedCategory, orderedImages]);
-
-  // Update category counts based on actual displayed images (respects deletions)
-  const categoriesWithCounts = useMemo(() => {
-    return productCategories.map(cat => ({
-      ...cat,
-      count: cat.id === "all" 
-        ? orderedImages.length 
-        : orderedImages.filter(img => img.category === cat.id).length
-    }));
-  }, [orderedImages]);
+  const filteredImages = orderedImages;
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
@@ -269,26 +252,6 @@ export default function ProductPhotography() {
               High-end commercial product photography for luxury brands, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision.
             </p>
           </motion.div>
-        </div>
-
-        {/* Category Filter */}
-        <div className="container mb-8">
-          <div className="flex flex-wrap justify-center gap-2">
-            {categoriesWithCounts.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 text-sm tracking-cinematic transition-all duration-300 ${
-                  selectedCategory === category.id
-                    ? "bg-gold text-background"
-                    : "border border-foreground/20 text-foreground/70 hover:border-gold hover:text-gold"
-                }`}
-              >
-                {category.name}
-                <span className="ml-1 opacity-60">({category.count})</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Image Grid */}
