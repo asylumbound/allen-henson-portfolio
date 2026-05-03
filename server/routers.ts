@@ -177,20 +177,31 @@ export const appRouter = router({
       }),
   }),
 
-  // Blog posts
+  // Blog posts — served from Supabase (postgres), not TiDB
   blog: router({
     list: publicProcedure.query(async () => {
-      const posts = await getAllBlogPosts();
-      return posts;
+      const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+      const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&published=eq.1&order=publishedAt.desc`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog posts" });
+      return res.json();
     }),
-    
+
     getBySlug: publicProcedure
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
-        const post = await getBlogPostBySlug(input.slug);
-        return post;
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&slug=eq.${encodeURIComponent(input.slug)}&limit=1`, {
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        });
+        if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog post" });
+        const rows = await res.json();
+        return rows.length > 0 ? rows[0] : null;
       }),
-    
+
     seed: publicProcedure
       .input(z.object({
         password: z.string(),
@@ -206,7 +217,15 @@ export const appRouter = router({
         if (input.password !== ADMIN_PASSWORD) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
-        await seedBlogPosts(input.posts);
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const postsWithDefaults = input.posts.map(p => ({ ...p, published: 1, publishedAt: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }));
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts`, {
+          method: "POST",
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify(postsWithDefaults),
+        });
+        if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to seed blog posts" });
         return { success: true };
       }),
   }),
