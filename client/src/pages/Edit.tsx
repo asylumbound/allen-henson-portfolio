@@ -73,10 +73,10 @@ export default function Edit() {
       setPhotosOrder(defaultPhotos);
     }
 
-    // Journal - journalImages is array of strings (just paths)
-    const defaultJournal: ImageItem[] = journalImages.map((src, idx) => ({
+    // Journal - journalImages is array of objects with src and webSrc
+    const defaultJournal: ImageItem[] = journalImages.map((img, idx) => ({
       id: `journal-${idx}`,
-      src: src,
+      src: img.src,
       alt: `Journal entry ${idx + 1}`,
     }));
     
