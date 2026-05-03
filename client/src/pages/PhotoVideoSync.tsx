@@ -282,7 +282,8 @@ function DropWidget({
     <div className="border border-white/10 rounded-lg overflow-hidden bg-[#0d0d0d]">
       {/* Widget Header — always visible */}
       <button
-        onClick={() => setIsExpanded((v: boolean) => !v)}
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setIsExpanded((v: boolean) => !v); }}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/3 transition-colors"
       >
         <div className="flex items-center gap-3">
@@ -313,7 +314,10 @@ function DropWidget({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="border-t border-white/8 px-4 py-4 space-y-4">
+        <div
+          className="border-t border-white/8 px-4 py-4 space-y-4"
+          onClick={e => e.stopPropagation()}
+        >
 
           {/* Field Name Row */}
           <div className="flex flex-col sm:flex-row gap-3">
@@ -321,10 +325,18 @@ function DropWidget({
               <label className="text-white/30 text-xs block mb-1">Field / Category</label>
               <input
                 type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={dropFieldName}
                 onChange={e => setDropFieldName(e.target.value)}
+                onFocus={e => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
                 placeholder="e.g. raw_footage, stills, luts"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 px-3 py-2 text-xs focus:outline-none focus:border-white/30 rounded"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 px-3 py-2 text-sm focus:outline-none focus:border-white/30 rounded"
+                style={{ fontSize: '16px' }}
               />
             </div>
             <div className="sm:w-36">
@@ -356,9 +368,10 @@ function DropWidget({
             onChange={e => e.target.files && handleUploadFiles(e.target.files)}
           />
           <div
-            onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
-            onDragLeave={() => setIsDragOver(false)}
-            onDrop={handleDrop}
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setIsDragOver(true); }}
+            onDragLeave={e => { e.stopPropagation(); setIsDragOver(false); }}
+            onDrop={e => { e.stopPropagation(); handleDrop(e); }}
+            onClick={e => e.stopPropagation()}
             className={`border-2 border-dashed rounded-lg py-6 text-center transition-all ${
               isDragOver
                 ? "border-white/50 bg-white/8 scale-[1.01]"
@@ -375,7 +388,7 @@ function DropWidget({
             {!isUploading && (
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/20 text-white/50 hover:text-white/80 hover:border-white/40 text-xs transition-colors"
               >
                 <Upload size={11} /> Browse Files
