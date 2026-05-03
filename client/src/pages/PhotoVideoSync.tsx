@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import {
   Lock, Camera, Video, RefreshCw, Plus, Trash2, ChevronDown, ChevronUp,
   Check, AlertTriangle, X, Settings, BookOpen, Clock, Zap, Copy, Save,
-  Eye, EyeOff, ArrowRight, Upload, File, Download, Folder
+  Eye, EyeOff, ArrowRight, Upload, File, Download, Folder, Share2, Globe, Shield
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -129,6 +129,22 @@ interface UploadProgress {
   error?: string;
 }
 
+interface ShareLink {
+  id: string;
+  shoot_id: string;
+  project_name: string;
+  shoot_date?: string;
+  token: string;
+  label?: string;
+  is_public: boolean;
+  expires_at?: string;
+  allow_download: boolean;
+  created_by?: string;
+  created_at: string;
+  last_accessed_at?: string;
+  access_count?: number;
+}
+
 interface ChangeLogEntry {
   id: string;
   changed_by: string;
@@ -234,6 +250,15 @@ export default function PhotoVideoSync() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Share Links state
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [newShareLabel, setNewShareLabel] = useState("");
+  const [newShareIsPublic, setNewShareIsPublic] = useState(true);
+  const [newSharePassword, setNewSharePassword] = useState("");
+  const [newShareExpiry, setNewShareExpiry] = useState("");
+  const [newShareAllowDownload, setNewShareAllowDownload] = useState(true);
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
   // Forms
   const [newShoot, setNewShoot] = useState({
     project_name: "", shoot_id: "", date: "", location: "",
@@ -335,6 +360,54 @@ export default function PhotoVideoSync() {
     onSuccess: () => { dataDropsQuery.refetch(); toast.success("File deleted"); },
     onError: (e) => toast.error(e.message),
   });
+
+  const shareLinksQuery = trpc.syncSheet.shareLinks.list.useQuery(
+    { password: ADMIN_PASSWORD, shoot_id: selectedShootId! },
+    { enabled: !!selectedShootId && isAuthenticated && activeTab === "drops" }
+  );
+
+  const createShareLinkMut = trpc.syncSheet.shareLinks.create.useMutation({
+    onSuccess: () => {
+      shareLinksQuery.refetch();
+      setNewShareLabel(""); setNewSharePassword(""); setNewShareExpiry("");
+      setNewShareIsPublic(true); setNewShareAllowDownload(true);
+      toast.success("Share link created");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const deleteShareLinkMut = trpc.syncSheet.shareLinks.delete.useMutation({
+    onSuccess: () => { shareLinksQuery.refetch(); toast.success("Share link deleted"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleCreateShareLink = () => {
+    if (!selectedShootId || !selectedShoot) return;
+    if (!newShareIsPublic && !newSharePassword) {
+      toast.error("Password required for protected links");
+      return;
+    }
+    createShareLinkMut.mutate({
+      password: ADMIN_PASSWORD,
+      shoot_id: selectedShootId,
+      project_name: selectedShoot.project_name,
+      shoot_date: selectedShoot.date,
+      label: newShareLabel || selectedShoot.project_name,
+      is_public: newShareIsPublic,
+      link_password: newShareIsPublic ? undefined : newSharePassword,
+      expires_at: newShareExpiry || undefined,
+      allow_download: newShareAllowDownload,
+    });
+  };
+
+  const copyShareLink = (token: string) => {
+    const url = `${window.location.origin}/share/${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedToken(token);
+      setTimeout(() => setCopiedToken(null), 2000);
+      toast.success("Link copied to clipboard");
+    });
+  };
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
@@ -1314,6 +1387,177 @@ export default function PhotoVideoSync() {
                                 </button>
                               </div>
                             ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Share Links Panel */}
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-white/30 text-xs tracking-widest uppercase flex items-center gap-1.5">
+                        <Share2 size={11} /> Share Links
+                      </p>
+                      <button
+                        onClick={() => setShowSharePanel(v => !v)}
+                        className="flex items-center gap-1 text-white/30 hover:text-white/60 text-xs border border-white/10 hover:border-white/20 px-2 py-0.5 rounded transition-colors"
+                      >
+                        <Plus size={10} /> New Link
+                      </button>
+                    </div>
+
+                    {/* Create share link form */}
+                    {showSharePanel && (
+                      <div className="border border-white/10 rounded p-3 mb-3 space-y-2.5">
+                        <div>
+                          <label className="text-white/30 text-xs block mb-1">Label (optional)</label>
+                          <input
+                            type="text"
+                            value={newShareLabel}
+                            onChange={e => setNewShareLabel(e.target.value)}
+                            placeholder={selectedShoot?.project_name || "e.g. Client Review"}
+                            className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 text-xs placeholder:text-white/15 focus:outline-none focus:border-white/20"
+                          />
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              checked={newShareIsPublic}
+                              onChange={() => setNewShareIsPublic(true)}
+                              className="accent-white"
+                            />
+                            <span className="flex items-center gap-1 text-white/50 text-xs"><Globe size={10} /> Public</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              checked={!newShareIsPublic}
+                              onChange={() => setNewShareIsPublic(false)}
+                              className="accent-white"
+                            />
+                            <span className="flex items-center gap-1 text-white/50 text-xs"><Shield size={10} /> Password Protected</span>
+                          </label>
+                        </div>
+                        {!newShareIsPublic && (
+                          <div>
+                            <label className="text-white/30 text-xs block mb-1">Link Password</label>
+                            <input
+                              type="text"
+                              value={newSharePassword}
+                              onChange={e => setNewSharePassword(e.target.value)}
+                              placeholder="Enter password for this link"
+                              className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 text-xs placeholder:text-white/15 focus:outline-none focus:border-white/20"
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="text-white/30 text-xs block mb-1">Expires (optional)</label>
+                            <input
+                              type="datetime-local"
+                              value={newShareExpiry}
+                              onChange={e => setNewShareExpiry(e.target.value)}
+                              className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 text-xs focus:outline-none focus:border-white/20"
+                            />
+                          </div>
+                          <label className="flex items-center gap-2 cursor-pointer mt-4">
+                            <input
+                              type="checkbox"
+                              checked={newShareAllowDownload}
+                              onChange={e => setNewShareAllowDownload(e.target.checked)}
+                              className="accent-white"
+                            />
+                            <span className="text-white/50 text-xs">Allow Download</span>
+                          </label>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={handleCreateShareLink}
+                            disabled={createShareLinkMut.isPending}
+                            className="flex-1 bg-white/10 hover:bg-white/15 border border-white/15 text-white/70 text-xs py-1.5 rounded transition-colors disabled:opacity-40"
+                          >
+                            {createShareLinkMut.isPending ? "Creating..." : "Generate Link"}
+                          </button>
+                          <button
+                            onClick={() => setShowSharePanel(false)}
+                            className="text-white/30 hover:text-white/60 text-xs px-3 border border-white/10 rounded transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Existing share links */}
+                    {shareLinksQuery.isLoading && (
+                      <p className="text-white/20 text-xs">Loading links...</p>
+                    )}
+                    {!shareLinksQuery.isLoading && (!shareLinksQuery.data || (shareLinksQuery.data as ShareLink[]).length === 0) && (
+                      <p className="text-white/15 text-xs text-center py-4 border border-white/5 rounded">
+                        No share links yet
+                      </p>
+                    )}
+                    {shareLinksQuery.data && (shareLinksQuery.data as ShareLink[]).length > 0 && (
+                      <div className="space-y-2">
+                        {(shareLinksQuery.data as ShareLink[]).map(link => (
+                          <div key={link.id} className="border border-white/8 rounded p-3">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  {link.is_public
+                                    ? <Globe size={10} className="text-green-400/60 shrink-0" />
+                                    : <Shield size={10} className="text-yellow-400/60 shrink-0" />
+                                  }
+                                  <span className="text-white/60 text-xs font-medium truncate">{link.label || link.project_name}</span>
+                                  {!link.allow_download && (
+                                    <span className="text-white/20 text-xs">· view only</span>
+                                  )}
+                                </div>
+                                <p className="text-white/20 text-xs font-mono truncate">
+                                  {window.location.origin}/share/{link.token}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => copyShareLink(link.token)}
+                                  className="text-white/30 hover:text-white/70 transition-colors p-1"
+                                  title="Copy link"
+                                >
+                                  {copiedToken === link.token ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                                </button>
+                                <a
+                                  href={`/share/${link.token}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-white/30 hover:text-white/70 transition-colors p-1"
+                                  title="Open link"
+                                >
+                                  <Share2 size={12} />
+                                </a>
+                                <button
+                                  onClick={() => {
+                                    if (confirm("Delete this share link? Anyone with this link will lose access.")) {
+                                      deleteShareLinkMut.mutate({ password: ADMIN_PASSWORD, id: link.id });
+                                    }
+                                  }}
+                                  className="text-white/20 hover:text-red-400/60 transition-colors p-1"
+                                  title="Delete link"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-white/20 text-xs">
+                              <span>{new Date(link.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                              {link.expires_at && (
+                                <span className="text-yellow-400/40">Expires {new Date(link.expires_at).toLocaleDateString()}</span>
+                              )}
+                              {(link.access_count || 0) > 0 && (
+                                <span>{link.access_count} view{link.access_count !== 1 ? "s" : ""}</span>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>

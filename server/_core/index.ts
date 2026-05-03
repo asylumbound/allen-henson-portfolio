@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { stripeRouter } from "../stripe";
 import { dukeEditorRouter } from "../dukeEditor";
 import { syncDataDropRouter } from "../syncDataDropRouter";
+import { syncShareRouter } from "../syncShareRouter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -79,6 +80,9 @@ async function startServer() {
 
   // Sync sheet data drop upload routes (multipart, no size limit)
   app.use("/api/sync-drop", syncDataDropRouter);
+
+  // Public share page routes (no auth required — token-based)
+  app.use("/api/share", syncShareRouter);
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
