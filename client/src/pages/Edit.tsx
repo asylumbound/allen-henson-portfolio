@@ -51,14 +51,36 @@ interface GalleryImage {
 }
 
 // ─── Thumbnail helper ───────────────────────────────────────────────────────
-// Converts a full-res Supabase storage URL to a 200px thumbnail via the
-// Supabase Image Transform API (/render/image/). Falls back to original src.
+const SUPABASE = "https://frgdgcpmrshimyxsamdr.supabase.co";
+
+// Bucket map: local /images/<path> → Supabase bucket name
+const BUCKET_MAP: Record<string, string> = {
+  "journal/": "journal-images",
+  "product/": "product-images",
+  "duke/": "duke-images",
+};
+
+// Converts any image src to a 200px Supabase thumbnail.
+// - Supabase URLs → /render/image/public/ transform
+// - Local /images/<bucket>/<file> → direct Supabase render URL
+// - Anything else → returned as-is
 function toThumb(src: string): string {
-  // Supabase public storage URL pattern
+  // Already a Supabase storage URL
   if (src.includes("/storage/v1/object/public/")) {
     return src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + "?width=200&quality=60";
   }
-  // For local static files, return as-is (browser will size via CSS)
+  // Local /images/ path — map to Supabase bucket
+  if (src.startsWith("/images/")) {
+    const rest = src.slice("/images/".length); // e.g. "duke/duke-01.jpeg" or "XUQX2322-scaled.jpg"
+    for (const [prefix, bucket] of Object.entries(BUCKET_MAP)) {
+      if (rest.startsWith(prefix)) {
+        const filename = rest.slice(prefix.length);
+        return `${SUPABASE}/storage/v1/render/image/public/${bucket}/${filename}?width=200&quality=60`;
+      }
+    }
+    // Root-level portfolio image
+    return `${SUPABASE}/storage/v1/render/image/public/portfolio-images/${rest}?width=200&quality=60`;
+  }
   return src;
 }
 
@@ -84,8 +106,8 @@ function buildDukeImages(): GalleryImage[] {
     images.push({
       id: `duke-${num}`,
       src: assetUrl(`/images/duke/duke-${num}.jpeg`),
-      // Use the pre-generated .webp variant as thumbnail (smaller file size)
-      thumbnailSrc: assetUrl(`/images/duke/duke-${num}.webp`),
+      // Direct Supabase thumbnail — bypasses broken /images/ local path
+      thumbnailSrc: `${SUPABASE}/storage/v1/render/image/public/duke-images/duke-${num}.jpeg?width=200&quality=60`,
       alt: `Duke Collection ${i}`,
     });
   }
@@ -864,6 +886,7 @@ export default function Edit() {
     const defaults: GalleryImage[] = productPhotographyImages.map((img, idx) => ({
       id: `product-${idx}`,
       src: img.src,
+      thumbnailSrc: toThumb(img.src),
       alt: img.alt,
       category: img.category,
       description: img.description,
