@@ -256,13 +256,7 @@ export default function ProductPhotography() {
 
         {/* Image Grid — CSS columns masonry: images take natural height, no black gaps */}
         <div className="container">
-          <div
-            style={{
-              columns: "1",
-              columnGap: "1rem",
-            }}
-            className="[column-count:1] sm:[column-count:2] lg:[column-count:3]"
-          >
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
             {filteredImages.map((image, index) => (
               <motion.div
                 key={image.src}
