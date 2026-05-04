@@ -16,7 +16,6 @@ import { assetUrl } from "@/lib/assets";
 // Export for use in Edit page
 export const journalImages: Array<{ src: string; webSrc: string }> = [
 { src: assetUrl("/images/journal/1.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/1.webp" },
-{ src: assetUrl("/images/journal/11794449_10156000040900602_7743628154975280560_o.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/11794449_10156000040900602_7743628154975280560_o.webp" },
 { src: assetUrl("/images/journal/145-DSC09523.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/145-DSC09523.webp" },
 { src: assetUrl("/images/journal/16-2.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/16-2.webp" },
 { src: assetUrl("/images/journal/16003268_10154921618180879_6250090260645126513_n.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/16003268_10154921618180879_6250090260645126513_n.webp" },
