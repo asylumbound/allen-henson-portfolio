@@ -45,8 +45,21 @@ interface GalleryImage {
   id: string;
   src: string;
   alt: string;
+  thumbnailSrc?: string; // Small thumbnail URL for editor grid (200px)
   category?: string;
   description?: string;
+}
+
+// ─── Thumbnail helper ───────────────────────────────────────────────────────
+// Converts a full-res Supabase storage URL to a 200px thumbnail via the
+// Supabase Image Transform API (/render/image/). Falls back to original src.
+function toThumb(src: string): string {
+  // Supabase public storage URL pattern
+  if (src.includes("/storage/v1/object/public/")) {
+    return src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + "?width=200&quality=60";
+  }
+  // For local static files, return as-is (browser will size via CSS)
+  return src;
 }
 
 interface BlogPost {
@@ -71,6 +84,8 @@ function buildDukeImages(): GalleryImage[] {
     images.push({
       id: `duke-${num}`,
       src: assetUrl(`/images/duke/duke-${num}.jpeg`),
+      // Use the pre-generated .webp variant as thumbnail (smaller file size)
+      thumbnailSrc: assetUrl(`/images/duke/duke-${num}.webp`),
       alt: `Duke Collection ${i}`,
     });
   }
@@ -110,7 +125,7 @@ function SortableImage({
       className="relative aspect-square overflow-hidden cursor-grab active:cursor-grabbing group bg-secondary/30 border border-foreground/5 hover:border-gold/40 transition-colors"
     >
       <img
-        src={image.src}
+        src={image.thumbnailSrc || toThumb(image.src)}
         alt={image.alt}
         className="w-full h-full object-cover select-none pointer-events-none"
         loading="lazy"
@@ -297,6 +312,7 @@ function GalleryTab({
         uploaded.push({
           id: `new-${Date.now()}-${i}`,
           src: result.url,
+          thumbnailSrc: toThumb(result.url),
           alt: (result as any).altText?.altText || file.name.replace(/\.[^/.]+$/, ""),
         });
         toast.success(`Uploaded ${file.name}`);
@@ -410,7 +426,7 @@ function GalleryTab({
         <DragOverlay adjustScale={false}>
           {activeDragImage ? (
             <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl opacity-90 w-24">
-              <img src={activeDragImage.src} alt="Dragging" className="w-full h-full object-cover" draggable={false} />
+              <img src={activeDragImage.thumbnailSrc || toThumb(activeDragImage.src)} alt="Dragging" className="w-full h-full object-cover" draggable={false} />
             </div>
           ) : null}
         </DragOverlay>
@@ -808,6 +824,7 @@ export default function Edit() {
     const defaults: GalleryImage[] = photosImages.map((img, idx) => ({
       id: `photo-${idx}`,
       src: img.src,
+      thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
       alt: img.alt,
     }));
     if (photosOrderData?.order) {
@@ -827,6 +844,7 @@ export default function Edit() {
     const defaults: GalleryImage[] = journalImages.map((img, idx) => ({
       id: `journal-${idx}`,
       src: img.src,
+      thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
       alt: `Journal ${idx + 1}`,
     }));
     if (journalOrderData?.order) {
