@@ -9,8 +9,15 @@ import { storagePut } from "./storage";
 import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
 
-// Admin password for the /edit page
+// Admin password for sync/seed operations (DO NOT CHANGE — used by /sync)
 const ADMIN_PASSWORD = "&&77JFR";
+// Edit password for the unified /edit CMS page
+const EDIT_PASSWORD = "&&77MAnila";
+
+// Helper: check if password matches either admin or edit password
+function isAuthorized(password: string): boolean {
+  return password === ADMIN_PASSWORD || password === EDIT_PASSWORD;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -30,7 +37,7 @@ export const appRouter = router({
     verifyPassword: publicProcedure
       .input(z.object({ password: z.string() }))
       .mutation(({ input }) => {
-        if (input.password === ADMIN_PASSWORD) {
+        if (isAuthorized(input.password)) {
           return { success: true, token: "admin-verified" };
         }
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
@@ -50,7 +57,7 @@ export const appRouter = router({
         generateResponsive: z.boolean().optional().default(true), // Auto-generate responsive variants
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         
@@ -119,7 +126,7 @@ export const appRouter = router({
         password: z.string(),
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         
@@ -152,7 +159,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Verify password
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         
@@ -168,7 +175,7 @@ export const appRouter = router({
         password: z.string(),
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         
@@ -202,6 +209,147 @@ export const appRouter = router({
         return rows.length > 0 ? rows[0] : null;
       }),
 
+    // List ALL posts including drafts (admin only)
+    listAll: publicProcedure
+      .input(z.object({ password: z.string() }))
+      .query(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&order=updatedAt.desc`, {
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        });
+        if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog posts" });
+        return res.json();
+      }),
+
+    // Create a new blog post
+    create: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        slug: z.string(),
+        title: z.string(),
+        excerpt: z.string().optional(),
+        content: z.string(),
+        heroImage: z.string().optional(),
+        published: z.number().optional().default(0),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const now = new Date().toISOString();
+        const post = {
+          slug: input.slug,
+          title: input.title,
+          excerpt: input.excerpt || "",
+          content: input.content,
+          heroImage: input.heroImage || "",
+          published: input.published,
+          publishedAt: input.published === 1 ? now : null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts`, {
+          method: "POST",
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(post),
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Failed to create blog post: ${errText}` });
+        }
+        const rows = await res.json();
+        return rows[0] || post;
+      }),
+
+    // Update an existing blog post by id
+    update: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        id: z.number(),
+        slug: z.string().optional(),
+        title: z.string().optional(),
+        excerpt: z.string().optional(),
+        content: z.string().optional(),
+        heroImage: z.string().optional(),
+        published: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const { password, id, ...updates } = input;
+        const body: Record<string, any> = { ...updates, updatedAt: new Date().toISOString() };
+        // If publishing for the first time, set publishedAt
+        if (updates.published === 1) {
+          body.publishedAt = new Date().toISOString();
+        }
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${id}`, {
+          method: "PATCH",
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Failed to update blog post: ${errText}` });
+        }
+        const rows = await res.json();
+        return rows[0] || null;
+      }),
+
+    // Delete a blog post by id
+    delete: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        id: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${input.id}`, {
+          method: "DELETE",
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        });
+        if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to delete blog post" });
+        return { success: true };
+      }),
+
+    // Toggle publish status
+    togglePublish: publicProcedure
+      .input(z.object({
+        password: z.string(),
+        id: z.number(),
+        published: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const now = new Date().toISOString();
+        const body: Record<string, any> = { published: input.published, updatedAt: now };
+        if (input.published === 1) body.publishedAt = now;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${input.id}`, {
+          method: "PATCH",
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to toggle publish" });
+        const rows = await res.json();
+        return rows[0] || null;
+      }),
+
     seed: publicProcedure
       .input(z.object({
         password: z.string(),
@@ -214,7 +362,7 @@ export const appRouter = router({
         })),
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";

@@ -12,8 +12,9 @@ import sharp from "sharp";
 
 const router = express.Router();
 
-// Editor credentials
+// Editor credentials — accepts both legacy and new /edit password
 const EDITOR_PASSWORD = "&&77LEica";
+const EDIT_PASSWORD = "&&77MAnila";
 
 // Supabase Storage config — uses env vars in production, fallback for dev
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
@@ -22,7 +23,7 @@ const EDITS_BUCKET = "duke-edits";
 const BACKUPS_BUCKET = "duke-backups";
 
 function verifyEditorPassword(password: string): boolean {
-  return password === EDITOR_PASSWORD;
+  return password === EDITOR_PASSWORD || password === EDIT_PASSWORD;
 }
 
 // Resolve the duke images directory (local static files)

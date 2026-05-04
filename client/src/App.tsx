@@ -16,7 +16,6 @@ import BlogPost from "./pages/BlogPost";
 import Sales from "./pages/Sales";
 import ProductPhotography from "./pages/ProductPhotography";
 import ProductDetail from "./pages/ProductDetail";
-import ProductEdit from "./pages/ProductEdit";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Login from "./pages/Login";
 import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
@@ -36,7 +35,6 @@ function Router() {
       <Route path="/login" component={Login} />
       {/* Edit pages have their own layout (no header/footer) */}
       <Route path="/edit" component={Edit} />
-      <Route path="/product_edit" component={ProductEdit} />
       {/* Duke - password-protected private collection (own layout) */}
       <Route path="/duke" component={Duke} />
       {/* Agency - password-protected agency database (own layout) */}
