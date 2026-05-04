@@ -1,54 +1,26 @@
 /*
  * DESIGN: Cinematic Noir
- * Duke - Password-protected photo portfolio
+ * Duke - Password-protected photo portfolio (VIEW ONLY)
  * - Client-side SHA-256 hashing (password never sent in plain text)
  * - 24-hour session persistence via localStorage
  * - Masonry grid gallery with lightbox
  * - Cinematic noir aesthetic matching site design
  * - No server-side dependencies for auth
  * - noindex/nofollow for search engine exclusion
+ * - All editing moved to /edit → Duke tab
  *
  * LAFC CONSULTING
  */
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { SEOHead } from "@/components/SEOHead";
-import DukeImageEditor from "@/components/DukeImageEditor";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  rectSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { assetUrl } from "@/lib/assets";
 
 // SHA-256 hash of the password "&&77KYoto"
-// Generated via: crypto.subtle.digest('SHA-256', new TextEncoder().encode('&&77KYoto'))
-const VALID_HASH = "a1b2c3d4"; // Placeholder - will be computed at build time
-
-// User roles
-type DukeRole = "viewer" | "editor";
-
 const SESSION_KEY = "duke_session";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-// Editor credentials
-const EDITOR_USERNAME = "editor";
-const EDITOR_PASSWORD = "&&77LEica";
 
 // Duke gallery images - 403 images (16 original + 387 from Google Drive)
 const dukeImages: { src: string; webp: string; alt: string }[] = [
@@ -475,28 +447,28 @@ let computedExpectedHash = "";
   computedExpectedHash = await hashPassword("&&77KYoto");
 })();
 
-function getSession(): { authenticated: boolean; role: DukeRole } {
+function getSession(): { authenticated: boolean } {
   try {
     const stored = localStorage.getItem(SESSION_KEY);
-    if (!stored) return { authenticated: false, role: "viewer" };
+    if (!stored) return { authenticated: false };
     const parsed = JSON.parse(stored);
-    if (!parsed.timestamp || !parsed.hash) return { authenticated: false, role: "viewer" };
+    if (!parsed.timestamp || !parsed.hash) return { authenticated: false };
     const elapsed = Date.now() - parsed.timestamp;
     if (elapsed > SESSION_DURATION_MS) {
       localStorage.removeItem(SESSION_KEY);
-      return { authenticated: false, role: "viewer" };
+      return { authenticated: false };
     }
-    return { authenticated: true, role: parsed.role || "viewer" };
+    return { authenticated: true };
   } catch {
     localStorage.removeItem(SESSION_KEY);
-    return { authenticated: false, role: "viewer" };
+    return { authenticated: false };
   }
 }
 
-function setSession(hash: string, role: DukeRole = "viewer"): void {
+function setSession(hash: string): void {
   localStorage.setItem(
     SESSION_KEY,
-    JSON.stringify({ hash, timestamp: Date.now(), role })
+    JSON.stringify({ hash, timestamp: Date.now() })
   );
 }
 
@@ -504,105 +476,21 @@ function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
-// ─── Sortable Image Item for DnD Reorder ──────────────────────────────
-function SortableImageItem({
-  id,
-  image,
-  index,
-  imageRefreshKey,
-}: {
-  id: string;
-  image: { src: string; webp: string; alt: string };
-  index: number;
-  imageRefreshKey: number;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
-    zIndex: isDragging ? 50 : "auto" as any,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative aspect-square overflow-hidden cursor-grab active:cursor-grabbing group border border-white/5 hover:border-gold/40 cinematic-transition"
-    >
-      <img
-        src={`${image.src}?v=${imageRefreshKey}`}
-        alt={image.alt}
-        className="w-full h-full object-cover select-none pointer-events-none"
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-      />
-      {/* Position number overlay */}
-      <div className="absolute top-1 left-1 bg-black/70 text-white/60 text-[9px] tracking-cinematic px-1.5 py-0.5 font-mono">
-        {index + 1}
-      </div>
-      {/* Drag grip icon */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cinematic-transition bg-black/30">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold">
-          <circle cx="9" cy="5" r="1" fill="currentColor" />
-          <circle cx="15" cy="5" r="1" fill="currentColor" />
-          <circle cx="9" cy="12" r="1" fill="currentColor" />
-          <circle cx="15" cy="12" r="1" fill="currentColor" />
-          <circle cx="9" cy="19" r="1" fill="currentColor" />
-          <circle cx="15" cy="19" r="1" fill="currentColor" />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
 export default function Duke() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<DukeRole>("viewer");
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [imageRefreshKey, setImageRefreshKey] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  // Reorder state
-  const [isReordering, setIsReordering] = useState(false);
+  // Gallery order state
   const [orderedImages, setOrderedImages] = useState(dukeImages);
-  const [orderDirty, setOrderDirty] = useState(false);
-  const [savingOrder, setSavingOrder] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Supabase edited images map: imageName -> { jpeg: url, webp: url }
   const [editedImageUrls, setEditedImageUrls] = useState<Record<string, { jpeg?: string; webp?: string }>>({});
-
-  const isEditor = userRole === "editor";
-
-  // DnD sensors — pointer for desktop, touch for iPad (with activation distance to prevent accidental drags)
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
-  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
-  const sensors = useSensors(pointerSensor, touchSensor);
-
-  // Generate unique IDs for sortable items
-  const imageIds = useMemo(() => orderedImages.map((img) => {
-    const filename = img.src.split("/").pop() || "";
-    return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
-  }), [orderedImages]);
 
   // Prevent indexing
   useEffect(() => {
@@ -611,7 +499,6 @@ export default function Duke() {
     metaRobots.content = "noindex, nofollow, noarchive, nosnippet";
     document.head.appendChild(metaRobots);
 
-    // Add X-Robots-Tag equivalent via meta
     const metaGooglebot = document.createElement("meta");
     metaGooglebot.name = "googlebot";
     metaGooglebot.content = "noindex, nofollow, noarchive, nosnippet";
@@ -633,7 +520,6 @@ export default function Duke() {
     const session = getSession();
     if (session.authenticated) {
       setIsAuthenticated(true);
-      setUserRole(session.role);
     }
   }, []);
 
@@ -645,7 +531,6 @@ export default function Duke() {
         const res = await fetch("/api/duke/get-order");
         const data = await res.json();
         if (data.order && Array.isArray(data.order)) {
-          // Build a map for quick lookup
           const imageMap = new Map(dukeImages.map((img) => {
             const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
             return [name, img];
@@ -653,7 +538,6 @@ export default function Duke() {
           const reordered = data.order
             .map((name: string) => imageMap.get(name))
             .filter(Boolean) as typeof dukeImages;
-          // Append any images not in the saved order (new additions)
           const orderedSet = new Set(data.order);
           const remaining = dukeImages.filter((img) => {
             const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
@@ -694,63 +578,6 @@ export default function Duke() {
     };
   }, [isAuthenticated]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const trimmedIdentity = identity.toLowerCase().trim();
-
-      // Check editor credentials first
-      if (trimmedIdentity === EDITOR_USERNAME && password === EDITOR_PASSWORD) {
-        const hash = await hashPassword(password);
-        setSession(hash, "editor");
-        setUserRole("editor");
-        setIsAuthenticated(true);
-        return;
-      }
-
-      // Check viewer credentials
-      const expectedIdentity = "bios159@protonmail.com";
-      if (trimmedIdentity !== expectedIdentity) {
-        setError("Invalid credentials.");
-        setLoading(false);
-        return;
-      }
-
-      // Hash the password client-side
-      const hash = await hashPassword(password);
-
-      // Compare against the expected hash
-      if (hash === computedExpectedHash) {
-        setSession(hash, "viewer");
-        setUserRole("viewer");
-        setIsAuthenticated(true);
-      } else {
-        setError("Invalid credentials.");
-      }
-    } catch {
-      setError("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    clearSession();
-    setIsAuthenticated(false);
-    setUserRole("viewer");
-    setIdentity("");
-    setPassword("");
-  };
-
-  // Editor: extract image name from src path (e.g., assetUrl("/images/duke/duke-42.jpeg") -> "duke-42")
-  const getImageName = (src: string): string => {
-    const filename = src.split("/").pop() || "";
-    return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
-  };
-
   // Fetch edited image URLs from Supabase
   const fetchEditedImages = useCallback(async () => {
     try {
@@ -766,41 +593,17 @@ export default function Duke() {
 
   // Helper: get the correct image URLs (Supabase edited version or local static)
   const getImageSrc = useCallback((image: { src: string; webp: string }) => {
-    const name = getImageName(image.src);
+    const filename = image.src.split("/").pop() || "";
+    const name = filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
     const edited = editedImageUrls[name];
     if (edited) {
       return {
-        src: `${edited.jpeg || image.src}?v=${imageRefreshKey}`,
-        webp: `${edited.webp || image.webp}?v=${imageRefreshKey}`,
+        src: edited.jpeg || image.src,
+        webp: edited.webp || image.webp,
       };
     }
-    return {
-      src: `${image.src}?v=${imageRefreshKey}`,
-      webp: `${image.webp}?v=${imageRefreshKey}`,
-    };
-  }, [editedImageUrls, imageRefreshKey]);
-
-  // Editor: handle image saved callback
-  const handleImageSaved = () => {
-    setEditingIndex(null);
-    // Force refresh all images by incrementing the key
-    setImageRefreshKey((prev) => prev + 1);
-    // Re-fetch edited images map from Supabase
-    fetchEditedImages();
-  };
-
-  // Editor: handle image deleted callback
-  const handleImageDeleted = useCallback((deletedName: string) => {
-    setEditingIndex(null);
-    setLightboxIndex(null);
-    // Remove the image from the ordered list
-    setOrderedImages((prev) => prev.filter((img) => {
-      const name = img.src.replace(/\/images\/duke\/|\.jpeg|\.webp/g, "");
-      return name !== deletedName;
-    }));
-    // Re-fetch edited images map
-    fetchEditedImages();
-  }, [fetchEditedImages]);
+    return { src: image.src, webp: image.webp };
+  }, [editedImageUrls]);
 
   // Fetch edited image URLs from Supabase on auth
   useEffect(() => {
@@ -808,90 +611,45 @@ export default function Duke() {
     fetchEditedImages();
   }, [isAuthenticated, fetchEditedImages]);
 
-  // DnD handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = imageIds.indexOf(active.id as string);
-    const newIndex = imageIds.indexOf(over.id as string);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    setOrderedImages((prev) => arrayMove(prev, oldIndex, newIndex));
-    setOrderDirty(true);
-  };
-
-  const handleSaveOrder = async () => {
-    setSavingOrder(true);
-    setOrderStatus(null);
     try {
-      const order = orderedImages.map((img) => {
-        const filename = img.src.split("/").pop() || "";
-        return filename.replace(/\.(jpeg|jpg|webp|png)$/, "");
-      });
-      const res = await fetch("/api/duke/save-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: EDITOR_PASSWORD, order }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setOrderDirty(false);
-        setOrderStatus({ type: "success", message: `Order saved — ${data.count} images` });
-        setTimeout(() => setOrderStatus(null), 3000);
-      } else {
-        setOrderStatus({ type: "error", message: data.error || "Failed to save" });
+      const trimmedIdentity = identity.toLowerCase().trim();
+
+      // Check viewer credentials
+      const expectedIdentity = "bios159@protonmail.com";
+      if (trimmedIdentity !== expectedIdentity) {
+        setError("Invalid credentials.");
+        setLoading(false);
+        return;
       }
-    } catch (err: any) {
-      setOrderStatus({ type: "error", message: err.message || "Network error" });
+
+      // Hash the password client-side
+      const hash = await hashPassword(password);
+
+      // Compare against the expected hash
+      if (hash === computedExpectedHash) {
+        setSession(hash);
+        setIsAuthenticated(true);
+      } else {
+        setError("Invalid credentials.");
+      }
+    } catch {
+      setError("An error occurred. Please try again.");
     } finally {
-      setSavingOrder(false);
+      setLoading(false);
     }
   };
 
-  const handleCancelReorder = () => {
-    setIsReordering(false);
-    setOrderDirty(false);
-    // Reload saved order
-    (async () => {
-      try {
-        const res = await fetch("/api/duke/get-order");
-        const data = await res.json();
-        if (data.order && Array.isArray(data.order)) {
-          const imageMap = new Map(dukeImages.map((img) => {
-            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
-            return [name, img];
-          }));
-          const reordered = data.order
-            .map((name: string) => imageMap.get(name))
-            .filter(Boolean) as typeof dukeImages;
-          const orderedSet = new Set(data.order);
-          const remaining = dukeImages.filter((img) => {
-            const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
-            return !orderedSet.has(name);
-          });
-          setOrderedImages([...reordered, ...remaining]);
-        } else {
-          setOrderedImages(dukeImages);
-        }
-      } catch {
-        setOrderedImages(dukeImages);
-      }
-    })();
+  const handleLogout = () => {
+    clearSession();
+    setIsAuthenticated(false);
+    setIdentity("");
+    setPassword("");
   };
-
-  // Get active drag image for overlay
-  const activeDragImage = activeId
-    ? orderedImages.find((img) => {
-        const name = (img.src.split("/").pop() || "").replace(/\.(jpeg|jpg|webp|png)$/, "");
-        return name === activeId;
-      })
-    : null;
 
   // Lightbox controls
   const openLightbox = (index: number) => setSelectedIndex(index);
@@ -1054,7 +812,7 @@ export default function Duke() {
     );
   }
 
-  // ─── AUTHENTICATED GALLERY ────────────────────────────────────────────
+  // ─── AUTHENTICATED GALLERY (VIEW ONLY) ────────────────────────────────
   return (
     <>
       <SEOHead
@@ -1083,67 +841,16 @@ export default function Duke() {
           </motion.div>
 
           {/* Session controls */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              {isEditor && (
-                <span className="text-xs tracking-cinematic font-light text-gold/70 border border-gold/30 px-3 py-1">
-                  EDITOR MODE
-                </span>
-              )}
-              {isEditor && (
-                <button
-                  onClick={() => {
-                    if (isReordering && orderDirty) {
-                      if (!confirm("Discard unsaved order changes?")) return;
-                    }
-                    if (isReordering) {
-                      handleCancelReorder();
-                    } else {
-                      setIsReordering(true);
-                    }
-                  }}
-                  className={`text-xs tracking-cinematic font-light cinematic-transition px-3 py-1 border ${
-                    isReordering
-                      ? "text-gold border-gold/50 bg-gold/10"
-                      : "text-white/60 border-white/20 hover:text-white hover:border-white/40"
-                  }`}
-                >
-                  {isReordering ? "EXIT REORDER" : "REORDER"}
-                </button>
-              )}
-              {isReordering && orderDirty && (
-                <button
-                  onClick={handleSaveOrder}
-                  disabled={savingOrder}
-                  className="text-xs tracking-cinematic font-medium bg-gold text-background px-4 py-1 hover:bg-gold/90 cinematic-transition disabled:opacity-50"
-                >
-                  {savingOrder ? "SAVING..." : "SAVE ORDER"}
-                </button>
-              )}
-              {isReordering && (
-                <span className="text-[10px] tracking-cinematic text-white/30">
-                  {orderDirty ? "UNSAVED CHANGES" : "DRAG TO REORDER"}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              {orderStatus && (
-                <span className={`text-[10px] tracking-cinematic ${
-                  orderStatus.type === "success" ? "text-green-400" : "text-red-400"
-                }`}>
-                  {orderStatus.message}
-                </span>
-              )}
-              <button
-                onClick={handleLogout}
-                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
-              >
-                SIGN OUT
-              </button>
-            </div>
+          <div className="flex items-center justify-end mb-8">
+            <button
+              onClick={handleLogout}
+              className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+            >
+              SIGN OUT
+            </button>
           </div>
 
-          {/* Gallery */}
+          {/* Gallery — Masonry columns */}
           {orderedImages.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -1160,46 +867,11 @@ export default function Duke() {
               </p>
               <div className="w-24 h-px bg-border mx-auto mt-8" />
             </motion.div>
-          ) : isReordering ? (
-            /* ─── REORDER MODE: Flat grid with DnD ─── */
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={imageIds} strategy={rectSortingStrategy}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                  {orderedImages.map((image, index) => (
-                    <SortableImageItem
-                      key={imageIds[index]}
-                      id={imageIds[index]}
-                      image={image}
-                      index={index}
-                      imageRefreshKey={imageRefreshKey}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-              <DragOverlay adjustScale={false}>
-                {activeDragImage ? (
-                  <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl shadow-gold/20 opacity-90">
-                    <img
-                      src={getImageSrc(activeDragImage).src}
-                      alt="Dragging"
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
           ) : (
-            /* ─── NORMAL MODE: Masonry columns ─── */
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
               {orderedImages.map((image, index) => (
                 <motion.div
-                  key={imageIds[index] || index}
+                  key={index}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -1235,28 +907,11 @@ export default function Duke() {
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 cinematic-transition" />
                     <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 cinematic-transition" />
 
-                    {/* Hover Overlay */}
+                    {/* Hover Overlay — view only */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cinematic-transition">
-                      {isEditor ? (
-                        <div className="flex gap-3">
-                          <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
-                            <div className="w-6 h-6 border border-gold" />
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingIndex(index);
-                            }}
-                            className="px-3 py-2 bg-gold/90 text-background text-xs tracking-cinematic font-medium hover:bg-gold cinematic-transition"
-                          >
-                            EDIT
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
-                          <div className="w-6 h-6 border border-gold" />
-                        </div>
-                      )}
+                      <div className="w-12 h-12 border border-gold/50 flex items-center justify-center">
+                        <div className="w-6 h-6 border border-gold" />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1332,39 +987,13 @@ export default function Duke() {
                   </picture>
                 </motion.div>
 
-                {/* Bottom bar: counter + editor button */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                {/* Bottom bar: counter */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
                   <span className="text-white/50 text-sm tracking-cinematic font-light">
                     {selectedIndex + 1} / {orderedImages.length}
                   </span>
-                  {isEditor && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeLightbox();
-                        setEditingIndex(selectedIndex);
-                      }}
-                      className="px-4 py-1.5 bg-gold/90 text-background text-xs tracking-cinematic font-medium hover:bg-gold cinematic-transition"
-                    >
-                      EDIT IMAGE
-                    </button>
-                  )}
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Image Editor Modal (editor role only) */}
-          <AnimatePresence>
-            {isEditor && editingIndex !== null && (
-              <DukeImageEditor
-                imageSrc={getImageSrc(orderedImages[editingIndex]).src.split('?')[0]}
-                imageName={getImageName(orderedImages[editingIndex].src)}
-                editorPassword={EDITOR_PASSWORD}
-                onClose={() => setEditingIndex(null)}
-                onSaved={handleImageSaved}
-                onDeleted={handleImageDeleted}
-              />
             )}
           </AnimatePresence>
         </div>
