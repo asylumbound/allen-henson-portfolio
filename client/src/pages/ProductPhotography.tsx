@@ -125,13 +125,13 @@ function ProductImage({
   onLoad?: () => void;
 }) {
   return (
-    <div className="relative overflow-hidden w-full h-full">
+    <div className="relative overflow-hidden w-full">
       <img
         src={src}
         srcSet={`${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         alt={alt}
-        className={`w-full h-full object-cover ${className}`}
+        className={`w-full h-auto block ${className}`}
         loading="lazy"
         onLoad={onLoad}
         onError={(e) => {
@@ -254,43 +254,42 @@ export default function ProductPhotography() {
           </motion.div>
         </div>
 
-        {/* Image Grid */}
+        {/* Image Grid — CSS columns masonry: images take natural height, no black gaps */}
         <div className="container">
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          <div
+            style={{
+              columns: "1",
+              columnGap: "1rem",
+            }}
+            className="[column-count:1] sm:[column-count:2] lg:[column-count:3]"
           >
-            <AnimatePresence mode="popLayout">
-              {filteredImages.map((image, index) => (
-                <motion.div
-                  key={image.src}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="group cursor-pointer"
-                  onClick={() => openLightbox(index)}
-                >
-                  <div className="relative overflow-hidden bg-secondary/30">
-                    <ProductImage
-                      src={image.src}
-                      alt={image.alt}
-                      className="image-hover"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
-                    <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    {/* Hover Info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-black/80 to-transparent">
-                      <h3 className="text-sm font-medium text-white mb-1">{image.alt}</h3>
-                      <p className="text-xs text-white/70">{image.description}</p>
-                    </div>
+            {filteredImages.map((image, index) => (
+              <motion.div
+                key={image.src}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.4) }}
+                className="group cursor-pointer mb-4 break-inside-avoid"
+                onClick={() => openLightbox(index)}
+              >
+                <div className="relative overflow-hidden bg-secondary/30">
+                  <ProductImage
+                    src={image.src}
+                    alt={image.alt}
+                    className="image-hover"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
+                  <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {/* Hover Info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-black/80 to-transparent">
+                    <h3 className="text-sm font-medium text-white mb-1">{image.alt}</h3>
+                    <p className="text-xs text-white/70">{image.description}</p>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* Lightbox */}
