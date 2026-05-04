@@ -254,14 +254,14 @@ export default function Photos() {
         </motion.div>
 
         {/* Masonry Grid */}
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
           {orderedImages.map((image, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: Math.min(index * 0.02, 1) }}
-              className="break-inside-avoid"
+              className="break-inside-avoid mb-4"
             >
               <div
                 onClick={() => openLightbox(index)}

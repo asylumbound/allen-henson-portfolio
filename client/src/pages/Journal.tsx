@@ -288,14 +288,14 @@ export default function Journal() {
       {/* Gallery Grid */}
       <section className="pb-24">
         <div className="container">
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
             {orderedImages.map((img, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: Math.min(index * 0.02, 0.5) }}
-                className="break-inside-avoid cursor-pointer group relative overflow-hidden"
+                className="break-inside-avoid mb-4 cursor-pointer group relative overflow-hidden"
                 onClick={() => setSelectedImage(index)}
               >
                 <img
