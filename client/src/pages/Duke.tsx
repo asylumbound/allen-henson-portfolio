@@ -18,7 +18,7 @@ import { Link } from "wouter";
 import { SEOHead } from "@/components/SEOHead";
 import { assetUrl } from "@/lib/assets";
 
-// SHA-256 hash of the password "&&77KYoto"
+// SHA-256 hash of the password "duke"
 const SESSION_KEY = "duke_session";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -437,14 +437,14 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Pre-computed SHA-256 hash of "&&77KYoto"
+// Pre-computed SHA-256 hash of "duke"
 const EXPECTED_HASH =
-  "f3a7c2e91d4b8f6a5c3e7d9b2a4f6e8c1d3b5a7f9e2c4d6b8a0f1e3c5d7b9a";
+  "f6804460f509a765b8ad07dca8c787ec984109088953153b8540cc1bb8a1c432";
 
 // Compute the actual hash at module load for verification
 let computedExpectedHash = "";
 (async () => {
-  computedExpectedHash = await hashPassword("&&77KYoto");
+  computedExpectedHash = await hashPassword("duke");
 })();
 
 function getSession(): { authenticated: boolean } {
