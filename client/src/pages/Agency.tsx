@@ -289,17 +289,17 @@ export default function Agency() {
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition mb-8"
+            className="inline-flex items-center gap-2 nav-text text-muted-foreground hover:text-gold cinematic-transition mb-8"
           >
             BACK TO SITE
           </Link>
 
           <div className="bg-card/50 backdrop-blur-sm border border-border/50 p-8 md:p-10">
             <div className="text-center mb-8">
-              <p className="text-xs tracking-wide-cinematic text-gold font-light mb-3">
+              <p className="meta-text text-gold uppercase mb-3">
                 RESTRICTED ACCESS
               </p>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em]">
                 Agency Database
               </h1>
               <div className="w-12 h-px bg-gold mx-auto mt-4" />
@@ -309,7 +309,7 @@ export default function Agency() {
               <div>
                 <label
                   htmlFor="agency-identity"
-                  className="block text-xs tracking-cinematic font-light text-muted-foreground mb-2"
+                  className="block caption-text text-muted-foreground mb-2"
                 >
                   USERNAME / EMAIL
                 </label>
@@ -320,7 +320,7 @@ export default function Agency() {
                   onChange={(e) => setIdentity(e.target.value)}
                   required
                   autoComplete="username"
-                  className="w-full px-4 py-3 bg-background/50 border border-border/50 text-foreground text-sm font-light tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
+                  className="w-full px-4 py-3 bg-background/50 border border-border/50 text-foreground text-sm font-normal tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
                   placeholder="username or email"
                 />
               </div>
@@ -328,7 +328,7 @@ export default function Agency() {
               <div>
                 <label
                   htmlFor="agency-password"
-                  className="block text-xs tracking-cinematic font-light text-muted-foreground mb-2"
+                  className="block caption-text text-muted-foreground mb-2"
                 >
                   PASSWORD
                 </label>
@@ -340,7 +340,7 @@ export default function Agency() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
-                    className="w-full px-4 py-3 pr-12 bg-background/50 border border-border/50 text-foreground text-sm font-light tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
+                    className="w-full px-4 py-3 pr-12 bg-background/50 border border-border/50 text-foreground text-sm font-normal tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
                     placeholder="Enter password"
                   />
                   <button
@@ -358,7 +358,7 @@ export default function Agency() {
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 font-light text-center py-2"
+                  className="text-sm text-red-400 font-normal text-center py-2"
                 >
                   {error}
                 </motion.div>
@@ -367,14 +367,14 @@ export default function Agency() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? "VERIFYING..." : "ENTER"}
               </button>
             </form>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground/50 font-light mt-6">
+          <p className="text-center text-xs text-muted-foreground/50 font-normal mt-6">
             Authorized access only. All activity is monitored.
           </p>
         </motion.div>
@@ -395,19 +395,19 @@ export default function Agency() {
         <header className="border-b border-border/30">
           <div className="container py-8 flex items-start justify-between">
             <div>
-              <p className="text-xs tracking-wide-cinematic text-gold font-light mb-2">
+              <p className="meta-text text-gold uppercase mb-2">
                 RESTRICTED ACCESS
               </p>
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-[-0.02em]">
                 Agency Database
               </h1>
-              <p className="mt-2 text-sm font-light tracking-wide text-muted-foreground">
+              <p className="mt-2 text-sm font-normal tracking-wide text-muted-foreground">
                 Communications / Contacts / Agencies / Magazines
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition mt-2"
+              className="caption-text text-muted-foreground hover:text-gold cinematic-transition mt-2"
             >
               SIGN OUT
             </button>
@@ -422,7 +422,7 @@ export default function Agency() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search across all sections..."
-              className="w-full bg-transparent text-base font-light tracking-wide border-b border-border/30 pb-2 focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/40 text-foreground"
+              className="w-full bg-transparent text-base font-normal tracking-wide border-b border-border/30 pb-2 focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/40 text-foreground"
             />
           </div>
         </div>
@@ -441,7 +441,7 @@ export default function Agency() {
                 }`}
               >
                 {s.label}
-                <span className="ml-1.5 text-[10px] font-light opacity-60">
+                <span className="ml-1.5 text-[10px] font-normal opacity-60">
                   {s.count}
                 </span>
               </button>
@@ -485,7 +485,7 @@ export default function Agency() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-xs font-light tracking-wider text-muted-foreground/60 uppercase w-20 shrink-0">
+                              <span className="text-xs font-normal tracking-wider text-muted-foreground/60 uppercase w-20 shrink-0">
                                 {c.date}
                               </span>
                               <span
@@ -502,14 +502,14 @@ export default function Agency() {
                             </div>
                             <h3 className="text-sm font-semibold mt-1 text-foreground">
                               {c.agency}
-                              <span className="font-light text-muted-foreground ml-2">
+                              <span className="font-normal text-muted-foreground ml-2">
                                 / {c.contact}
                               </span>
                             </h3>
-                            <p className="text-xs font-light text-muted-foreground/70 mt-0.5">
+                            <p className="text-xs font-normal text-muted-foreground/70 mt-0.5">
                               Subject: {c.subject}
                             </p>
-                            <p className="text-xs font-light text-muted-foreground/50 mt-1 italic">
+                            <p className="text-xs font-normal text-muted-foreground/50 mt-1 italic">
                               {c.keyPhrases}
                             </p>
                           </div>
@@ -632,7 +632,7 @@ export default function Agency() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-[10px] font-light tracking-widest text-muted-foreground/50 uppercase">
+                              <span className="text-[10px] font-normal tracking-widest text-muted-foreground/50 uppercase">
                                 {a.city}, {a.country}
                               </span>
                               <span
@@ -655,7 +655,7 @@ export default function Agency() {
                                 {a.email && (
                                   <a
                                     href={`mailto:${a.email}`}
-                                    className="text-xs font-light underline underline-offset-2 hover:text-gold transition-colors text-foreground/70"
+                                    className="text-xs font-normal underline underline-offset-2 hover:text-gold transition-colors text-foreground/70"
                                   >
                                     {a.email}
                                   </a>
@@ -663,7 +663,7 @@ export default function Agency() {
                                 {a.phone && (
                                   <a
                                     href={`tel:${a.phone}`}
-                                    className="text-xs font-light text-muted-foreground/60 hover:text-foreground transition-colors"
+                                    className="text-xs font-normal text-muted-foreground/60 hover:text-foreground transition-colors"
                                   >
                                     {a.phone}
                                   </a>
@@ -725,7 +725,7 @@ export default function Agency() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-[10px] font-light tracking-widest text-muted-foreground/50 uppercase">
+                              <span className="text-[10px] font-normal tracking-widest text-muted-foreground/50 uppercase">
                                 Tier {m.tier} / {m.tierLabel}
                               </span>
                               <SubmissionBadge status={m.acceptsUnsolicited} />
@@ -733,7 +733,7 @@ export default function Agency() {
                             <h3 className="text-sm font-semibold mt-1 text-foreground">
                               {m.name}
                             </h3>
-                            <p className="text-xs font-light text-muted-foreground/60 mt-0.5">
+                            <p className="text-xs font-normal text-muted-foreground/60 mt-0.5">
                               {m.website}
                             </p>
                           </div>
@@ -748,7 +748,7 @@ export default function Agency() {
                             <span className="text-[10px] font-medium tracking-widest uppercase text-muted-foreground/40">
                               Submission Method
                             </span>
-                            <p className="text-xs font-light mt-0.5 text-foreground/80">
+                            <p className="text-xs font-normal mt-0.5 text-foreground/80">
                               {m.submissionMethod}
                             </p>
                           </div>
@@ -756,7 +756,7 @@ export default function Agency() {
                             <span className="text-[10px] font-medium tracking-widest uppercase text-muted-foreground/40">
                               Notes
                             </span>
-                            <p className="text-xs font-light mt-0.5 text-muted-foreground/70">
+                            <p className="text-xs font-normal mt-0.5 text-muted-foreground/70">
                               {m.notes}
                             </p>
                           </div>
@@ -773,12 +773,12 @@ export default function Agency() {
         {/* Footer */}
         <footer className="border-t border-border/20 mt-12">
           <div className="container py-6 flex items-center justify-between">
-            <p className="text-[10px] font-light tracking-widest uppercase text-muted-foreground/40">
+            <p className="text-[10px] font-normal tracking-widest uppercase text-muted-foreground/40">
               Agency Database / LAFC Consulting / {new Date().getFullYear()}
             </p>
             <Link
               href="/"
-              className="text-[10px] font-light tracking-widest uppercase text-muted-foreground/30 hover:text-gold cinematic-transition"
+              className="text-[10px] font-normal tracking-widest uppercase text-muted-foreground/30 hover:text-gold cinematic-transition"
             >
               ALLENHENSON.COM
             </Link>
@@ -794,10 +794,10 @@ export default function Agency() {
 function SectionHeader({ index, title }: { index: string; title: string }) {
   return (
     <div className="relative">
-      <span className="absolute -left-2 -top-6 text-[80px] font-extralight text-foreground/[0.04] leading-none select-none pointer-events-none">
+      <span className="absolute -left-2 -top-6 text-[80px] font-normal text-foreground/[0.04] leading-none select-none pointer-events-none">
         {index}
       </span>
-      <h2 className="relative text-lg font-semibold tracking-tight uppercase text-foreground">
+      <h2 className="relative text-lg font-semibold tracking-[-0.02em] uppercase text-foreground">
         {title}
       </h2>
     </div>
@@ -854,7 +854,7 @@ function SubmissionBadge({ status }: { status: string }) {
 function EmptyState() {
   return (
     <div className="py-16 text-center">
-      <p className="text-sm font-light text-muted-foreground/40 tracking-wide">
+      <p className="text-sm font-normal text-muted-foreground/40 tracking-wide">
         No results found.
       </p>
     </div>
@@ -884,7 +884,7 @@ function Td({
         bold
           ? "font-semibold text-foreground"
           : light
-          ? "font-light text-muted-foreground/60"
+          ? "font-normal text-muted-foreground/60"
           : "font-normal text-foreground/80"
       }`}
     >

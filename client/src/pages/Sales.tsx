@@ -182,7 +182,7 @@ export default function Sales() {
       />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-24 md:py-32 overflow-hidden">
+      <section className="relative py-28 md:py-36 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={assetUrl("/images/L1009868.jpg")}
@@ -199,14 +199,14 @@ export default function Sales() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               PRINTS & BOOKS
             </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.02em] mb-6">
               The Collection
             </h1>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
-            <p className="max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed text-foreground/80">
+            <p className="max-w-2xl mx-auto text-base md:text-lg font-normal leading-relaxed text-foreground/80">
               Limited edition prints, signed books, and exclusive collections. 
               Each piece is a fragment of a larger story.
             </p>
@@ -252,10 +252,10 @@ export default function Sales() {
 
                     {/* Product Info */}
                     <div className="space-y-2">
-                      <h3 className="text-sm md:text-base font-light leading-tight group-hover:text-gold cinematic-transition line-clamp-2">
+                      <h3 className="text-sm md:text-base font-normal leading-tight group-hover:text-gold cinematic-transition line-clamp-2">
                         {product.name}
                       </h3>
-                      <p className="text-gold font-light">
+                      <p className="text-gold font-normal">
                         {formatPrice(product.price)}
                         {product.priceMax && (
                           <span> - {formatPrice(product.priceMax)}</span>
@@ -274,7 +274,7 @@ export default function Sales() {
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm tracking-cinematic font-light border border-foreground/30 hover:border-gold hover:text-gold disabled:opacity-30 disabled:cursor-not-allowed cinematic-transition"
+                className="flex items-center gap-2 px-4 py-2 nav-text border border-foreground/30 hover:border-gold hover:text-gold disabled:opacity-30 disabled:cursor-not-allowed cinematic-transition"
               >
                 <ChevronLeft className="w-4 h-4" />
                 PREV
@@ -285,7 +285,7 @@ export default function Sales() {
                   <button
                     key={page}
                     onClick={() => goToPage(page)}
-                    className={`w-10 h-10 text-sm tracking-cinematic font-light border cinematic-transition ${
+                    className={`w-10 h-10 nav-text border cinematic-transition ${
                       currentPage === page
                         ? "bg-gold text-background border-gold"
                         : "border-foreground/30 hover:border-gold hover:text-gold"
@@ -299,7 +299,7 @@ export default function Sales() {
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-4 py-2 text-sm tracking-cinematic font-light border border-foreground/30 hover:border-gold hover:text-gold disabled:opacity-30 disabled:cursor-not-allowed cinematic-transition"
+                className="flex items-center gap-2 px-4 py-2 nav-text border border-foreground/30 hover:border-gold hover:text-gold disabled:opacity-30 disabled:cursor-not-allowed cinematic-transition"
               >
                 NEXT
                 <ChevronRight className="w-4 h-4" />
@@ -323,19 +323,19 @@ export default function Sales() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               INQUIRIES & PURCHASES
             </p>
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] mb-6">
               Ready to Acquire a Piece?
             </h2>
-            <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-foreground/80 mb-8">
+            <p className="max-w-xl mx-auto text-base font-normal leading-relaxed text-foreground/80 mb-8">
               For purchases, custom orders, specific sizes, or commissioned work, 
               please contact me directly.
             </p>
             <a
               href="mailto:allen@allenhenson.com?subject=Purchase Inquiry"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
             >
               <Mail className="w-4 h-4" />
               CONTACT: allen@allenhenson.com
@@ -353,19 +353,19 @@ export default function Sales() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               COMMISSIONS
             </p>
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] mb-6">
               Custom Orders & Commissions
             </h2>
-            <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-foreground/80 mb-8">
+            <p className="max-w-xl mx-auto text-base font-normal leading-relaxed text-foreground/80 mb-8">
               Looking for a specific size, custom framing, or a commissioned piece? 
               Get in touch to discuss your vision.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-light tracking-cinematic text-sm hover:border-gold hover:text-gold cinematic-transition"
+              className="inline-flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-normal tracking-cinematic text-sm hover:border-gold hover:text-gold cinematic-transition"
             >
               CONTACT
               <ArrowRight className="w-4 h-4" />

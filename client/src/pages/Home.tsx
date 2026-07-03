@@ -1,9 +1,11 @@
 /*
  * DESIGN: Cinematic Noir
  * - Full-bleed hero with video background
- * - Dramatic typography with Mont Blanc
+ * - Plus Jakarta Sans editorial typography
  * - Cinematic pacing and transitions
  * - Gold accent for CTAs
+ *
+ * LAFC CONSULTING
  */
 
 import { Link } from "wouter";
@@ -62,14 +64,14 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-6">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] mb-6">
               Cinematic Photography
             </h1>
-            <p className="text-lg md:text-xl font-extralight tracking-cinematic text-muted-foreground mb-4">
+            <p className="text-sm md:text-base font-medium tracking-cinematic uppercase text-muted-foreground mb-4">
               FILM DIRECTION & CREATIVE STRATEGY
             </p>
             <div className="w-16 h-px bg-gold mx-auto mb-8" />
-            <p className="max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed text-foreground/80 mb-10">
+            <p className="max-w-2xl mx-auto text-base md:text-lg font-normal leading-relaxed text-foreground/80 mb-10">
               For over twenty years, chasing light across continents — from rooftops in Berlin 
               to the dim-lit bridges of Prague. Every frame is a conversation between control and chaos.
             </p>
@@ -83,14 +85,14 @@ export default function Home() {
           >
             <Link
               href="/photos"
-              className="group flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+              className="group flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
             >
               VIEW PORTFOLIO
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 cinematic-transition" />
             </Link>
             <Link
               href="/video"
-              className="group flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-light tracking-cinematic text-sm hover:border-gold hover:text-gold cinematic-transition"
+              className="group flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-semibold tracking-[0.02em] text-base hover:border-gold hover:text-gold cinematic-transition"
             >
               <Play className="w-4 h-4" />
               WATCH REEL
@@ -110,19 +112,19 @@ export default function Home() {
       </section>
 
       {/* Featured Work Section */}
-      <section className="py-24 md:py-32">
+      <section className="py-28 md:py-36">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold mb-4 uppercase">
               SELECTED WORKS
             </p>
-            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em]">
               Featured Photography
             </h2>
           </motion.div>
@@ -163,7 +165,7 @@ export default function Home() {
           >
             <Link
               href="/photos"
-              className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-gold gold-underline"
+              className="inline-flex items-center gap-2 nav-text text-gold gold-underline"
             >
               VIEW ALL WORK
               <ArrowRight className="w-4 h-4" />
@@ -173,7 +175,7 @@ export default function Home() {
       </section>
 
       {/* About Teaser */}
-      <section className="py-24 md:py-32 bg-secondary/30">
+      <section className="py-28 md:py-36 bg-secondary/30">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
@@ -199,25 +201,25 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+              <p className="meta-text text-gold mb-4 uppercase">
                 ABOUT THE ARTIST
               </p>
-              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-6">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-6">
                 A Witness to Light
               </h2>
               <div className="w-12 h-px bg-gold mb-8" />
-              <p className="text-base font-light leading-relaxed text-foreground/80 mb-6">
+              <p className="text-base font-normal leading-[1.7] text-foreground/80 mb-6">
                 Before I ever picked up a camera, I had the honor of serving with the 22nd Infantry Regiment, 
                 conducting multiple tours in Iraq, afterwards documenting conflicts around the world. 
                 The discipline and chaos of those years shaped the way I see — and how I capture what I see.
               </p>
-              <p className="text-base font-light leading-relaxed text-foreground/80 mb-8">
+              <p className="text-base font-normal leading-[1.7] text-foreground/80 mb-8">
                 Today my work spans portraiture, editorial, commercial, and narrative-driven campaigns. 
                 I operate full-service teams in Los Angeles and New York.
               </p>
               <Link
                 href="/about"
-                className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-gold gold-underline"
+                className="inline-flex items-center gap-2 nav-text text-gold gold-underline"
               >
                 READ MORE
                 <ArrowRight className="w-4 h-4" />
@@ -228,7 +230,7 @@ export default function Home() {
       </section>
 
       {/* Contact CTA */}
-      <section className="py-24 md:py-32">
+      <section className="py-28 md:py-36">
         <div className="container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -236,19 +238,19 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold mb-4 uppercase">
               LET'S CREATE TOGETHER
             </p>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight mb-6">
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-[-0.02em] mb-6">
               Ready to Collaborate?
             </h2>
-            <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-foreground/80 mb-10">
+            <p className="max-w-xl mx-auto text-base font-normal leading-[1.7] text-foreground/80 mb-10">
               Whether you're looking for editorial photography, commercial campaigns, 
               or narrative-driven content, let's bring your vision to life.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 px-10 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+              className="inline-flex items-center gap-2 px-10 py-4 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
             >
               GET IN TOUCH
               <ArrowRight className="w-4 h-4" />

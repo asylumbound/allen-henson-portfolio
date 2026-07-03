@@ -287,7 +287,7 @@ export default function ProductEdit() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary/50 flex items-center justify-center">
               <Lock className="w-8 h-8 text-gold" />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Product Edit</h1>
+            <h1 className="text-2xl font-semibold tracking-[-0.02em]">Product Edit</h1>
             <p className="text-sm text-foreground/60 mt-2">Enter password to access admin panel</p>
           </div>
 
@@ -327,7 +327,7 @@ export default function ProductEdit() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border/30">
         <div className="container py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Product Photography Editor</h1>
+            <h1 className="text-xl font-semibold tracking-[-0.02em]">Product Photography Editor</h1>
             <p className="text-sm text-foreground/60">{images.length} images</p>
           </div>
           <div className="flex items-center gap-4">

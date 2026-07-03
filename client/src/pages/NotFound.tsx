@@ -83,10 +83,10 @@ export default function NotFound() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="-mt-16 md:-mt-24"
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               FRAME NOT FOUND
             </p>
-            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4">
               Lost in the Darkroom
             </h2>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
@@ -97,7 +97,7 @@ export default function NotFound() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="max-w-md mx-auto text-base font-light leading-relaxed text-muted-foreground mb-10"
+            className="max-w-md mx-auto text-base font-normal leading-relaxed text-muted-foreground mb-10"
           >
             The frame you're looking for seems to have slipped out of focus. 
             Perhaps it was never developed, or it's waiting in another roll.
@@ -112,7 +112,7 @@ export default function NotFound() {
           >
             <Link
               href="/"
-              className="group flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+              className="group flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 cinematic-transition" />
               RETURN HOME
@@ -120,7 +120,7 @@ export default function NotFound() {
             
             <Link
               href="/photos"
-              className="group flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-light tracking-cinematic text-sm hover:border-gold hover:text-gold cinematic-transition"
+              className="group flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground nav-text hover:border-gold hover:text-gold cinematic-transition"
             >
               <Film className="w-4 h-4" />
               VIEW PORTFOLIO
@@ -134,7 +134,7 @@ export default function NotFound() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="mt-16 pt-8 border-t border-border/30"
           >
-            <p className="text-xs tracking-wide-cinematic text-muted-foreground mb-4">
+            <p className="meta-text text-muted-foreground mb-4">
               QUICK NAVIGATION
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">

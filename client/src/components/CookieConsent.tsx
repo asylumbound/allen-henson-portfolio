@@ -71,7 +71,7 @@ export default function CookieConsent() {
             {/* Icon + Text */}
             <div className="flex items-start gap-3 flex-1">
               <Cookie className="w-5 h-5 text-gold mt-0.5 shrink-0" />
-              <p className="text-sm font-light leading-relaxed text-foreground/80">
+              <p className="text-sm font-normal leading-relaxed text-foreground/80">
                 We use cookies and similar technologies to enhance your browsing
                 experience, analyze site traffic, and personalize content. By
                 continuing to use this site, you consent to our use of cookies.
@@ -90,7 +90,7 @@ export default function CookieConsent() {
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={handleDecline}
-                className="px-5 py-2 text-xs tracking-cinematic font-light border border-foreground/20 text-foreground/70 hover:border-foreground/40 hover:text-foreground cinematic-transition"
+                className="px-5 py-2 text-xs tracking-cinematic font-normal border border-foreground/20 text-foreground/70 hover:border-foreground/40 hover:text-foreground cinematic-transition"
               >
                 DECLINE
               </button>

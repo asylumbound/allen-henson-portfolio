@@ -35,12 +35,12 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16 md:mb-24"
+          className="text-center mb-20 md:mb-24"
         >
-          <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+          <p className="meta-text text-gold uppercase mb-4">
             THE ARTIST
           </p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em]">
             About Allen Henson
           </h1>
         </motion.div>
@@ -72,7 +72,7 @@ export default function About() {
           >
             <div className="w-16 h-px bg-gold mb-10" />
             
-            <div className="space-y-6 text-base font-light leading-relaxed text-foreground/85">
+            <div className="space-y-6 text-base font-normal leading-relaxed text-foreground/85">
               <p>
                 For over twenty years I've chased light across continents — from rooftops in Berlin 
                 to the casbah's of Morocco, and the dim-lit bridges of Prague. These images aren't 
@@ -117,10 +117,10 @@ export default function About() {
 
             {/* Services */}
             <div className="mt-16 pt-10 border-t border-border">
-              <p className="text-xs tracking-wide-cinematic text-gold font-light mb-6">
+              <p className="meta-text text-gold uppercase mb-6">
                 SERVICES
               </p>
-              <div className="grid grid-cols-2 gap-4 text-sm font-light text-foreground/80">
+              <div className="grid grid-cols-2 gap-4 text-sm font-normal text-foreground/80">
                 <div>Portraiture</div>
                 <div>Editorial</div>
                 <div>Commercial</div>
@@ -132,10 +132,10 @@ export default function About() {
 
             {/* Locations */}
             <div className="mt-12 pt-10 border-t border-border">
-              <p className="text-xs tracking-wide-cinematic text-gold font-light mb-6">
+              <p className="meta-text text-gold uppercase mb-6">
                 LOCATIONS
               </p>
-              <div className="flex flex-wrap gap-6 text-sm font-light text-foreground/80">
+              <div className="flex flex-wrap gap-6 text-sm font-normal text-foreground/80">
                 <div>Los Angeles</div>
                 <div>New York</div>
                 <div>Berlin</div>
@@ -146,7 +146,7 @@ export default function About() {
             <div className="mt-16">
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
               >
                 GET IN TOUCH
                 <ArrowRight className="w-4 h-4" />

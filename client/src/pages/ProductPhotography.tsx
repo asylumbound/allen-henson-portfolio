@@ -241,14 +241,14 @@ export default function ProductPhotography() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               COMMERCIAL PORTFOLIO
             </p>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-4">
               Product Photography
             </h1>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
-            <p className="max-w-2xl mx-auto text-base font-light leading-relaxed text-foreground/80">
+            <p className="max-w-2xl mx-auto text-base font-normal leading-relaxed text-foreground/80">
               High-end commercial product photography for luxury brands, automotive, spirits, and consumer goods. Campaign-ready imagery with cinematic precision.
             </p>
           </motion.div>
@@ -368,7 +368,7 @@ export default function ProductPhotography() {
           >
             <a
               href="/contact"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 transition-all duration-300"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 transition-all duration-300"
             >
               DISCUSS YOUR PROJECT
             </a>

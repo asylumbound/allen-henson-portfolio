@@ -23,13 +23,13 @@ export default function DataSecurityIncidentNotice() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4">
             Data Security Incident Notice
           </h1>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Allen Henson Productions
           </p>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Date: January 17, 2025
           </p>
           <div className="w-16 h-px bg-gold mt-8" />
@@ -40,7 +40,7 @@ export default function DataSecurityIncidentNotice() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="space-y-8 text-base font-light leading-relaxed text-foreground/85"
+          className="space-y-8 text-base font-normal leading-relaxed text-foreground/85"
         >
           <p>
             Allen Henson Productions (&ldquo;AHP,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is providing notice of a data security incident that may have involved information stored on a shared server used in connection with our business operations.
@@ -48,7 +48,7 @@ export default function DataSecurityIncidentNotice() {
 
           {/* What Happened */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               What Happened
             </h2>
             <p className="mb-4">
@@ -61,7 +61,7 @@ export default function DataSecurityIncidentNotice() {
 
           {/* What Information May Be Involved */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               What Information May Be Involved
             </h2>
             <p className="mb-4">
@@ -80,7 +80,7 @@ export default function DataSecurityIncidentNotice() {
 
           {/* What We Are Doing */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               What We Are Doing
             </h2>
             <p className="mb-4">
@@ -98,7 +98,7 @@ export default function DataSecurityIncidentNotice() {
 
           {/* What You Can Do */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               What You Can Do
             </h2>
             <p className="mb-4">
@@ -114,7 +114,7 @@ export default function DataSecurityIncidentNotice() {
 
           {/* Contact */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               Contact
             </h2>
             <p className="mb-2">

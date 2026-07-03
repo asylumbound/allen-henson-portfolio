@@ -66,7 +66,7 @@ export default function Login() {
         {/* Back to site link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition mb-8"
+          className="inline-flex items-center gap-2 nav-text text-muted-foreground hover:text-gold cinematic-transition mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           BACK TO SITE
@@ -75,10 +75,10 @@ export default function Login() {
         {/* Login card */}
         <div className="bg-card/50 backdrop-blur-sm border border-border/50 p-8 md:p-10">
           <div className="text-center mb-8">
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-3">
+            <p className="meta-text text-gold uppercase mb-3">
               ADMIN ACCESS
             </p>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em]">
               Sign In
             </h1>
             <div className="w-12 h-px bg-gold mx-auto mt-4" />
@@ -88,7 +88,7 @@ export default function Login() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs tracking-cinematic font-light text-muted-foreground mb-2"
+                className="block caption-text text-muted-foreground mb-2"
               >
                 EMAIL
               </label>
@@ -99,7 +99,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full px-4 py-3 bg-background/50 border border-border/50 text-foreground text-sm font-light tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
+                className="w-full px-4 py-3 bg-background/50 border border-border/50 text-foreground text-sm font-normal tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
                 placeholder="your@email.com"
               />
             </div>
@@ -107,7 +107,7 @@ export default function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs tracking-cinematic font-light text-muted-foreground mb-2"
+                className="block caption-text text-muted-foreground mb-2"
               >
                 PASSWORD
               </label>
@@ -119,7 +119,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="w-full px-4 py-3 pr-12 bg-background/50 border border-border/50 text-foreground text-sm font-light tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
+                  className="w-full px-4 py-3 pr-12 bg-background/50 border border-border/50 text-foreground text-sm font-normal tracking-wide focus:outline-none focus:border-gold cinematic-transition placeholder:text-muted-foreground/50"
                   placeholder="Enter password"
                 />
                 <button
@@ -140,7 +140,7 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-sm text-red-400 font-light text-center py-2"
+                className="text-sm text-red-400 font-normal text-center py-2"
               >
                 {error}
               </motion.div>
@@ -149,7 +149,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -163,7 +163,7 @@ export default function Login() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground/50 font-light mt-6">
+        <p className="text-center text-xs text-muted-foreground/50 font-normal mt-6">
           Admin access only. Unauthorized access is prohibited.
         </p>
       </motion.div>

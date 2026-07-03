@@ -2,9 +2,12 @@
  * DESIGN: Cinematic Noir
  * - Film noir aesthetic with dramatic light/shadow
  * - Gold accent (#C9A962 / oklch(0.75 0.12 85)) for navigation underlines
- * - Mont Blanc typography throughout
+ * - Plus Jakarta Sans typography throughout
+ * - IBM Plex Mono for metadata
  * - Cinematic timing animations (0.6s cubic-bezier)
  * - Film grain overlay on dark mode
+ *
+ * LAFC CONSULTING
  */
 
 import { ReactNode, useState, useEffect } from "react";
@@ -54,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* City Ticker Marquee */}
       <div className="overflow-hidden bg-secondary/50 py-2 border-b border-border">
         <div className="flex whitespace-nowrap">
-          <span className="marquee text-xs tracking-wide-cinematic text-muted-foreground font-light">
+          <span className="marquee text-xs tracking-wide-cinematic text-muted-foreground font-normal">
             {cities} · {cities} ·&nbsp;
           </span>
         </div>
@@ -80,12 +83,12 @@ export default function Layout({ children }: LayoutProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-10">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-sm tracking-cinematic font-light gold-underline cinematic-transition ${
+                  className={`nav-text gold-underline cinematic-transition ${
                     location === item.href
                       ? "text-gold"
                       : "text-foreground hover:text-gold"
@@ -148,7 +151,7 @@ export default function Layout({ children }: LayoutProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm tracking-cinematic font-light py-2 ${
+                className={`nav-text py-2 ${
                   location === item.href
                     ? "text-gold"
                     : "text-foreground hover:text-gold"
@@ -165,7 +168,7 @@ export default function Layout({ children }: LayoutProps) {
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 mt-auto">
+      <footer className="border-t border-border py-12 mt-auto">
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Footer Navigation */}
@@ -174,7 +177,7 @@ export default function Layout({ children }: LayoutProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+                  className="caption-text text-muted-foreground hover:text-gold cinematic-transition"
                 >
                   {item.label.charAt(0) + item.label.slice(1).toLowerCase()}
                 </Link>
@@ -185,21 +188,21 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-4">
               <Link
                 href="/privacy-policy"
-                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+                className="caption-text text-muted-foreground hover:text-gold cinematic-transition"
               >
                 Privacy Policy
               </Link>
               <span className="text-muted-foreground/40">·</span>
               <Link
                 href="/terms-of-service"
-                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+                className="caption-text text-muted-foreground hover:text-gold cinematic-transition"
               >
                 Terms of Service
               </Link>
               <span className="text-muted-foreground/40">·</span>
               <Link
                 href="/data-security-incident-notice"
-                className="text-xs tracking-cinematic font-light text-muted-foreground hover:text-gold cinematic-transition"
+                className="caption-text text-muted-foreground hover:text-gold cinematic-transition"
               >
                 Data Security Notice
               </Link>
@@ -210,7 +213,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="flex items-center">
                 <Link
                   href="/duke"
-                  className="text-xs tracking-cinematic font-light text-muted-foreground/30 hover:text-gold cinematic-transition"
+                  className="caption-text text-muted-foreground/30 hover:text-gold cinematic-transition"
                 >
                   Duke
                 </Link>
@@ -218,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
             )}
 
             {/* Copyright */}
-            <p className="text-xs tracking-wide font-extralight text-muted-foreground">
+            <p className="meta-text text-muted-foreground">
               © 2026 ALLEN HENSON
             </p>
           </div>

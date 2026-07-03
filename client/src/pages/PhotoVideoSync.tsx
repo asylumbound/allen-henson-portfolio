@@ -376,7 +376,7 @@ function DropWidget({
             }`}
           >
             <CloudUpload size={24} className={`mx-auto mb-2 transition-colors ${isDragOver ? "text-white/80" : "text-white/25"}`} />
-            <p className={`text-sm font-light mb-3 transition-colors ${isDragOver ? "text-white/80" : "text-white/40"}`}>
+            <p className={`text-sm font-normal mb-3 transition-colors ${isDragOver ? "text-white/80" : "text-white/40"}`}>
               {isUploading ? "Uploading..." : isDragOver ? "Release to upload" : "Drag & drop here"}
             </p>
             {/* Explicit browse button — works on iOS Safari where drag-drop is unavailable */}
@@ -1011,7 +1011,7 @@ export default function PhotoVideoSync() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-white text-xl font-light tracking-widest uppercase mb-1">
+            <h1 className="text-white text-xl font-normal tracking-widest uppercase mb-1">
               SYNC
             </h1>
             <p className="text-white/40 text-xs tracking-wider">PRODUCTION TOOL — RESTRICTED ACCESS</p>
@@ -1172,7 +1172,7 @@ export default function PhotoVideoSync() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h2 className="text-white text-lg font-light">{selectedShoot?.project_name}</h2>
+                <h2 className="text-white text-lg font-normal">{selectedShoot?.project_name}</h2>
                 <CaptureModeIcon mode={selectedShoot?.capture_mode || "hybrid"} />
                 {selectedShoot?.is_locked && (
                   <span className="text-white/30 text-xs flex items-center gap-1">

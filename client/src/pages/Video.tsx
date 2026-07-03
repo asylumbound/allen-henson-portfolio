@@ -32,16 +32,16 @@ export default function Video() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+          <p className="meta-text text-gold uppercase mb-4">
             MOTION
           </p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-4">
             Video Reel
           </h1>
           <div className="w-16 h-px bg-gold mx-auto mb-6" />
-          <p className="max-w-2xl mx-auto text-base font-light leading-relaxed text-muted-foreground">
+          <p className="max-w-2xl mx-auto text-base font-normal leading-relaxed text-muted-foreground">
             A collection of cinematic work spanning commercial campaigns, 
             music videos, and narrative-driven content.
           </p>
@@ -75,14 +75,14 @@ export default function Video() {
           className="max-w-5xl mx-auto mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div>
-            <h2 className="text-xl font-semibold tracking-tight mb-1">
+            <h2 className="text-xl font-semibold tracking-[-0.02em] mb-1">
               The Reel
             </h2>
-            <p className="text-sm font-light text-muted-foreground">
+            <p className="text-sm font-normal text-muted-foreground">
               Director's Cut · 2025
             </p>
           </div>
-          <div className="text-sm font-extralight tracking-cinematic text-muted-foreground">
+          <div className="text-sm font-normal tracking-cinematic text-muted-foreground">
             CINEMATOGRAPHY · DIRECTION · POST-PRODUCTION
           </div>
         </motion.div>
@@ -95,12 +95,12 @@ export default function Video() {
           className="max-w-3xl mx-auto mt-20 text-center"
         >
           <div className="w-12 h-px bg-border mx-auto mb-8" />
-          <p className="text-base font-light leading-relaxed text-foreground/80 mb-6">
+          <p className="text-base font-normal leading-relaxed text-foreground/80 mb-6">
             This reel showcases a selection of work from commercial campaigns, 
             brand films, and personal projects. Each piece represents a collaboration 
             between vision and execution, capturing moments that resonate.
           </p>
-          <p className="text-sm font-extralight tracking-cinematic text-muted-foreground">
+          <p className="text-sm font-normal tracking-cinematic text-muted-foreground">
             FOR FULL PROJECT INQUIRIES, PLEASE GET IN TOUCH
           </p>
         </motion.div>

@@ -63,14 +63,14 @@ export default function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+            <p className="meta-text text-gold uppercase mb-4">
               ESSAYS & THOUGHTS
             </p>
-            <h1 className="text-4xl md:text-6xl font-semibold tracking-tight mb-6">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-[-0.02em] mb-6">
               The Journal of Light
             </h1>
             <div className="w-16 h-px bg-gold mx-auto mb-6" />
-            <p className="max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed text-foreground/80">
+            <p className="max-w-2xl mx-auto text-base md:text-lg font-normal leading-relaxed text-foreground/80">
               Reflections on cinematography, photography, and production.
             </p>
           </motion.div>
@@ -118,22 +118,22 @@ export default function Blog() {
 
                       {/* Post Content */}
                       <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-light tracking-cinematic">
+                        <div className="flex items-center gap-2 meta-text text-muted-foreground">
                           <Calendar className="w-3 h-3" />
                           <span>{formatDate(post.publishedAt)}</span>
                         </div>
 
-                        <h2 className="text-xl md:text-2xl font-semibold tracking-tight group-hover:text-gold cinematic-transition leading-tight">
+                        <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] group-hover:text-gold cinematic-transition leading-tight">
                           {post.title}
                         </h2>
 
                         {post.excerpt && (
-                          <p className="text-sm text-foreground/70 font-light leading-relaxed line-clamp-3">
+                          <p className="text-sm text-foreground/70 font-normal leading-relaxed line-clamp-3">
                             {post.excerpt}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-2 text-sm text-gold font-light tracking-cinematic pt-2">
+                        <div className="flex items-center gap-2 nav-text text-gold pt-2">
                           <span>READ MORE</span>
                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 cinematic-transition" />
                         </div>
@@ -145,7 +145,7 @@ export default function Blog() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <p className="text-muted-foreground font-light">No posts yet. Check back soon.</p>
+              <p className="text-muted-foreground font-normal">No posts yet. Check back soon.</p>
             </div>
           )}
         </div>

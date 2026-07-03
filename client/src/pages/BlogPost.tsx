@@ -120,11 +120,11 @@ export default function BlogPost() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight mb-6 leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] mb-6 leading-tight">
               {post.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground font-light mb-8">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground font-normal mb-8">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 <span>{formatDate(post.publishedAt)}</span>
@@ -170,14 +170,14 @@ export default function BlogPost() {
               prose-headings:font-semibold prose-headings:tracking-tight
               prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
               prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
-              prose-p:font-light prose-p:leading-relaxed prose-p:text-foreground/85
+              prose-p:font-normal prose-p:leading-relaxed prose-p:text-foreground/85
               prose-a:text-gold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-foreground prose-strong:font-medium
               prose-em:text-foreground/70
               prose-blockquote:border-l-gold prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-foreground/70
               prose-ul:list-disc prose-ul:pl-6
               prose-ol:list-decimal prose-ol:pl-6
-              prose-li:text-foreground/85 prose-li:font-light
+              prose-li:text-foreground/85 prose-li:font-normal
               prose-hr:border-border prose-hr:my-12"
           >
             <ReactMarkdown>{post.content}</ReactMarkdown>
@@ -272,7 +272,7 @@ export default function BlogPost() {
             transition={{ duration: 0.6, delay: 0.55 }}
             className="mt-8"
           >
-            <p className="text-gold font-light text-lg">— AH</p>
+            <p className="text-gold font-normal text-lg">— AH</p>
           </motion.div>
 
           {/* Back to Blog */}

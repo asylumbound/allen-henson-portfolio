@@ -197,7 +197,7 @@ export default function SyncSharePage() {
         {/* Header */}
         <div className="mb-8">
           <p className="text-white/20 text-xs tracking-widest uppercase mb-4">Allen Henson · File Share</p>
-          <h1 className="text-white/80 text-xl font-light mb-1">{data?.label || data?.project_name}</h1>
+          <h1 className="text-white/80 text-xl font-normal mb-1">{data?.label || data?.project_name}</h1>
           <div className="flex items-center gap-3 text-white/25 text-xs">
             {data?.shoot_date && <span>{new Date(data.shoot_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>}
             <span className="flex items-center gap-1">

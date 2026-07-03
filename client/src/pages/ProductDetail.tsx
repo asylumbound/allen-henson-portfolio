@@ -1135,7 +1135,7 @@ export default function ProductDetail() {
           >
             <Link
               href="/sales"
-              className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-foreground/60 hover:text-gold cinematic-transition"
+              className="inline-flex items-center gap-2 nav-text text-foreground/60 hover:text-gold cinematic-transition"
             >
               <ArrowLeft className="w-4 h-4" />
               BACK TO SHOP
@@ -1170,13 +1170,13 @@ export default function ProductDetail() {
               )}
 
               {/* Title */}
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mb-4">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-[-0.02em] mb-4">
                 {product.name}
               </h1>
 
               {/* Price - shows current variant price or range */}
               <div className="mb-6">
-                <p className="text-2xl md:text-3xl text-gold font-light">
+                <p className="text-2xl md:text-3xl text-gold font-normal">
                   {formatPrice(currentPrice)}
                 </p>
                 {productHasVariants && variants && (
@@ -1191,7 +1191,7 @@ export default function ProductDetail() {
               {/* Variant Selector */}
               {productHasVariants && variants && variants.length > 0 && (
                 <div className="mb-6">
-                  <label className="block text-sm font-light tracking-cinematic text-foreground/60 mb-2">
+                  <label className="block text-sm font-medium tracking-[0.02em] text-foreground/60 mb-2">
                     SELECT SIZE
                   </label>
                   <Select
@@ -1219,7 +1219,7 @@ export default function ProductDetail() {
               {/* Description */}
               {product.description && (
                 <div className="mb-6">
-                  <p className="text-base font-light leading-relaxed text-foreground/80 whitespace-pre-line">
+                  <p className="text-base font-normal leading-relaxed text-foreground/80 whitespace-pre-line">
                     {product.description}
                   </p>
                 </div>
@@ -1228,7 +1228,7 @@ export default function ProductDetail() {
               {/* Details */}
               {product.details && (
                 <div className="mb-8">
-                  <p className="text-sm font-light leading-relaxed text-foreground/60 whitespace-pre-line">
+                  <p className="text-sm font-normal leading-relaxed text-foreground/60 whitespace-pre-line">
                     {product.details}
                   </p>
                 </div>
@@ -1237,14 +1237,14 @@ export default function ProductDetail() {
               {/* Purchase Button */}
               <div className="mt-auto space-y-4">
                 {isSoldOut ? (
-                  <div className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-foreground/20 text-foreground/50 font-medium tracking-cinematic text-sm cursor-not-allowed">
+                  <div className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-foreground/20 text-foreground/50 font-semibold tracking-[0.02em] text-base cursor-not-allowed">
                     SOLD OUT
                   </div>
                 ) : (
                   <button
                     onClick={handleCheckout}
                     disabled={isCheckingOut}
-                    className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCheckingOut ? (
                       <>
@@ -1267,12 +1267,12 @@ export default function ProductDetail() {
 
               {/* Contact for Custom Orders */}
               <div className="mt-8 pt-8 border-t border-foreground/10">
-                <p className="text-sm font-light text-foreground/60 mb-4">
+                <p className="text-sm font-normal text-foreground/60 mb-4">
                   Looking for a custom size or framing option?
                 </p>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 text-sm tracking-cinematic font-light text-gold gold-underline"
+                  className="inline-flex items-center gap-2 nav-text text-gold gold-underline"
                 >
                   CONTACT FOR CUSTOM ORDERS
                 </Link>

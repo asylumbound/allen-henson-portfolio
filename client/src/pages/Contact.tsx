@@ -66,16 +66,16 @@ export default function Contact() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16 md:mb-24"
+          className="text-center mb-20 md:mb-24"
         >
-          <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+          <p className="meta-text text-gold uppercase mb-4">
             LET'S CONNECT
           </p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-4">
             Contact Me
           </h1>
           <div className="w-16 h-px bg-gold mx-auto mb-6" />
-          <p className="max-w-xl mx-auto text-base font-light leading-relaxed text-muted-foreground">
+          <p className="max-w-xl mx-auto text-base font-normal leading-relaxed text-muted-foreground">
             Ready to bring your vision to life? Whether it's a commercial campaign, 
             editorial shoot, or creative collaboration, I'd love to hear from you.
           </p>
@@ -94,13 +94,13 @@ export default function Contact() {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <Mail className="w-5 h-5 text-gold" />
-                  <p className="text-xs tracking-wide-cinematic text-gold font-light">
+                  <p className="meta-text text-gold uppercase">
                     EMAIL
                   </p>
                 </div>
                 <a
                   href="mailto:allen@allenhenson.com"
-                  className="text-lg font-light text-foreground hover:text-gold cinematic-transition gold-underline"
+                  className="text-lg font-normal text-foreground hover:text-gold cinematic-transition gold-underline"
                 >
                   allen@allenhenson.com
                 </a>
@@ -110,11 +110,11 @@ export default function Contact() {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <MapPin className="w-5 h-5 text-gold" />
-                  <p className="text-xs tracking-wide-cinematic text-gold font-light">
+                  <p className="meta-text text-gold uppercase">
                     LOCATIONS
                   </p>
                 </div>
-                <div className="space-y-2 text-lg font-light text-foreground/80">
+                <div className="space-y-2 text-lg font-normal text-foreground/80">
                   <p>Los Angeles, CA</p>
                   <p>New York, NY</p>
                   <p>Berlin, Germany</p>
@@ -125,7 +125,7 @@ export default function Contact() {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <Instagram className="w-5 h-5 text-gold" />
-                  <p className="text-xs tracking-wide-cinematic text-gold font-light">
+                  <p className="meta-text text-gold uppercase">
                     SOCIAL
                   </p>
                 </div>
@@ -133,7 +133,7 @@ export default function Contact() {
                   href="https://www.instagram.com/allenhenson"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg font-light text-foreground hover:text-gold cinematic-transition gold-underline"
+                  className="text-lg font-normal text-foreground hover:text-gold cinematic-transition gold-underline"
                 >
                   @allenhenson
                 </a>
@@ -141,7 +141,7 @@ export default function Contact() {
 
               {/* Availability */}
               <div className="pt-6 border-t border-border">
-                <p className="text-sm font-light text-muted-foreground leading-relaxed">
+                <p className="text-sm font-normal text-muted-foreground leading-relaxed">
                   Currently accepting projects for Q2 2026 and beyond. 
                   For urgent inquiries, please indicate timeline in your message.
                 </p>
@@ -160,7 +160,7 @@ export default function Contact() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-xs tracking-wide-cinematic text-muted-foreground font-light mb-3"
+                  className="block meta-text text-muted-foreground mb-3"
                 >
                   NAME
                 </label>
@@ -171,7 +171,7 @@ export default function Contact() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-light focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/50"
+                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-normal focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/50"
                   placeholder="Your name"
                 />
               </div>
@@ -180,7 +180,7 @@ export default function Contact() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-xs tracking-wide-cinematic text-muted-foreground font-light mb-3"
+                  className="block meta-text text-muted-foreground mb-3"
                 >
                   EMAIL
                 </label>
@@ -191,7 +191,7 @@ export default function Contact() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-light focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/50"
+                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-normal focus:border-gold focus:outline-none cinematic-transition placeholder:text-muted-foreground/50"
                   placeholder="your@email.com"
                 />
               </div>
@@ -200,7 +200,7 @@ export default function Contact() {
               <div>
                 <label
                   htmlFor="message"
-                  className="block text-xs tracking-wide-cinematic text-muted-foreground font-light mb-3"
+                  className="block meta-text text-muted-foreground mb-3"
                 >
                   MESSAGE
                 </label>
@@ -211,7 +211,7 @@ export default function Contact() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-light focus:border-gold focus:outline-none cinematic-transition resize-none placeholder:text-muted-foreground/50"
+                  className="w-full bg-transparent border-b border-border py-3 text-foreground font-normal focus:border-gold focus:outline-none cinematic-transition resize-none placeholder:text-muted-foreground/50"
                   placeholder="Tell me about your project..."
                 />
               </div>
@@ -221,7 +221,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={submitContact.isPending}
-                  className="group flex items-center gap-3 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group flex items-center gap-3 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitContact.isPending ? (
                     "SENDING..."

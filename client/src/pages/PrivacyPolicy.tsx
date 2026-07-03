@@ -24,13 +24,13 @@ export default function PrivacyPolicy() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4">
             Privacy Policy
           </h1>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Allen Henson Productions
           </p>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Effective Date: February 15, 2026
           </p>
           <div className="w-16 h-px bg-gold mt-8" />
@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="space-y-8 text-base font-light leading-relaxed text-foreground/85"
+          className="space-y-8 text-base font-normal leading-relaxed text-foreground/85"
         >
           <p>
             Allen Henson Productions (&ldquo;AHP,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at{" "}
@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
 
           {/* Information We Collect */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               1. Information We Collect
             </h2>
 
@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
 
           {/* How We Use Your Information */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               2. How We Use Your Information
             </h2>
             <p className="mb-4">
@@ -108,7 +108,7 @@ export default function PrivacyPolicy() {
 
           {/* Payment Processing */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               3. Payment Processing
             </h2>
             <p>
@@ -127,7 +127,7 @@ export default function PrivacyPolicy() {
 
           {/* Sharing of Information */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               4. Sharing of Information
             </h2>
             <p className="mb-4">
@@ -142,7 +142,7 @@ export default function PrivacyPolicy() {
 
           {/* Cookies and Tracking */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               5. Cookies and Tracking Technologies
             </h2>
             <p className="mb-4">
@@ -155,7 +155,7 @@ export default function PrivacyPolicy() {
 
           {/* Data Retention */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               6. Data Retention
             </h2>
             <p>
@@ -165,7 +165,7 @@ export default function PrivacyPolicy() {
 
           {/* Your Rights */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               7. Your Rights
             </h2>
             <p className="mb-4">
@@ -184,7 +184,7 @@ export default function PrivacyPolicy() {
 
           {/* Third-Party Links */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               8. Third-Party Links
             </h2>
             <p>
@@ -194,7 +194,7 @@ export default function PrivacyPolicy() {
 
           {/* Children's Privacy */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               9. Children&rsquo;s Privacy
             </h2>
             <p>
@@ -204,7 +204,7 @@ export default function PrivacyPolicy() {
 
           {/* Security */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               10. Security
             </h2>
             <p>
@@ -214,7 +214,7 @@ export default function PrivacyPolicy() {
 
           {/* Changes to This Policy */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               11. Changes to This Privacy Policy
             </h2>
             <p>
@@ -224,7 +224,7 @@ export default function PrivacyPolicy() {
 
           {/* Contact */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               12. Contact Us
             </h2>
             <p className="mb-2">

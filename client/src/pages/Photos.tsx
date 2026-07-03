@@ -238,16 +238,16 @@ export default function Photos() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <p className="text-xs tracking-wide-cinematic text-gold font-light mb-4">
+          <p className="meta-text text-gold uppercase mb-4">
             PORTFOLIO
           </p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-4">
             Editorial
           </h1>
           <div className="w-16 h-px bg-gold mx-auto mb-6" />
-          <p className="max-w-2xl mx-auto text-base font-light leading-relaxed text-muted-foreground">
+          <p className="max-w-2xl mx-auto text-base font-normal leading-relaxed text-muted-foreground">
             Portraits, chaos, and calm. Moments stolen and moments staged. 
             The proof that I was there — and maybe, that I still am.
           </p>
@@ -342,7 +342,7 @@ export default function Photos() {
             </motion.div>
 
             {/* Counter */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-sm tracking-cinematic font-light">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 nav-text">
               {selectedIndex + 1} / {orderedImages.length}
             </div>
           </motion.div>

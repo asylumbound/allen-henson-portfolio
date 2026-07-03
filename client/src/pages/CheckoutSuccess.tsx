@@ -75,7 +75,7 @@ export default function CheckoutSuccess() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4">
               Thank You for Your Order!
             </h1>
 
@@ -180,13 +180,13 @@ export default function CheckoutSuccess() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/sales"
-                className="inline-flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground font-light tracking-cinematic text-sm hover:border-gold hover:text-gold cinematic-transition"
+                className="inline-flex items-center gap-2 px-8 py-3 border border-foreground/30 text-foreground nav-text hover:border-gold hover:text-gold cinematic-transition"
               >
                 CONTINUE SHOPPING
               </Link>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-medium tracking-cinematic text-sm hover:bg-gold/90 cinematic-transition"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-gold text-background font-semibold tracking-[0.02em] text-base hover:bg-gold/90 cinematic-transition"
               >
                 BACK TO HOME
                 <ArrowRight className="w-4 h-4" />

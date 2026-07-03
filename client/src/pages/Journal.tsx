@@ -266,7 +266,7 @@ export default function Journal() {
       />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-24 md:py-32">
+      <section className="relative py-28 md:py-36">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -274,11 +274,11 @@ export default function Journal() {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h1 className="font-display text-5xl md:text-7xl font-light mb-6 tracking-tight">
+            <h1 className="font-display text-5xl md:text-7xl font-normal mb-6 tracking-tight">
               The Journal
             </h1>
             <div className="w-24 h-px bg-accent mx-auto mb-8" />
-            <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground font-normal leading-relaxed max-w-2xl mx-auto">
               Fragments of a life.
             </p>
           </motion.div>

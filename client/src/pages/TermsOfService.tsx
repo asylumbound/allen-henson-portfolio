@@ -24,13 +24,13 @@ export default function TermsOfService() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4">
             Terms of Service
           </h1>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Allen Henson Productions
           </p>
-          <p className="text-base font-light text-foreground/80">
+          <p className="text-base font-normal text-foreground/80">
             Effective Date: February 15, 2026
           </p>
           <div className="w-16 h-px bg-gold mt-8" />
@@ -41,7 +41,7 @@ export default function TermsOfService() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="space-y-8 text-base font-light leading-relaxed text-foreground/85"
+          className="space-y-8 text-base font-normal leading-relaxed text-foreground/85"
         >
           <p>
             Welcome to the website of Allen Henson Productions (&ldquo;AHP,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;). By accessing or using our website at{" "}
@@ -53,7 +53,7 @@ export default function TermsOfService() {
 
           {/* Use of the Site */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               1. Use of the Site
             </h2>
             <p className="mb-4">
@@ -70,7 +70,7 @@ export default function TermsOfService() {
 
           {/* Intellectual Property */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               2. Intellectual Property
             </h2>
             <p className="mb-4">
@@ -86,7 +86,7 @@ export default function TermsOfService() {
 
           {/* Purchases and Orders */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               3. Purchases and Orders
             </h2>
             <p className="mb-4">
@@ -110,7 +110,7 @@ export default function TermsOfService() {
 
           {/* Shipping and Delivery */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               4. Shipping and Delivery
             </h2>
             <p className="mb-4">
@@ -123,7 +123,7 @@ export default function TermsOfService() {
 
           {/* Returns and Refunds */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               5. Returns and Refunds
             </h2>
             <p className="mb-4">
@@ -140,7 +140,7 @@ export default function TermsOfService() {
 
           {/* Creative Services */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               6. Creative Services
             </h2>
             <p className="mb-4">
@@ -150,7 +150,7 @@ export default function TermsOfService() {
 
           {/* User Content */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               7. User Content
             </h2>
             <p>
@@ -160,7 +160,7 @@ export default function TermsOfService() {
 
           {/* Disclaimer of Warranties */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               8. Disclaimer of Warranties
             </h2>
             <p>
@@ -170,7 +170,7 @@ export default function TermsOfService() {
 
           {/* Limitation of Liability */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               9. Limitation of Liability
             </h2>
             <p>
@@ -180,7 +180,7 @@ export default function TermsOfService() {
 
           {/* Indemnification */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               10. Indemnification
             </h2>
             <p>
@@ -190,7 +190,7 @@ export default function TermsOfService() {
 
           {/* Governing Law */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               11. Governing Law
             </h2>
             <p>
@@ -200,7 +200,7 @@ export default function TermsOfService() {
 
           {/* Changes to These Terms */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               12. Changes to These Terms
             </h2>
             <p>
@@ -210,7 +210,7 @@ export default function TermsOfService() {
 
           {/* Contact */}
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.02em] mb-4">
               13. Contact Us
             </h2>
             <p className="mb-2">
