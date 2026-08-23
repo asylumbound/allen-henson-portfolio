@@ -189,6 +189,19 @@ export const photosImages: Array<{ src: string; webSrc?: string; alt: string }> 
   { src: assetUrl("/images/RWTO0284-scaled.jpg"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/portfolio-images-web/RWTO0284.webp", alt: "Portrait" },
 ];
 
+// Single source of truth for how the saved order maps onto the gallery.
+// Used by this page AND the /edit CMS so both always show the same list.
+export function applyPhotosOrder(order: string[] | null | undefined) {
+  if (order) {
+    const ordered = order
+      .map((src) => photosImages.find(p => p.src === src))
+      .filter((p): p is typeof photosImages[0] => p !== undefined);
+    const newImages = photosImages.filter(p => !order.includes(p.src));
+    return [...ordered, ...newImages];
+  }
+  return photosImages;
+}
+
 export default function Photos() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   
@@ -196,18 +209,7 @@ export default function Photos() {
   const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "photos" });
   
   // Compute ordered images based on saved order or default
-  const orderedImages = useMemo(() => {
-    if (orderData?.order) {
-      // Reorder based on saved order
-      const ordered = orderData.order
-        .map((src: string) => photosImages.find(p => p.src === src))
-        .filter((p): p is typeof photosImages[0] => p !== undefined);
-      // Add any new images not in saved order
-      const newImages = photosImages.filter(p => !orderData.order?.includes(p.src));
-      return [...ordered, ...newImages];
-    }
-    return photosImages;
-  }, [orderData]);
+  const orderedImages = useMemo(() => applyPhotosOrder(orderData?.order), [orderData]);
 
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);

@@ -31,10 +31,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import ReactMarkdown from "react-markdown";
 
-// Import image arrays from gallery pages
-import { photosImages } from "./Photos";
-import { journalImages } from "./Journal";
-import { productPhotographyImages } from "./ProductPhotography";
+// Import image arrays AND the exact ordering logic from the gallery pages,
+// so the editor always shows the same list, in the same order, as the live site.
+import { applyPhotosOrder } from "./Photos";
+import { applyJournalOrder } from "./Journal";
+import { applyProductOrder } from "./ProductPhotography";
 import { assetUrl } from "@/lib/assets";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -149,7 +150,7 @@ function SortableImage({
       <img
         src={image.thumbnailSrc || toThumb(image.src)}
         alt={image.alt}
-        className="w-full h-full object-cover select-none pointer-events-none"
+        className="w-full h-full object-contain select-none pointer-events-none"
         loading="lazy"
         decoding="async"
         draggable={false}
@@ -447,8 +448,8 @@ function GalleryTab({
         </SortableContext>
         <DragOverlay adjustScale={false}>
           {activeDragImage ? (
-            <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl opacity-90 w-24">
-              <img src={activeDragImage.thumbnailSrc || toThumb(activeDragImage.src)} alt="Dragging" className="w-full h-full object-cover" draggable={false} />
+            <div className="aspect-square overflow-hidden border-2 border-gold shadow-2xl opacity-90 w-24 bg-background/80">
+              <img src={activeDragImage.thumbnailSrc || toThumb(activeDragImage.src)} alt="Dragging" className="w-full h-full object-contain" draggable={false} />
             </div>
           ) : null}
         </DragOverlay>
@@ -841,66 +842,42 @@ export default function Edit() {
   const { data: journalOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "journal" }, { enabled: isAuthenticated });
   const { data: productOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "product-photography" }, { enabled: isAuthenticated });
 
-  // Initialize Photos
+  // Initialize Photos — same list, same order as the live /photos page
   useEffect(() => {
-    const defaults: GalleryImage[] = photosImages.map((img, idx) => ({
-      id: `photo-${idx}`,
-      src: img.src,
-      thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
-      alt: img.alt,
-    }));
-    if (photosOrderData?.order) {
-      const srcMap = new Map(defaults.map((d) => [d.src, d]));
-      const ordered = photosOrderData.order
-        .map((src: string) => srcMap.get(src) || { id: `up-${src.slice(-20)}`, src, alt: "Uploaded image" })
-        .filter(Boolean) as GalleryImage[];
-      const remaining = defaults.filter((d) => !photosOrderData.order!.includes(d.src));
-      setPhotosOrder([...ordered, ...remaining]);
-    } else {
-      setPhotosOrder(defaults);
-    }
+    setPhotosOrder(
+      applyPhotosOrder(photosOrderData?.order).map((img) => ({
+        id: img.src,
+        src: img.src,
+        thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
+        alt: img.alt,
+      }))
+    );
   }, [photosOrderData]);
 
-  // Initialize Journal
+  // Initialize Journal — same list, same order as the live /journal page
   useEffect(() => {
-    const defaults: GalleryImage[] = journalImages.map((img, idx) => ({
-      id: `journal-${idx}`,
-      src: img.src,
-      thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
-      alt: `Journal ${idx + 1}`,
-    }));
-    if (journalOrderData?.order) {
-      const srcMap = new Map(defaults.map((d) => [d.src, d]));
-      const ordered = journalOrderData.order
-        .map((src: string) => srcMap.get(src) || { id: `up-${src.slice(-20)}`, src, alt: "Uploaded image" })
-        .filter(Boolean) as GalleryImage[];
-      const remaining = defaults.filter((d) => !journalOrderData.order!.includes(d.src));
-      setJournalOrder([...ordered, ...remaining]);
-    } else {
-      setJournalOrder(defaults);
-    }
+    setJournalOrder(
+      applyJournalOrder(journalOrderData?.order).map((img, idx) => ({
+        id: img.src,
+        src: img.src,
+        thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
+        alt: `Journal ${idx + 1}`,
+      }))
+    );
   }, [journalOrderData]);
 
-  // Initialize Product
+  // Initialize Product — same list, same order as the live /product-photography page
   useEffect(() => {
-    const defaults: GalleryImage[] = productPhotographyImages.map((img, idx) => ({
-      id: `product-${idx}`,
-      src: img.src,
-      thumbnailSrc: toThumb(img.src),
-      alt: img.alt,
-      category: img.category,
-      description: img.description,
-    }));
-    if (productOrderData?.order) {
-      const srcMap = new Map(defaults.map((d) => [d.src, d]));
-      const ordered = productOrderData.order
-        .map((src: string) => srcMap.get(src) || { id: `up-${src.slice(-20)}`, src, alt: "Custom image" })
-        .filter(Boolean) as GalleryImage[];
-      const remaining = defaults.filter((d) => !productOrderData.order!.includes(d.src));
-      setProductOrder([...ordered, ...remaining]);
-    } else {
-      setProductOrder(defaults);
-    }
+    setProductOrder(
+      applyProductOrder(productOrderData?.order).map((img) => ({
+        id: img.src,
+        src: img.src,
+        thumbnailSrc: toThumb(img.src),
+        alt: img.alt,
+        category: img.category,
+        description: img.description,
+      }))
+    );
   }, [productOrderData]);
 
   // Initialize Duke (uses REST API for order)
