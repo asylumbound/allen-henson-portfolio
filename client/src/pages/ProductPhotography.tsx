@@ -120,7 +120,13 @@ export function applyProductOrder(order: string[] | null | undefined) {
   if (order && order.length > 0) {
     const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
     return order
-      .map(src => imageMap.get(src))
+      .map(src => {
+        const known = imageMap.get(src);
+        if (known) return known;
+        // Absolute storage URL = image uploaded via the /edit CMS
+        if (src.startsWith("http")) return { src, alt: "Product photograph", category: "uploaded", description: "" };
+        return undefined; // stale local path — drop
+      })
       .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
   }
   return productPhotographyImages;
@@ -216,7 +222,7 @@ export default function ProductPhotography() {
 
   // SEO data
   const seoImages = filteredImages.slice(0, 10).map(img => ({
-    src: `https://allenhenson.com${img.src}`,
+    src: img.src.startsWith("http") ? img.src : `https://allenhenson.com${img.src}`,
     alt: img.alt
   }));
 

@@ -188,7 +188,13 @@ export const journalImages: Array<{ src: string; webSrc: string }> = [
 export function applyJournalOrder(order: string[] | null | undefined) {
   if (order) {
     const ordered = order
-      .map((src) => journalImages.find(img => img.src === src))
+      .map((src) => {
+        const known = journalImages.find(img => img.src === src);
+        if (known) return known;
+        // Absolute storage URL = image uploaded via the /edit CMS
+        if (src.startsWith("http")) return { src, webSrc: src };
+        return undefined; // stale local path — drop
+      })
       .filter((img): img is typeof journalImages[0] => img !== undefined);
     const newImages = journalImages.filter(img => !order.includes(img.src));
     return [...ordered, ...newImages];
