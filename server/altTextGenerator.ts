@@ -1,9 +1,11 @@
 /**
  * AI-Powered Alt Text Generator
- * Uses the built-in LLM to analyze images and generate descriptive, SEO-friendly alt text
+ * Uses the Anthropic API to analyze images and generate descriptive,
+ * SEO-friendly alt text. Requires ANTHROPIC_API_KEY; without it (or on any
+ * API failure) a generic fallback is returned so uploads never break.
  */
 
-import { invokeLLM } from "./_core/llm";
+import Anthropic from "@anthropic-ai/sdk";
 
 export interface AltTextResult {
   altText: string;
@@ -12,17 +14,15 @@ export interface AltTextResult {
   keywords: string[];
 }
 
-/**
- * Generate alt text for an image using AI vision capabilities
- * @param imageUrl - URL of the image to analyze
- * @param context - Optional context about the image (e.g., "product photography", "portrait")
- * @returns Generated alt text and metadata
- */
-export async function generateAltText(
-  imageUrl: string,
-  context?: string
-): Promise<AltTextResult> {
-  const systemPrompt = `You are an expert at writing SEO-optimized alt text for images. Your task is to analyze images and generate:
+const FALLBACK_RESULT: AltTextResult = {
+  altText: "Professional photography by Allen Henson",
+  title: "Photography",
+  description: "A photograph from Allen Henson's portfolio.",
+  keywords: ["photography", "allen henson", "professional"],
+};
+
+function buildSystemPrompt(context?: string): string {
+  return `You are an expert at writing SEO-optimized alt text for images. Your task is to analyze images and generate:
 1. A concise, descriptive alt text (50-125 characters) that accurately describes the image content
 2. A short title suitable for image captions
 3. A longer description for accessibility
@@ -37,29 +37,54 @@ Guidelines:
 - Consider the artistic and emotional qualities of the image
 ${context ? `- Context: This is ${context}` : ""}
 
-Respond in JSON format with these fields:
+Respond with ONLY a JSON object (no markdown fences, no prose) with these fields:
 - altText: The main alt text (50-125 chars)
 - title: A short title (3-8 words)
 - description: A detailed description (1-2 sentences)
 - keywords: An array of 3-5 relevant keywords`;
+}
+
+function parseResult(text: string): AltTextResult {
+  // Strip markdown code fences if the model added them anyway
+  const cleaned = text.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "");
+  const parsed = JSON.parse(cleaned) as Partial<AltTextResult>;
+  if (
+    typeof parsed.altText !== "string" ||
+    typeof parsed.title !== "string" ||
+    typeof parsed.description !== "string" ||
+    !Array.isArray(parsed.keywords)
+  ) {
+    throw new Error("Alt text response missing required fields");
+  }
+  return parsed as AltTextResult;
+}
+
+/**
+ * Generate alt text for an image using AI vision capabilities.
+ * Never throws — returns a generic fallback on any failure.
+ * @param imageUrl - Publicly reachable URL of the image to analyze
+ * @param context - Optional context about the image (e.g., "product photography")
+ */
+export async function generateAltText(
+  imageUrl: string,
+  context?: string
+): Promise<AltTextResult> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn("[AltText] ANTHROPIC_API_KEY not configured — using fallback alt text");
+    return FALLBACK_RESULT;
+  }
 
   try {
-    const response = await invokeLLM({
+    const client = new Anthropic();
+    const response = await client.messages.create({
+      model: "claude-opus-5",
+      max_tokens: 2048,
+      system: buildSystemPrompt(context),
       messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
         {
           role: "user",
           content: [
-            {
-              type: "image_url",
-              image_url: {
-                url: imageUrl,
-                detail: "high",
-              },
-            },
+            { type: "image", source: { type: "url", url: imageUrl } },
             {
               type: "text",
               text: "Please analyze this image and generate alt text, title, description, and keywords.",
@@ -67,56 +92,21 @@ Respond in JSON format with these fields:
           ],
         },
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "alt_text_result",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              altText: {
-                type: "string",
-                description: "Concise alt text for the image (50-125 characters)",
-              },
-              title: {
-                type: "string",
-                description: "Short title for the image (3-8 words)",
-              },
-              description: {
-                type: "string",
-                description: "Detailed description for accessibility (1-2 sentences)",
-              },
-              keywords: {
-                type: "array",
-                items: { type: "string" },
-                description: "3-5 relevant SEO keywords",
-              },
-            },
-            required: ["altText", "title", "description", "keywords"],
-            additionalProperties: false,
-          },
-        },
-      },
     });
 
-    const content = response.choices[0]?.message?.content;
-    if (typeof content === "string") {
-      const result = JSON.parse(content) as AltTextResult;
-      console.log(`[AltText] Generated for image: "${result.altText}"`);
-      return result;
+    const textBlock = response.content.find(
+      (block): block is Anthropic.TextBlock => block.type === "text"
+    );
+    if (!textBlock) {
+      throw new Error("No text content in model response");
     }
 
-    throw new Error("Unexpected response format from LLM");
+    const result = parseResult(textBlock.text);
+    console.log(`[AltText] Generated for image: "${result.altText}"`);
+    return result;
   } catch (error) {
     console.error("[AltText] Error generating alt text:", error);
-    // Return a fallback if AI generation fails
-    return {
-      altText: "Professional photography by Allen Henson",
-      title: "Photography",
-      description: "A photograph from Allen Henson's portfolio.",
-      keywords: ["photography", "allen henson", "professional"],
-    };
+    return FALLBACK_RESULT;
   }
 }
 
