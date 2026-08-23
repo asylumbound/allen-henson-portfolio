@@ -68,7 +68,7 @@ const BUCKET_MAP: Record<string, string> = {
 function toThumb(src: string): string {
   // Already a Supabase storage URL
   if (src.includes("/storage/v1/object/public/")) {
-    return src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + "?width=200&quality=60";
+    return src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + "?width=400&height=400&resize=contain&quality=60";
   }
   // Local /images/ path — map to Supabase bucket
   if (src.startsWith("/images/")) {
@@ -76,11 +76,11 @@ function toThumb(src: string): string {
     for (const [prefix, bucket] of Object.entries(BUCKET_MAP)) {
       if (rest.startsWith(prefix)) {
         const filename = rest.slice(prefix.length);
-        return `${SUPABASE}/storage/v1/render/image/public/${bucket}/${filename}?width=200&quality=60`;
+        return `${SUPABASE}/storage/v1/render/image/public/${bucket}/${filename}?width=400&height=400&resize=contain&quality=60`;
       }
     }
     // Root-level portfolio image
-    return `${SUPABASE}/storage/v1/render/image/public/portfolio-images/${rest}?width=200&quality=60`;
+    return `${SUPABASE}/storage/v1/render/image/public/portfolio-images/${rest}?width=400&height=400&resize=contain&quality=60`;
   }
   return src;
 }
@@ -108,7 +108,7 @@ function buildDukeImages(): GalleryImage[] {
       id: `duke-${num}`,
       src: assetUrl(`/images/duke/duke-${num}.jpeg`),
       // Direct Supabase thumbnail — bypasses broken /images/ local path
-      thumbnailSrc: `${SUPABASE}/storage/v1/render/image/public/duke-images/duke-${num}.jpeg?width=200&quality=60`,
+      thumbnailSrc: `${SUPABASE}/storage/v1/render/image/public/duke-images/duke-${num}.jpeg?width=400&height=400&resize=contain&quality=60`,
       alt: `Duke Collection ${i}`,
     });
   }
