@@ -112,6 +112,20 @@ export const productPhotographyImages = [
   { src: assetUrl("/images/product/fashion-nike-af1.webp"), alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
 ];
 
+// Single source of truth for how the saved order maps onto the gallery.
+// Used by this page AND the /edit CMS so both always show the same list.
+// NOTE: when a saved order exists, ONLY images in it are shown — this is how
+// deletions made in the CMS stay deleted on the live page.
+export function applyProductOrder(order: string[] | null | undefined) {
+  if (order && order.length > 0) {
+    const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
+    return order
+      .map(src => imageMap.get(src))
+      .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
+  }
+  return productPhotographyImages;
+}
+
 // Simple image component (zoom feature disabled)
 function ProductImage({ 
   src, 
@@ -160,16 +174,10 @@ export default function ProductPhotography() {
   );
 
   // Apply saved order when loaded - ONLY show images from saved order
-  // This respects deletions made in /product_edit
+  // This respects deletions made in the /edit CMS
   useEffect(() => {
     if (savedOrder?.order && savedOrder.order.length > 0) {
-      // Create a map for quick lookup of image metadata
-      const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
-      // ONLY show images that are in the saved order - deleted images stay deleted
-      const reordered = savedOrder.order
-        .map(src => imageMap.get(src))
-        .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
-      setOrderedImages(reordered);
+      setOrderedImages(applyProductOrder(savedOrder.order));
     }
   }, [savedOrder]);
 

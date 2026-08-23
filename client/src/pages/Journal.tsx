@@ -183,6 +183,19 @@ export const journalImages: Array<{ src: string; webSrc: string }> = [
 { src: assetUrl("/images/journal/a155b47758efa4ba5587fe1ec6c0c96b.png"), webSrc: "https://frgdgcpmrshimyxsamdr.supabase.co/storage/v1/object/public/journal-images-web/a155b47758efa4ba5587fe1ec6c0c96b.webp" },
 ];
 
+// Single source of truth for how the saved order maps onto the gallery.
+// Used by this page AND the /edit CMS so both always show the same list.
+export function applyJournalOrder(order: string[] | null | undefined) {
+  if (order) {
+    const ordered = order
+      .map((src) => journalImages.find(img => img.src === src))
+      .filter((img): img is typeof journalImages[0] => img !== undefined);
+    const newImages = journalImages.filter(img => !order.includes(img.src));
+    return [...ordered, ...newImages];
+  }
+  return journalImages;
+}
+
 export default function Journal() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   
@@ -190,18 +203,7 @@ export default function Journal() {
   const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "journal" });
   
   // Compute ordered images based on saved order or default
-  const orderedImages = useMemo(() => {
-    if (orderData?.order) {
-      // Reorder based on saved order (order stores src URLs)
-      const ordered = orderData.order
-        .map((src: string) => journalImages.find(img => img.src === src))
-        .filter((img): img is typeof journalImages[0] => img !== undefined);
-      // Add any new images not in saved order
-      const newImages = journalImages.filter(img => !orderData.order?.includes(img.src));
-      return [...ordered, ...newImages];
-    }
-    return journalImages;
-  }, [orderData]);
+  const orderedImages = useMemo(() => applyJournalOrder(orderData?.order), [orderData]);
 
   // Scroll to top on mount
   useEffect(() => {
