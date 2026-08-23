@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Photos from "./pages/Photos";
+import Destinations from "./pages/Destinations";
 import Video from "./pages/Video";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -51,6 +52,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/photos" component={Photos} />
+            <Route path="/destinations" component={Destinations} />
             <Route path="/video" component={Video} />
             <Route path="/about" component={About} />
             <Route path="/contact" component={Contact} />
