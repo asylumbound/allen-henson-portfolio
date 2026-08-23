@@ -15,6 +15,7 @@ const GALLERY_BUCKETS: Record<string, string> = {
   photos: "portfolio-images",
   journal: "journal-images",
   "product-photography": "product-images",
+  destinations: "destinations-images",
 };
 
 function normalizeKey(relKey: string): string {

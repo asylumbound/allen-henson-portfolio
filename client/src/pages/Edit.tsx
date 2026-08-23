@@ -17,7 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Save, Check, X, Images, BookOpen, Upload, Trash2, Plus, Loader2,
-  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search,
+  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search, MapPin,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -36,11 +36,12 @@ import ReactMarkdown from "react-markdown";
 import { applyPhotosOrder } from "./Photos";
 import { applyJournalOrder } from "./Journal";
 import { applyProductOrder } from "./ProductPhotography";
+import { applyDestinationsOrder } from "./Destinations";
 import { assetUrl } from "@/lib/assets";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type TabId = "photos" | "product" | "journal" | "duke" | "blog";
+type TabId = "photos" | "product" | "destinations" | "journal" | "duke" | "blog";
 
 interface GalleryImage {
   id: string;
@@ -268,7 +269,7 @@ function GalleryTab({
       } else {
         const order = images.map((p) => p.src);
         await saveOrderMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography",
+          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
           order,
           password,
         });
@@ -298,7 +299,7 @@ function GalleryTab({
         if (!data.success) throw new Error(data.error || "Failed to delete");
       } else {
         await deleteImageMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography",
+          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
           imageSrc: image.src,
           password,
         });
@@ -326,7 +327,7 @@ function GalleryTab({
       try {
         const base64 = await fileToBase64(file);
         const result = await uploadImageMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography",
+          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
           fileName: file.name,
           fileData: base64,
           contentType: file.type,
@@ -807,6 +808,7 @@ function fileToBase64(file: File): Promise<string> {
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "photos", label: "Photos", icon: Camera },
   { id: "product", label: "Product", icon: Images },
+  { id: "destinations", label: "Destinations", icon: MapPin },
   { id: "journal", label: "Journal", icon: BookOpen },
   { id: "duke", label: "Duke", icon: Lock },
   { id: "blog", label: "Blog", icon: FileText },
@@ -832,6 +834,7 @@ export default function Edit() {
   // Gallery state
   const [photosOrder, setPhotosOrder] = useState<GalleryImage[]>([]);
   const [productOrder, setProductOrder] = useState<GalleryImage[]>([]);
+  const [destinationsOrder, setDestinationsOrder] = useState<GalleryImage[]>([]);
   const [journalOrder, setJournalOrder] = useState<GalleryImage[]>([]);
   const [dukeOrder, setDukeOrder] = useState<GalleryImage[]>([]);
 
@@ -841,6 +844,7 @@ export default function Edit() {
   const { data: photosOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "photos" }, { enabled: isAuthenticated });
   const { data: journalOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "journal" }, { enabled: isAuthenticated });
   const { data: productOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "product-photography" }, { enabled: isAuthenticated });
+  const { data: destinationsOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "destinations" }, { enabled: isAuthenticated });
 
   // Initialize Photos — same list, same order as the live /photos page
   useEffect(() => {
@@ -853,6 +857,18 @@ export default function Edit() {
       }))
     );
   }, [photosOrderData]);
+
+  // Initialize Destinations — same list, same order as the live /destinations page
+  useEffect(() => {
+    setDestinationsOrder(
+      applyDestinationsOrder(destinationsOrderData?.order).map((img) => ({
+        id: img.src,
+        src: img.src,
+        thumbnailSrc: toThumb(img.src),
+        alt: img.alt,
+      }))
+    );
+  }, [destinationsOrderData]);
 
   // Initialize Journal — same list, same order as the live /journal page
   useEffect(() => {
@@ -1049,6 +1065,16 @@ export default function Edit() {
             images={productOrder}
             setImages={setProductOrder}
             galleryKey="product-photography"
+            password={password}
+            showUpload={true}
+            showSearch={true}
+          />
+        )}
+        {activeTab === "destinations" && (
+          <GalleryTab
+            images={destinationsOrder}
+            setImages={setDestinationsOrder}
+            galleryKey="destinations"
             password={password}
             showUpload={true}
             showSearch={true}

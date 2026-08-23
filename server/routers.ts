@@ -49,7 +49,7 @@ export const appRouter = router({
     // Upload a new image to S3 with automatic responsive variants
     uploadImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography"]),
+        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
         fileName: z.string(),
         fileData: z.string(), // Base64 encoded
         contentType: z.string(),
@@ -121,7 +121,7 @@ export const appRouter = router({
     // Delete an image (removes from order, actual S3 deletion optional)
     deleteImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography"]),
+        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
         imageSrc: z.string(),
         password: z.string(),
       }))
@@ -142,7 +142,7 @@ export const appRouter = router({
       }),
 
     getOrder: publicProcedure
-      .input(z.object({ gallery: z.enum(["photos", "journal", "product-photography"]) }))
+      .input(z.object({ gallery: z.enum(["photos", "journal", "product-photography", "destinations"]) }))
       .query(async ({ input }) => {
         const result = await getImageOrder(input.gallery);
         if (result) {
@@ -153,7 +153,7 @@ export const appRouter = router({
     
     saveOrder: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography"]),
+        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
         order: z.array(z.string()),
         password: z.string(),
       }))
