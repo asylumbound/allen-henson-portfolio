@@ -2,9 +2,27 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import type { GalleryDbError } from "../routers";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    const cause = error.cause;
+    const dbErrorCode =
+      cause != null &&
+      typeof cause === "object" &&
+      "dbErrorCode" in cause &&
+      typeof (cause as GalleryDbError).dbErrorCode === "string"
+        ? (cause as GalleryDbError).dbErrorCode
+        : undefined;
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        ...(dbErrorCode !== undefined ? { dbErrorCode } : {}),
+      },
+    };
+  },
 });
 
 export const router = t.router;

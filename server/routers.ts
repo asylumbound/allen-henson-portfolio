@@ -22,10 +22,98 @@ function isAuthorized(password: string): boolean {
 
 const gallerySchema = z.enum(GALLERY_KEYS);
 
-function throwGalleryInternalError(action: string, gallery: GalleryKey, error: unknown, message: string): never {
-  console.error(`[Gallery] ${action} failed for "${gallery}"`, error);
-  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+// Machine-readable discriminators for DB failure classes (safe to send to client).
+type DbErrorCode = "DB_CONSTRAINT_MISSING" | "DB_SCHEMA_MISSING" | "DB_UNAVAILABLE" | "DB_ERROR";
+
+/** Error subclass carrying a non-sensitive DB failure discriminator as the TRPCError cause. */
+export class GalleryDbError extends Error {
+  readonly dbErrorCode: DbErrorCode;
+  constructor(message: string, dbErrorCode: DbErrorCode) {
+    super(message);
+    this.name = "GalleryDbError";
+    this.dbErrorCode = dbErrorCode;
+  }
 }
+
+/** Safely extract a string field from an unknown value. */
+function extractString(obj: object, key: string): string | undefined {
+  const val = (obj as Record<string, unknown>)[key];
+  return typeof val === "string" ? val : undefined;
+}
+
+/** Map a Postgres error code to a human-readable hint and DbErrorCode discriminator. */
+function pgHint(pgCode: string): { hint: string; dbErrorCode: DbErrorCode } | undefined {
+  if (pgCode === "42P10") {
+    return {
+      hint: "The unique constraint on image_orders.gallery is missing — migration drizzle/0001_tidy_image_orders.sql has likely not been applied to this database.",
+      dbErrorCode: "DB_CONSTRAINT_MISSING",
+    };
+  }
+  if (pgCode === "42P01") {
+    return {
+      hint: "Migrations have not been run; one or more required tables do not exist.",
+      dbErrorCode: "DB_SCHEMA_MISSING",
+    };
+  }
+  return undefined;
+}
+
+function throwGalleryInternalError(action: string, gallery: GalleryKey, error: unknown, message: string): never {
+  let pgCode: string | undefined;
+  let pgMsg: string | undefined;
+  let pgDetail: string | undefined;
+  let pgConstraint: string | undefined;
+
+  if (typeof error === "object" && error !== null) {
+    pgCode = extractString(error, "code");
+    pgMsg = extractString(error, "message");
+    pgDetail = extractString(error, "detail");
+    pgConstraint = extractString(error, "constraint");
+  }
+
+  const parts: string[] = [`[Gallery] ${action} failed for "${gallery}"`];
+  if (pgCode !== undefined) parts.push(`pg_code=${pgCode}`);
+  if (pgMsg !== undefined) parts.push(`pg_msg=${pgMsg}`);
+  if (pgDetail !== undefined) parts.push(`pg_detail=${pgDetail}`);
+  if (pgConstraint !== undefined) parts.push(`pg_constraint=${pgConstraint}`);
+
+  const hinted = pgCode !== undefined ? pgHint(pgCode) : undefined;
+  if (hinted !== undefined) parts.push(`hint=${hinted.hint}`);
+
+  console.error(parts.join(" | "));
+
+  const dbErrorCode: DbErrorCode = hinted?.dbErrorCode ?? "DB_ERROR";
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message,
+    cause: new GalleryDbError(message, dbErrorCode),
+  });
+}
+
+/**
+ * Content types that Sharp can decode and for which we generate responsive WebP variants.
+ * HEIC, HEIF, and AVIF are intentionally excluded: they require optional native libvips
+ * plugins that may not be present in all deployment environments.
+ */
+export const OPTIMIZABLE_CONTENT_TYPES: ReadonlySet<string> = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+/**
+ * Extension map for the non-optimizable (single-file) upload path.
+ * SVG is deliberately omitted: if served inline from the same origin it is an XSS
+ * vector; the storage layer (storage.ts) uses Supabase public URLs which do serve
+ * files inline, so SVG uploads are not safe to accept here.
+ */
+const EXTENSION_MAP: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/webp": ".webp",
+  "image/png": ".png",
+  "image/gif": ".gif",
+};
+const DEFAULT_EXTENSION = ".bin";
 
 export const appRouter = router({
   system: systemRouter,
@@ -82,36 +170,32 @@ export const appRouter = router({
         
         // Check if we should generate responsive variants
         try {
-          if (input.generateResponsive && (input.contentType === "image/webp" || input.contentType === "image/jpeg" || input.contentType === "image/png")) {
+          if (input.generateResponsive && OPTIMIZABLE_CONTENT_TYPES.has(input.contentType)) {
+            // Generate responsive images (400w, 800w, 1200w) + optimized original.
+            // If Sharp fails the error propagates to the outer handler — no silent fallback.
+            const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
+            
+            // Generate AI alt text for the uploaded image
+            let altTextResult = null;
             try {
-              // Generate responsive images (400w, 800w, 1200w) + optimized original
-              const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
-              
-              // Generate AI alt text for the uploaded image
-              let altTextResult = null;
-              try {
-                altTextResult = await generateAltText(result.original.url, input.gallery);
-                console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
-              } catch (altError) {
-                console.error("[Upload] Failed to generate alt text:", altError);
-              }
-              
-              return {
-                success: true,
-                url: result.original.url,
-                fileKey: result.original.fileKey,
-                variants: result.variants,
-                altText: altTextResult,
-              };
-            } catch (error) {
-              console.error("Failed to generate responsive images, falling back to single upload:", error);
-              // Fall through to single upload
+              altTextResult = await generateAltText(result.original.url, input.gallery);
+              console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
+            } catch (altError) {
+              console.error("[Upload] Failed to generate alt text:", altError);
             }
+            
+            return {
+              success: true,
+              url: result.original.url,
+              fileKey: result.original.fileKey,
+              variants: result.variants,
+              altText: altTextResult,
+              optimized: true,
+            };
           }
           
-          // Fallback: Upload single image without responsive variants
-          const extension = input.contentType === "image/webp" ? ".webp" : 
-                           input.contentType === "image/png" ? ".png" : ".jpg";
+          // Non-optimizable path: upload the original buffer with an explicit extension.
+          const extension = EXTENSION_MAP[input.contentType] ?? DEFAULT_EXTENSION;
           const fileKey = `${baseFileKey}${extension}`;
           const { url } = await storagePut(fileKey, buffer, input.contentType);
           
@@ -124,7 +208,7 @@ export const appRouter = router({
             console.error("[Upload] Failed to generate alt text:", altError);
           }
           
-          return { success: true, url, fileKey, variants: [], altText: altTextResult };
+          return { success: true, url, fileKey, variants: [], altText: altTextResult, optimized: false };
         } catch (error) {
           throwGalleryInternalError("upload", input.gallery, error, "Failed to upload image. Please try again.");
         }
