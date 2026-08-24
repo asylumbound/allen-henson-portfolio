@@ -14,11 +14,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { createReadStream } from "fs";
+import { isAdminPassword } from "./_core/authSecrets";
 import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 const router = express.Router();
-
-const ADMIN_PASSWORD = "&&77JFR";
 const SUPABASE_URL = getSupabaseBaseUrl({
   includeViteSupabaseUrl: false,
   fallback: "https://frgdgcpmrshimyxsamdr.supabase.co",
@@ -145,7 +144,7 @@ router.post(
       const { password, shoot_id, project_name, shoot_date, field_name, uploaded_by } = req.body;
 
       // Auth check
-      if (password !== ADMIN_PASSWORD) {
+      if (!isAdminPassword(password)) {
         res.status(401).json({ error: "Invalid password" });
         return;
       }
@@ -279,7 +278,7 @@ function inferMimeType(ext: string): string | null {
 router.post("/signed-url", express.json(), async (req: express.Request, res: express.Response) => {
   try {
     const { password, storage_path } = req.body;
-    if (password !== ADMIN_PASSWORD) {
+    if (!isAdminPassword(password)) {
       res.status(401).json({ error: "Invalid password" });
       return;
     }

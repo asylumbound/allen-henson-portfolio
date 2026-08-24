@@ -10,18 +10,9 @@ import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
 import { GALLERY_KEYS, type GalleryKey } from "../shared/const";
 import { findSqlStateCode, isDbUnavailableCause, logErrorCauseChain } from "./_core/errorDetail";
+import { isAdminPassword, isAuthorized } from "./_core/authSecrets";
 import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
-
-// Admin password for sync/seed operations (DO NOT CHANGE — used by /sync)
-const ADMIN_PASSWORD = "&&77JFR";
-// Edit password for the unified /edit CMS page
-const EDIT_PASSWORD = "&&77MAnila";
 const BLOG_SUPABASE_URL = getSupabaseBaseUrl({ fallback: "" });
-
-// Helper: check if password matches either admin or edit password
-function isAuthorized(password: string): boolean {
-  return password === ADMIN_PASSWORD || password === EDIT_PASSWORD;
-}
 
 const gallerySchema = z.enum(GALLERY_KEYS);
 
@@ -496,7 +487,7 @@ export const appRouter = router({
         })),
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== ADMIN_PASSWORD) {
+        if (!isAdminPassword(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         await seedProducts(input.products);

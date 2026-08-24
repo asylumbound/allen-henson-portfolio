@@ -132,9 +132,9 @@ allen-henson-portfolio/
 | `/404`, `/*` | NotFound | Layout | Public |
 
 ### Private/Admin Pages
-- `/edit` — gallery editor; authenticated by hardcoded `ADMIN_PASSWORD = "&&77VAnguard"` via `trpc.admin.verifyPassword`
+- `/edit` — gallery editor; authenticated by env-backed `ADMIN_PASSWORD` / `EDIT_PASSWORD` secrets via `trpc.admin.verifyPassword`
 - `/product_edit` — product editor; same password
-- `/duke` — private photo collection; authenticated by hardcoded `EDITOR_PASSWORD = "&&77LEica"` in `server/dukeEditor.ts`
+- `/duke` — private photo collection; authenticated by env-backed `EDITOR_PASSWORD` / `EDIT_PASSWORD` secrets in `server/dukeEditor.ts`
 - `/agency` — agency database; password-protected
 - `/login` — Supabase email/password login (redirects to `/edit` on success)
 
@@ -210,7 +210,7 @@ Port: `process.env.PORT || 3000` with auto-increment if occupied.
 - `POST /api/duke/revert-image` — Reverts to backup in Supabase `duke-backups` bucket
 - `POST /api/duke/delete-image` — Moves to `deleted/` prefix in `duke-backups` + removes from local FS
 - `POST /api/duke/save-order` — Saves `order.json` to Supabase `duke-edits` bucket
-- Authentication: hardcoded `EDITOR_PASSWORD = "&&77LEica"` — plaintext in source
+- Authentication: `EDITOR_PASSWORD` / `EDIT_PASSWORD` env vars with deprecated legacy fallbacks
 
 **Note:** Duke routes already use Supabase Storage directly (not Manus Forge). This section is already migrated.
 
@@ -546,12 +546,12 @@ adminProcedure     — requires ctx.user.role === 'admin'
 
 ```ts
 // server/routers.ts:12
-const ADMIN_PASSWORD = "&&77VAnguard";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "<legacy-default>";
 // server/dukeEditor.ts:16
-const EDITOR_PASSWORD = "&&77LEica";
+const EDITOR_PASSWORD = process.env.EDITOR_PASSWORD ?? "<legacy-default>";
 ```
 
-Both passwords are hardcoded in plaintext source code. Anyone with repo access knows the admin password. **Recommend moving to `process.env.ADMIN_PASSWORD` and `process.env.EDITOR_PASSWORD`**, or replacing the password mechanism with Supabase role-based checks.
+Set `ADMIN_PASSWORD`, `EDIT_PASSWORD`, and `EDITOR_PASSWORD` in Railway. Legacy hardcoded defaults remain as a temporary fallback for backward compatibility, but those fallbacks are deprecated and should be rotated away once the client-side password senders are updated.
 
 ### Recommended Final Auth Model
 
@@ -821,7 +821,7 @@ allowedHosts: [
 | **Manus analytics and logo** (`VITE_ANALYTICS_ENDPOINT`, `VITE_APP_LOGO`) | 🟡 MEDIUM | `client/index.html`, env vars | Analytics stop reporting; logo image 404s when Manus CDN is decommissioned | Phase 8 |
 | **Manus runtime/plugin build dependency** | 🟡 MEDIUM | `vite.config.ts:153`, `package.json` devDeps | Adds `client/public/__manus__/debug-collector.js` to all builds; injects Manus script tag; unnecessary build overhead | Phase 2 |
 | **OWNER_OPEN_ID is a Manus OAuth ID** — admin role assignment broken | 🟡 MEDIUM | `server/db.ts:60`, `ENV.ownerOpenId`, env var value `eVUiibodwAkat77ZQkBy9z` | No user will ever receive the `admin` role via the automatic assignment path | Phase 6 |
-| **Hardcoded admin passwords in source code** | 🟡 MEDIUM | `server/routers.ts:12` (`&&77VAnguard`), `server/dukeEditor.ts:16` (`&&77LEica`) | Any contributor with repo access knows the admin credentials; not managed as secrets | Phase 8 |
+| **Legacy admin password fallbacks remain in source code** | 🟡 MEDIUM | `server/_core/authSecrets.ts` (`ADMIN_PASSWORD`, `EDIT_PASSWORD`, `EDITOR_PASSWORD`) | Env vars are now supported, but the deprecated fallback literals still exist until the next auth rotation phase | Phase 8 |
 | **Gallery admin uses `publicProcedure` with password** — not Supabase auth | 🟡 MEDIUM | `server/routers.ts` — all `gallery.*`, `blog.*`, `products.*` procedures | Inconsistent auth model; password can be brute-forced; should use `adminProcedure` | Phase 8 |
 | **Stripe product source-of-truth drift** — 81-product hardcoded map vs DB table | 🟡 MEDIUM | `server/stripe.ts:productPrices`, `drizzle/schema.ts:products` | Price changes in DB are not reflected in checkout; price changes in `stripe.ts` are not reflected in the display layer | Phase 6 |
 | **JSON stored as text** — no `jsonb` columns | 🟢 LOW | `image_orders.imageOrder`, `products.galleryImages`, `orders.shippingAddress` | Cannot query inside JSON at DB level; no JSON schema validation | Phase 7 |
