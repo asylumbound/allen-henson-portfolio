@@ -10,7 +10,7 @@ import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
 import { GALLERY_KEYS, type GalleryKey } from "../shared/const";
 import { findSqlStateCode, isDbUnavailableCause, logErrorCauseChain } from "./_core/errorDetail";
-import { getSupabaseBaseUrl } from "../shared/supabaseUrl";
+import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 // Admin password for sync/seed operations (DO NOT CHANGE — used by /sync)
 const ADMIN_PASSWORD = "&&77JFR";
@@ -283,7 +283,7 @@ export const appRouter = router({
   blog: router({
     list: publicProcedure.query(async () => {
       const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-      const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&published=eq.1&order=publishedAt.desc`, {
+      const res = await fetch(joinUrl(BLOG_SUPABASE_URL, "rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&published=eq.1&order=publishedAt.desc"), {
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
       });
       if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog posts" });
@@ -294,7 +294,7 @@ export const appRouter = router({
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&slug=eq.${encodeURIComponent(input.slug)}&limit=1`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, `rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&slug=eq.${encodeURIComponent(input.slug)}&limit=1`), {
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
         if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog post" });
@@ -310,7 +310,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&order=updatedAt.desc`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, "rest/v1/blog_posts?select=id,slug,title,excerpt,content,heroImage,published,publishedAt,createdAt,updatedAt&order=updatedAt.desc"), {
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
         if (!res.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch blog posts" });
@@ -345,7 +345,7 @@ export const appRouter = router({
           createdAt: now,
           updatedAt: now,
         };
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, "rest/v1/blog_posts"), {
           method: "POST",
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
           body: JSON.stringify(post),
@@ -381,7 +381,7 @@ export const appRouter = router({
         if (updates.published === 1) {
           body.publishedAt = new Date().toISOString();
         }
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?id=eq.${id}`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, `rest/v1/blog_posts?id=eq.${id}`), {
           method: "PATCH",
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
           body: JSON.stringify(body),
@@ -405,7 +405,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?id=eq.${input.id}`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, `rest/v1/blog_posts?id=eq.${input.id}`), {
           method: "DELETE",
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
@@ -428,7 +428,7 @@ export const appRouter = router({
         const now = new Date().toISOString();
         const body: Record<string, any> = { published: input.published, updatedAt: now };
         if (input.published === 1) body.publishedAt = now;
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts?id=eq.${input.id}`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, `rest/v1/blog_posts?id=eq.${input.id}`), {
           method: "PATCH",
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
           body: JSON.stringify(body),
@@ -455,7 +455,7 @@ export const appRouter = router({
         }
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
         const postsWithDefaults = input.posts.map(p => ({ ...p, published: 1, publishedAt: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }));
-        const res = await fetch(`${BLOG_SUPABASE_URL}/rest/v1/blog_posts`, {
+        const res = await fetch(joinUrl(BLOG_SUPABASE_URL, "rest/v1/blog_posts"), {
           method: "POST",
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
           body: JSON.stringify(postsWithDefaults),
