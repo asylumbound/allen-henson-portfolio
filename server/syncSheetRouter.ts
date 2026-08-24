@@ -7,17 +7,20 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "./_core/trpc";
+import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 // ── Supabase client ──────────────────────────────────────────────────────────
-const SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
+const SUPABASE_URL = getSupabaseBaseUrl({
+  includeViteSupabaseUrl: false,
+  fallback: "https://frgdgcpmrshimyxsamdr.supabase.co",
+});
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 async function sbFetch(
   path: string,
   options: RequestInit = {}
 ): Promise<unknown> {
-  const url = `${SUPABASE_URL}/rest/v1/${path}`;
+  const url = joinUrl(SUPABASE_URL, "rest/v1", path);
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -648,7 +651,7 @@ export const syncSheetRouter = router({
       )) as { storage_path: string }[];
       if (rows && rows.length > 0) {
         const storagePath = rows[0].storage_path;
-        const delUrl = `${SUPABASE_URL}/storage/v1/object/sync-data-drops/${storagePath}`;
+        const delUrl = joinUrl(SUPABASE_URL, "storage/v1/object/sync-data-drops", storagePath);
         await fetch(delUrl, {
           method: "DELETE",
           headers: {
@@ -803,7 +806,7 @@ export const syncSheetRouter = router({
           (files || []).map(async (f) => {
             try {
               const signRes = await fetch(
-                `${SUPABASE_URL}/storage/v1/object/sign/sync-data-drops/${encodeURIComponent(f.storage_path)}`,
+                joinUrl(SUPABASE_URL, "storage/v1/object/sign/sync-data-drops", encodeURIComponent(f.storage_path)),
                 {
                   method: 'POST',
                   headers: { Authorization: `Bearer ${SERVICE_KEY}`, apikey: SERVICE_KEY, 'Content-Type': 'application/json' },
@@ -811,7 +814,9 @@ export const syncSheetRouter = router({
                 }
               );
               const signData = await signRes.json() as { signedURL?: string };
-              const signedUrl = signData.signedURL ? `${SUPABASE_URL}/storage/v1${signData.signedURL}` : null;
+              const signedUrl = signData.signedURL
+                ? joinUrl(SUPABASE_URL, "storage/v1", signData.signedURL)
+                : null;
               return { ...f, signedUrl };
             } catch {
               return { ...f, signedUrl: null };

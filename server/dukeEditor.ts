@@ -9,6 +9,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
+import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 const router = express.Router();
 
@@ -17,7 +18,10 @@ const EDITOR_PASSWORD = "&&77LEica";
 const EDIT_PASSWORD = "&&77MAnila";
 
 // Supabase Storage config — uses env vars in production, fallback for dev
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
+const SUPABASE_URL = getSupabaseBaseUrl({
+  includeViteSupabaseUrl: false,
+  fallback: "https://frgdgcpmrshimyxsamdr.supabase.co",
+});
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
 const EDITS_BUCKET = "duke-edits";
 const BACKUPS_BUCKET = "duke-backups";
@@ -57,7 +61,7 @@ async function uploadToSupabase(
 
   try {
     // Use upsert (PUT) to overwrite if exists
-    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object", bucket, filePath);
     const response = await fetch(url, {
       method: "PUT",
       headers: {
@@ -89,7 +93,7 @@ async function downloadFromSupabase(
   if (!SUPABASE_SERVICE_KEY) return null;
 
   try {
-    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object", bucket, filePath);
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -112,7 +116,7 @@ async function deleteFromSupabase(
   if (!SUPABASE_SERVICE_KEY) return false;
 
   try {
-    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object", bucket);
     const response = await fetch(url, {
       method: "DELETE",
       headers: {
@@ -135,7 +139,7 @@ async function supabaseFileExists(
   if (!SUPABASE_SERVICE_KEY) return false;
 
   try {
-    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object", bucket, filePath);
     const response = await fetch(url, {
       method: "HEAD",
       headers: {
@@ -354,7 +358,7 @@ router.get("/edited-images", async (_req, res) => {
 
   try {
     // List all files in the duke-edits bucket
-    const url = `${SUPABASE_URL}/storage/v1/object/list/${EDITS_BUCKET}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object/list", EDITS_BUCKET);
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -372,7 +376,7 @@ router.get("/edited-images", async (_req, res) => {
 
     // Build a map: imageName -> { jpeg: publicUrl, webp: publicUrl }
     const editedImages: Record<string, { jpeg?: string; webp?: string }> = {};
-    const publicBase = `${SUPABASE_URL}/storage/v1/object/public/${EDITS_BUCKET}`;
+    const publicBase = joinUrl(SUPABASE_URL, "storage/v1/object/public", EDITS_BUCKET);
 
     for (const file of files) {
       if (!file.name) continue;

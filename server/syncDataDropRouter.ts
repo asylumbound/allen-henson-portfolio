@@ -14,12 +14,15 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { createReadStream } from "fs";
+import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 const router = express.Router();
 
 const ADMIN_PASSWORD = "&&77JFR";
-const SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://frgdgcpmrshimyxsamdr.supabase.co";
+const SUPABASE_URL = getSupabaseBaseUrl({
+  includeViteSupabaseUrl: false,
+  fallback: "https://frgdgcpmrshimyxsamdr.supabase.co",
+});
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const BUCKET = "sync-data-drops";
 
@@ -63,7 +66,7 @@ async function uploadToSupabase(
   fileSize: number,
   mimeType: string
 ): Promise<boolean> {
-  const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${storagePath}`;
+  const url = joinUrl(SUPABASE_URL, "storage/v1/object", BUCKET, storagePath);
 
   const fileStream = createReadStream(filePath);
 
@@ -102,7 +105,7 @@ async function saveMetadata(record: {
   mime_type: string;
   uploaded_by: string;
 }): Promise<{ id: string } | null> {
-  const url = `${SUPABASE_URL}/rest/v1/photo_video_sync_data_drops`;
+  const url = joinUrl(SUPABASE_URL, "rest/v1/photo_video_sync_data_drops");
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -285,7 +288,7 @@ router.post("/signed-url", express.json(), async (req: express.Request, res: exp
       return;
     }
 
-    const url = `${SUPABASE_URL}/storage/v1/object/sign/${BUCKET}/${storage_path}`;
+    const url = joinUrl(SUPABASE_URL, "storage/v1/object/sign", BUCKET, storage_path);
     const supaRes = await fetch(url, {
       method: "POST",
       headers: {
@@ -303,7 +306,7 @@ router.post("/signed-url", express.json(), async (req: express.Request, res: exp
     }
 
     const data = await supaRes.json();
-    const signedUrl = `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+    const signedUrl = joinUrl(SUPABASE_URL, "storage/v1", data.signedURL);
     res.json({ signedUrl });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
