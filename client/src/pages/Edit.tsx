@@ -282,7 +282,7 @@ function GalleryTab({
     } catch (err: any) {
       setSaveStatus("error");
       const message =
-        typeof err?.message === "string" && !err.message.includes("Failed query:")
+        typeof err?.message === "string"
           ? err.message
           : "Failed to save image order. Please try again.";
       toast.error(message);

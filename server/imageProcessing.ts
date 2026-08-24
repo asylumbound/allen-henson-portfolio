@@ -48,10 +48,7 @@ export async function generateResponsiveImages(
     try {
       const resizedBuffer = await sharp(buffer)
         .rotate()
-        .resize(width, width, {
-          fit: "inside",
-          withoutEnlargement: true,
-        })
+        .resize(width, null, { withoutEnlargement: true })
         .webp({ quality: VARIANT_IMAGE_QUALITY, effort: 4 })
         .toBuffer();
 

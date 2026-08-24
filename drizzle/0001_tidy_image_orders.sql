@@ -29,4 +29,25 @@ WHERE ctid IN (
 	WHERE row_num > 1
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "image_orders_gallery_unique_idx" ON "image_orders" USING btree ("gallery");
+DO $$
+BEGIN
+	IF EXISTS (
+		SELECT 1
+		FROM pg_indexes
+		WHERE schemaname = 'public'
+			AND tablename = 'image_orders'
+			AND indexname = 'image_orders_gallery_unique_idx'
+	) THEN
+		DROP INDEX "image_orders_gallery_unique_idx";
+	END IF;
+
+	IF NOT EXISTS (
+		SELECT 1
+		FROM pg_constraint
+		WHERE conname = 'image_orders_gallery_unique'
+			AND conrelid = 'image_orders'::regclass
+	) THEN
+		ALTER TABLE "image_orders"
+			ADD CONSTRAINT "image_orders_gallery_unique" UNIQUE ("gallery");
+	END IF;
+END $$;

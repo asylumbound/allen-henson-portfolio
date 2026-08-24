@@ -65,4 +65,28 @@ describe("generateResponsiveImages", () => {
 
     expect(ORIGINAL_IMAGE_QUALITY).toBeGreaterThan(VARIANT_IMAGE_QUALITY);
   });
+
+  it("keeps portrait variant widths aligned with advertised srcset widths", async () => {
+    const sourceBuffer = await sharp({
+      create: {
+        width: 1800,
+        height: 3200,
+        channels: 3,
+        background: { r: 30, g: 30, b: 30 },
+      },
+    })
+      .jpeg({ quality: 96 })
+      .toBuffer();
+
+    const uploads: Buffer[] = [];
+    vi.mocked(storagePut).mockImplementation(async (key, data) => {
+      uploads.push(Buffer.from(data as Buffer));
+      return { key, url: `https://example.com/${key}` };
+    });
+
+    await generateResponsiveImages(sourceBuffer, "gallery/destinations/portrait", "image/jpeg");
+
+    const variantMetadata = await Promise.all(uploads.slice(1).map((upload) => sharp(upload).metadata()));
+    expect(variantMetadata.map((metadata) => metadata.width)).toEqual([400, 800, 1200]);
+  });
 });
