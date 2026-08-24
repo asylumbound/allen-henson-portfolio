@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { isAdminPassword } from "./_core/authSecrets";
 import { publicProcedure, router } from "./_core/trpc";
 import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
@@ -40,6 +41,12 @@ async function sbFetch(
   }
   const text = await res.text();
   return text ? JSON.parse(text) : null;
+}
+
+function assertAdminPassword(password: string): void {
+  if (!isAdminPassword(password)) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+  }
 }
 
 // ── Zod schemas ──────────────────────────────────────────────────────────────
@@ -157,9 +164,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
       const data = await sbFetch("photo_video_sync_shoots", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -187,9 +192,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, id, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
       const data = await sbFetch(
         `photo_video_sync_shoots?id=eq.${id}`,
         {
@@ -203,9 +206,7 @@ export const syncSheetRouter = router({
   deleteShoot: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
       await sbFetch(`photo_video_sync_shoots?id=eq.${input.id}`, {
         method: "DELETE",
         headers: { Prefer: "return=minimal" },
@@ -234,9 +235,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
 
       // Check if exists
       const existing = (await sbFetch(
@@ -316,9 +315,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
 
       // Get master settings and shoot for sync calc
       const master = (await sbFetch(
@@ -360,9 +357,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, id, shoot_id, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
 
       // Recalculate sync status
       const master = (await sbFetch(
@@ -404,9 +399,7 @@ export const syncSheetRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
 
       const master = (await sbFetch(
         `photo_video_sync_master_settings?shoot_id=eq.${input.shoot_id}&select=*`
@@ -459,9 +452,7 @@ export const syncSheetRouter = router({
   deleteOperatorCard: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
       await sbFetch(`photo_video_sync_operator_cards?id=eq.${input.id}`, {
         method: "DELETE",
         headers: { Prefer: "return=minimal" },
@@ -497,9 +488,7 @@ export const syncSheetRouter = router({
     )
     .mutation(async ({ input }) => {
       const { password, ...payload } = input;
-      if (password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(password);
       const data = await sbFetch("photo_video_sync_presets", {
         method: "POST",
         body: JSON.stringify({ ...payload, is_builtin: false }),
@@ -510,9 +499,7 @@ export const syncSheetRouter = router({
   deletePreset: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
       // Don't allow deleting built-in presets
       const preset = (await sbFetch(
         `photo_video_sync_presets?id=eq.${input.id}&select=is_builtin`
@@ -537,9 +524,7 @@ export const syncSheetRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
 
       const presets = (await sbFetch(
         `photo_video_sync_presets?id=eq.${input.preset_id}&select=*`
@@ -642,9 +627,7 @@ export const syncSheetRouter = router({
   deleteDataDrop: publicProcedure
     .input(z.object({ password: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
-      if (input.password !== "&&77JFR") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-      }
+      assertAdminPassword(input.password);
       // Get the storage path before deleting the DB record
       const rows = (await sbFetch(
         `photo_video_sync_data_drops?id=eq.${input.id}&select=storage_path`
@@ -673,9 +656,7 @@ export const syncSheetRouter = router({
     list: publicProcedure
       .input(z.object({ password: z.string(), shoot_id: z.string() }))
       .query(async ({ input }) => {
-        if (input.password !== "&&77JFR") {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-        }
+        assertAdminPassword(input.password);
         const rows = await sbFetch(
           `photo_video_sync_share_links?shoot_id=eq.${encodeURIComponent(input.shoot_id)}&order=created_at.desc`
         );
@@ -696,9 +677,7 @@ export const syncSheetRouter = router({
         allow_download: z.boolean().default(true),
       }))
       .mutation(async ({ input }) => {
-        if (input.password !== "&&77JFR") {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-        }
+        assertAdminPassword(input.password);
         let password_hash: string | null = null;
         if (!input.is_public && input.link_password) {
           const encoder = new TextEncoder();
@@ -729,9 +708,7 @@ export const syncSheetRouter = router({
     delete: publicProcedure
       .input(z.object({ password: z.string(), id: z.string() }))
       .mutation(async ({ input }) => {
-        if (input.password !== "&&77JFR") {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
-        }
+        assertAdminPassword(input.password);
         await sbFetch(`photo_video_sync_share_links?id=eq.${input.id}`, {
           method: 'DELETE',
           headers: { Prefer: 'return=minimal' },

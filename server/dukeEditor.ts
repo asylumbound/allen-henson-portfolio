@@ -9,13 +9,10 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
+import { verifyEditorPassword } from "./_core/authSecrets";
 import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
 const router = express.Router();
-
-// Editor credentials — accepts both legacy and new /edit password
-const EDITOR_PASSWORD = "&&77LEica";
-const EDIT_PASSWORD = "&&77MAnila";
 
 // Supabase Storage config — uses env vars in production, fallback for dev
 const SUPABASE_URL = getSupabaseBaseUrl({
@@ -25,10 +22,6 @@ const SUPABASE_URL = getSupabaseBaseUrl({
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
 const EDITS_BUCKET = "duke-edits";
 const BACKUPS_BUCKET = "duke-backups";
-
-function verifyEditorPassword(password: string): boolean {
-  return password === EDITOR_PASSWORD || password === EDIT_PASSWORD;
-}
 
 // Resolve the duke images directory (local static files)
 function getDukeImagesDir(): string {

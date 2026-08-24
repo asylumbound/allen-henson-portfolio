@@ -138,7 +138,7 @@
 - [x] Update ProductPhotography page to show uncropped full images (no cropping)
 - [x] Shuffle product images to mix categories together (not batched)
 - [x] Add zoom-on-hover feature for all product images
-- [x] Create password-protected /product_edit admin page (password: &&77VAnguard)
+- [x] Create password-protected /product_edit admin page (password: `ADMIN_PASSWORD` env var / legacy fallback)
 
 - [x] Fix product_edit page to save image order to database (password validation fixed, loads saved order on page load)
 
