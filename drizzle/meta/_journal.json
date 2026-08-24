@@ -8,6 +8,13 @@
       "when": 1770981494849,
       "tag": "0000_good_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787540400000,
+      "tag": "0001_tidy_image_orders",
+      "breakpoints": true
     }
   ]
 }

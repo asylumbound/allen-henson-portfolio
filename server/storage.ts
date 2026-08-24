@@ -1,6 +1,7 @@
 // Storage helpers backed by Supabase Storage.
 // Gallery uploads land in the same public buckets the site already serves
 // images from (see client/src/lib/assets.ts for the serving-side mapping).
+import type { GalleryKey } from "../shared/const";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL ||
@@ -11,12 +12,16 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 // Upload keys arrive as "gallery/<gallery>/<file>" (see routers.ts and
 // imageProcessing.ts). Map each gallery to its serving bucket; uploads get an
 // "uploads/" prefix so CMS-added files never collide with migrated assets.
-const GALLERY_BUCKETS: Record<string, string> = {
+const GALLERY_BUCKETS: Record<GalleryKey, string> = {
   photos: "portfolio-images",
   journal: "journal-images",
   "product-photography": "product-images",
   destinations: "destinations-images",
 };
+
+function isGalleryKey(value: string): value is GalleryKey {
+  return value in GALLERY_BUCKETS;
+}
 
 function normalizeKey(relKey: string): string {
   return relKey.replace(/^\/+/, "");
@@ -25,7 +30,7 @@ function normalizeKey(relKey: string): string {
 function resolveBucketAndPath(relKey: string): { bucket: string; path: string } {
   const key = normalizeKey(relKey);
   const match = key.match(/^gallery\/([^/]+)\/(.+)$/);
-  if (match && GALLERY_BUCKETS[match[1]]) {
+  if (match && isGalleryKey(match[1])) {
     return { bucket: GALLERY_BUCKETS[match[1]], path: `uploads/${match[2]}` };
   }
   // Anything else goes into the portfolio bucket under its full key

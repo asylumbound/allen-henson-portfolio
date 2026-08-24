@@ -38,6 +38,7 @@ import { applyJournalOrder } from "./Journal";
 import { applyProductOrder } from "./ProductPhotography";
 import { applyDestinationsOrder } from "./Destinations";
 import { assetUrl } from "@/lib/assets";
+import type { GalleryKey } from "@shared/const";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -269,7 +270,7 @@ function GalleryTab({
       } else {
         const order = images.map((p) => p.src);
         await saveOrderMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
+          gallery: galleryKey as GalleryKey,
           order,
           password,
         });
@@ -280,7 +281,11 @@ function GalleryTab({
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err: any) {
       setSaveStatus("error");
-      toast.error(err.message || "Failed to save");
+      const message =
+        typeof err?.message === "string" && !err.message.includes("Failed query:")
+          ? err.message
+          : "Failed to save image order. Please try again.";
+      toast.error(message);
     }
   };
 
@@ -299,7 +304,7 @@ function GalleryTab({
         if (!data.success) throw new Error(data.error || "Failed to delete");
       } else {
         await deleteImageMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
+          gallery: galleryKey as GalleryKey,
           imageSrc: image.src,
           password,
         });
@@ -327,7 +332,7 @@ function GalleryTab({
       try {
         const base64 = await fileToBase64(file);
         const result = await uploadImageMutation.mutateAsync({
-          gallery: galleryKey as "photos" | "journal" | "product-photography" | "destinations",
+          gallery: galleryKey as GalleryKey,
           fileName: file.name,
           fileData: base64,
           contentType: file.type,
