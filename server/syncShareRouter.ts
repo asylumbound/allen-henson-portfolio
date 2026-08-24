@@ -4,6 +4,15 @@ import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 const SUPABASE_URL = getSupabaseBaseUrl({ fallback: "" });
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
+function isSafeStoragePath(value: string): boolean {
+  return (
+    value.length > 0 &&
+    value.length <= 1024 &&
+    !value.includes("..") &&
+    /^[A-Za-z0-9/_\-.]+$/.test(value)
+  );
+}
+
 async function sbFetch(path: string, options: RequestInit = {}) {
   const url = joinUrl(SUPABASE_URL, "rest/v1", path);
   const res = await fetch(url, {
@@ -91,6 +100,7 @@ syncShareRouter.post("/:token/download", async (req, res) => {
     const { storage_path, password } = req.body || {};
 
     if (!storage_path) { res.status(400).json({ error: "storage_path required" }); return; }
+    if (!isSafeStoragePath(storage_path)) { res.status(400).json({ error: "invalid storage_path" }); return; }
 
     // Verify the link
     const r = await sbFetch(`/photo_video_sync_share_links?token=eq.${encodeURIComponent(token)}&select=*`);
