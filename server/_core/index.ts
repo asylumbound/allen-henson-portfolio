@@ -11,6 +11,7 @@ import { stripeRouter } from "../stripe";
 import { dukeEditorRouter } from "../dukeEditor";
 import { syncDataDropRouter } from "../syncDataDropRouter";
 import { syncShareRouter } from "../syncShareRouter";
+import { probeDatabase } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -110,6 +111,8 @@ async function startServer() {
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
+
+  void probeDatabase();
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
