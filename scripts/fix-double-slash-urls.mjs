@@ -187,7 +187,7 @@ async function main() {
   const syncChecks = await db`
     select
       coalesce(sum(case when storage_path like 'http://%' or storage_path like 'https://%' then 1 else 0 end), 0)::int as full_url_storage_paths,
-      coalesce(sum(case when storage_path like '%supabase.co//storage/%' then 1 else 0 end), 0)::int as malformed_storage_paths
+      coalesce(sum(case when storage_path ~ 'supabase\\.co//+storage/' then 1 else 0 end), 0)::int as malformed_storage_paths
     from photo_video_sync_data_drops
   `.catch(() => null);
 
