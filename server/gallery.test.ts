@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { appRouter } from './routers';
+import { LEGACY_EDIT_PASSWORD } from "./_core/authSecrets";
 import type { TrpcContext } from './_core/context';
-
-const EDIT_PASSWORD = "&&77MAnila";
 
 // Mock the database functions
 vi.mock('./db', () => ({
@@ -102,7 +101,7 @@ describe('Gallery Router', () => {
       const result = await caller.gallery.saveOrder({
         gallery: 'photos',
         order: ['/images/photo1.jpg', '/images/photo2.jpg'],
-        password: EDIT_PASSWORD,
+        password: LEGACY_EDIT_PASSWORD,
       });
       
       expect(result.success).toBe(true);
@@ -120,7 +119,7 @@ describe('Gallery Router', () => {
         caller.gallery.saveOrder({
           gallery: 'destinations',
           order: ['https://example.com/destinations/new-upload.webp'],
-          password: EDIT_PASSWORD,
+          password: LEGACY_EDIT_PASSWORD,
         })
       ).rejects.toThrow('Failed to save image order. Please try again.');
 
@@ -147,7 +146,7 @@ describe('Gallery Router', () => {
         caller.gallery.saveOrder({
           gallery: 'destinations',
           order: ['https://example.com/destinations/new-upload.webp'],
-          password: EDIT_PASSWORD,
+          password: LEGACY_EDIT_PASSWORD,
         })
       ).rejects.toMatchObject({
         cause: expect.objectContaining({ dbErrorCode: 'DB_CONSTRAINT_MISSING' }),
@@ -178,7 +177,7 @@ describe('Gallery Router', () => {
         caller.gallery.saveOrder({
           gallery: 'destinations',
           order: ['https://example.com/destinations/new-upload.webp'],
-          password: EDIT_PASSWORD,
+          password: LEGACY_EDIT_PASSWORD,
         })
       ).rejects.toMatchObject({
         cause: expect.objectContaining({ dbErrorCode: 'DB_UNAVAILABLE' }),
@@ -203,7 +202,7 @@ describe('Gallery Router', () => {
     it('should accept correct password', async () => {
       const ctx = createTestContext();
       const caller = appRouter.createCaller(ctx);
-      const result = await caller.admin.verifyPassword({ password: EDIT_PASSWORD });
+      const result = await caller.admin.verifyPassword({ password: LEGACY_EDIT_PASSWORD });
       
       expect(result.success).toBe(true);
       expect(result.token).toBe('admin-verified');

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { LEGACY_EDIT_PASSWORD } from "./_core/authSecrets";
 
 // Mock the storage module
 vi.mock("./storage", () => ({
@@ -6,8 +7,6 @@ vi.mock("./storage", () => ({
 }));
 
 describe("Gallery Upload and Delete API", () => {
-  const EDIT_PASSWORD = "&&77MAnila";
-
   describe("uploadImage endpoint", () => {
     it("should reject upload with invalid password", async () => {
       const input = {
@@ -19,7 +18,7 @@ describe("Gallery Upload and Delete API", () => {
       };
 
       // Simulate password check
-      const isValid = input.password === EDIT_PASSWORD;
+      const isValid = input.password === LEGACY_EDIT_PASSWORD;
       expect(isValid).toBe(false);
     });
 
@@ -29,10 +28,10 @@ describe("Gallery Upload and Delete API", () => {
         fileName: "test.jpg",
         fileData: "dGVzdA==",
         contentType: "image/jpeg",
-        password: EDIT_PASSWORD,
+        password: LEGACY_EDIT_PASSWORD,
       };
 
-      const isValid = input.password === EDIT_PASSWORD;
+      const isValid = input.password === LEGACY_EDIT_PASSWORD;
       expect(isValid).toBe(true);
     });
 
@@ -64,7 +63,7 @@ describe("Gallery Upload and Delete API", () => {
         password: "wrongpassword",
       };
 
-      const isValid = input.password === EDIT_PASSWORD;
+      const isValid = input.password === LEGACY_EDIT_PASSWORD;
       expect(isValid).toBe(false);
     });
 
@@ -72,10 +71,10 @@ describe("Gallery Upload and Delete API", () => {
       const input = {
         gallery: "photos" as const,
         imageSrc: "/images/test.jpg",
-        password: EDIT_PASSWORD,
+        password: LEGACY_EDIT_PASSWORD,
       };
 
-      const isValid = input.password === EDIT_PASSWORD;
+      const isValid = input.password === LEGACY_EDIT_PASSWORD;
       expect(isValid).toBe(true);
     });
 

@@ -2,7 +2,7 @@
  * UNIFIED CMS EDITOR — /edit
  * Password-protected admin page consolidating all gallery + blog editing.
  * Tabs: Photos | Product | Journal | Duke | Blog
- * Password: &&77MAnila
+ * Password: [server-configured]
  *
  * Features:
  * - Drag-and-drop image reordering (@dnd-kit) for all gallery tabs
