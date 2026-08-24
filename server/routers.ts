@@ -9,6 +9,7 @@ import { storagePut } from "./storage";
 import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
 import { GALLERY_KEYS, type GalleryKey } from "../shared/const";
+import { findSqlStateCode, isDbUnavailableCause, logErrorCauseChain } from "./_core/errorDetail";
 
 // Admin password for sync/seed operations (DO NOT CHANGE — used by /sync)
 const ADMIN_PASSWORD = "&&77JFR";
@@ -35,12 +36,6 @@ export class GalleryDbError extends Error {
   }
 }
 
-/** Safely extract a string field from an unknown value. */
-function extractString(obj: object, key: string): string | undefined {
-  const val = (obj as Record<string, unknown>)[key];
-  return typeof val === "string" ? val : undefined;
-}
-
 /** Map a Postgres error code to a human-readable hint and DbErrorCode discriminator. */
 function pgHint(pgCode: string): { hint: string; dbErrorCode: DbErrorCode } | undefined {
   if (pgCode === "42P10") {
@@ -59,30 +54,21 @@ function pgHint(pgCode: string): { hint: string; dbErrorCode: DbErrorCode } | un
 }
 
 function throwGalleryInternalError(action: string, gallery: GalleryKey, error: unknown, message: string): never {
-  let pgCode: string | undefined;
-  let pgMsg: string | undefined;
-  let pgDetail: string | undefined;
-  let pgConstraint: string | undefined;
-
-  if (typeof error === "object" && error !== null) {
-    pgCode = extractString(error, "code");
-    pgMsg = extractString(error, "message");
-    pgDetail = extractString(error, "detail");
-    pgConstraint = extractString(error, "constraint");
+  const prefix = `[Gallery] ${action} failed for "${gallery}"`;
+  const levels = logErrorCauseChain(prefix, error);
+  const pgCode = findSqlStateCode(levels);
+  const hinted = pgCode !== undefined ? pgHint(pgCode) : undefined;
+  if (hinted !== undefined) {
+    console.error(`[Gallery] ${action} diagnostics: pg_code=${pgCode} hint=${hinted.hint}`);
   }
 
-  const parts: string[] = [`[Gallery] ${action} failed for "${gallery}"`];
-  if (pgCode !== undefined) parts.push(`pg_code=${pgCode}`);
-  if (pgMsg !== undefined) parts.push(`pg_msg=${pgMsg}`);
-  if (pgDetail !== undefined) parts.push(`pg_detail=${pgDetail}`);
-  if (pgConstraint !== undefined) parts.push(`pg_constraint=${pgConstraint}`);
+  let dbErrorCode: DbErrorCode = "DB_ERROR";
+  if (hinted !== undefined) {
+    dbErrorCode = hinted.dbErrorCode;
+  } else if (isDbUnavailableCause(levels)) {
+    dbErrorCode = "DB_UNAVAILABLE";
+  }
 
-  const hinted = pgCode !== undefined ? pgHint(pgCode) : undefined;
-  if (hinted !== undefined) parts.push(`hint=${hinted.hint}`);
-
-  console.error(parts.join(" | "));
-
-  const dbErrorCode: DbErrorCode = hinted?.dbErrorCode ?? "DB_ERROR";
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message,

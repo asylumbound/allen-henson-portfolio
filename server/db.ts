@@ -4,8 +4,28 @@ import postgres from "postgres";
 import { InsertUser, users, imageOrders, InsertImageOrder, blogPosts, InsertBlogPost, BlogPost, products, InsertProduct, Product } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import type { GalleryKey } from "../shared/const";
+import { logErrorCauseChain } from "./_core/errorDetail";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+
+export class DatabaseUnavailableError extends Error {
+  readonly code = "DB_UNAVAILABLE";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "DatabaseUnavailableError";
+  }
+}
+
+function parseDsnSummary(databaseUrl: string): { host: string; port: string; user: string; db: string; ssl: string } {
+  const parsed = new URL(databaseUrl);
+  const host = parsed.hostname || "<unknown>";
+  const port = parsed.port || "5432";
+  const user = parsed.username ? decodeURIComponent(parsed.username) : "<unknown>";
+  const db = parsed.pathname.replace(/^\//, "") || "<unknown>";
+  const ssl = parsed.searchParams.get("sslmode") ?? parsed.searchParams.get("ssl") ?? "require";
+  return { host, port, user, db, ssl };
+}
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
@@ -19,6 +39,32 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+export async function probeDatabase(): Promise<void> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.warn("[Database] DATABASE_URL is not set; skipping connectivity probe");
+    return;
+  }
+
+  try {
+    const summary = parseDsnSummary(databaseUrl);
+    console.log(`[Database] DSN host=${summary.host} port=${summary.port} user=${summary.user} db=${summary.db} ssl=${summary.ssl}`);
+  } catch {
+    console.warn("[Database] DSN could not be parsed safely");
+  }
+
+  try {
+    const db = await getDb();
+    if (!db) {
+      throw new DatabaseUnavailableError("Database client is not available");
+    }
+    await db.execute(sql`select 1`);
+    console.log("[Database] connectivity OK");
+  } catch (error) {
+    logErrorCauseChain("[Database] connectivity probe failed", error);
+  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -109,8 +155,7 @@ export async function getImageOrderFromDb(db: NonNullable<Awaited<ReturnType<typ
 export async function getImageOrder(gallery: GalleryKey) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get image order: database not available");
-    return null;
+    throw new DatabaseUnavailableError(`[Database] Cannot get image order for "${gallery}": database not available`);
   }
 
   return getImageOrderFromDb(db, gallery);
@@ -137,8 +182,7 @@ export async function saveImageOrderToDb(
 export async function saveImageOrder(gallery: GalleryKey, order: string[]) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot save image order: database not available");
-    return null;
+    throw new DatabaseUnavailableError(`[Database] Cannot save image order for "${gallery}": database not available`);
   }
 
   return saveImageOrderToDb(db, gallery, order);

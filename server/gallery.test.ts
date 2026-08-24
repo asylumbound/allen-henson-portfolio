@@ -127,6 +127,67 @@ describe('Gallery Router', () => {
       expect(consoleError).toHaveBeenCalled();
       consoleError.mockRestore();
     });
+
+    it('should map nested SQLSTATE errors to DB_CONSTRAINT_MISSING', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(saveImageOrder).mockRejectedValue({
+        name: 'DrizzleQueryError',
+        message: 'Failed query: insert into "image_orders"',
+        cause: {
+          name: 'PostgresError',
+          code: '42P10',
+          message: 'there is no unique or exclusion constraint matching the ON CONFLICT specification',
+        },
+      });
+
+      const ctx = createTestContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.gallery.saveOrder({
+          gallery: 'destinations',
+          order: ['https://example.com/destinations/new-upload.webp'],
+          password: EDIT_PASSWORD,
+        })
+      ).rejects.toMatchObject({
+        cause: expect.objectContaining({ dbErrorCode: 'DB_CONSTRAINT_MISSING' }),
+      });
+
+      consoleError.mockRestore();
+    });
+
+    it('should log nested connection errors and map to DB_UNAVAILABLE', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(saveImageOrder).mockRejectedValue({
+        name: 'DrizzleQueryError',
+        message: 'Failed query: insert into "image_orders"',
+        cause: {
+          name: 'Error',
+          code: 'ENOTFOUND',
+          syscall: 'getaddrinfo',
+          address: 'aws-0-us-east-1.pooler.supabase.com',
+          port: 5432,
+          message: 'getaddrinfo ENOTFOUND aws-0-us-east-1.pooler.supabase.com',
+        },
+      });
+
+      const ctx = createTestContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.gallery.saveOrder({
+          gallery: 'destinations',
+          order: ['https://example.com/destinations/new-upload.webp'],
+          password: EDIT_PASSWORD,
+        })
+      ).rejects.toMatchObject({
+        cause: expect.objectContaining({ dbErrorCode: 'DB_UNAVAILABLE' }),
+      });
+
+      const loggedLines = consoleError.mock.calls.map((call) => String(call[0]));
+      expect(loggedLines.some((line) => line.includes('cause[1]:') && line.includes('code=ENOTFOUND'))).toBe(true);
+      consoleError.mockRestore();
+    });
   });
 
   describe('admin.verifyPassword', () => {
