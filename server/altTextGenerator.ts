@@ -1,11 +1,12 @@
 /**
  * AI-Powered Alt Text Generator
- * Uses the Anthropic API to analyze images and generate descriptive,
- * SEO-friendly alt text. Requires ANTHROPIC_API_KEY; without it (or on any
+ * Uses the OpenAI API to analyze images and generate descriptive,
+ * SEO-friendly alt text. Requires OPENAI_API_KEY; without it (or on any
  * API failure) a generic fallback is returned so uploads never break.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
+import { logErrorCauseChain } from "./_core/errorDetail";
 
 export interface AltTextResult {
   altText: string;
@@ -21,12 +22,14 @@ const FALLBACK_RESULT: AltTextResult = {
   keywords: ["photography", "allen henson", "professional"],
 };
 
-function buildSystemPrompt(context?: string): string {
-  return `You are an expert at writing SEO-optimized alt text for images. Your task is to analyze images and generate:
-1. A concise, descriptive alt text (50-125 characters) that accurately describes the image content
-2. A short title suitable for image captions
-3. A longer description for accessibility
-4. Relevant keywords for SEO
+let _keyWarned = false;
+
+function buildPrompt(context?: string): string {
+  return `You are an expert at writing SEO-optimized alt text for images. Analyze the provided image and return ONLY a JSON object with these fields:
+- altText: The main alt text (50-125 chars)
+- title: A short title (3-8 words)
+- description: A detailed description (1-2 sentences)
+- keywords: An array of 3-5 relevant keywords
 
 Guidelines:
 - Be specific and descriptive, not generic
@@ -37,11 +40,7 @@ Guidelines:
 - Consider the artistic and emotional qualities of the image
 ${context ? `- Context: This is ${context}` : ""}
 
-Respond with ONLY a JSON object (no markdown fences, no prose) with these fields:
-- altText: The main alt text (50-125 chars)
-- title: A short title (3-8 words)
-- description: A detailed description (1-2 sentences)
-- keywords: An array of 3-5 relevant keywords`;
+Respond with ONLY valid JSON (no markdown fences, no prose).`;
 }
 
 function parseResult(text: string): AltTextResult {
@@ -60,7 +59,7 @@ function parseResult(text: string): AltTextResult {
 }
 
 /**
- * Generate alt text for an image using AI vision capabilities.
+ * Generate alt text for an image using OpenAI vision capabilities.
  * Never throws — returns a generic fallback on any failure.
  * @param imageUrl - Publicly reachable URL of the image to analyze
  * @param context - Optional context about the image (e.g., "product photography")
@@ -69,43 +68,50 @@ export async function generateAltText(
   imageUrl: string,
   context?: string
 ): Promise<AltTextResult> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn("[AltText] ANTHROPIC_API_KEY not configured — using fallback alt text");
+  if (!process.env.OPENAI_API_KEY) {
+    if (!_keyWarned) {
+      console.warn("[AltText] OPENAI_API_KEY not set — using generic fallback alt text");
+      _keyWarned = true;
+    }
     return FALLBACK_RESULT;
   }
 
   try {
-    const client = new Anthropic();
-    const response = await client.messages.create({
-      model: "claude-opus-5",
-      max_tokens: 2048,
-      system: buildSystemPrompt(context),
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: { type: "url", url: imageUrl } },
-            {
-              type: "text",
-              text: "Please analyze this image and generate alt text, title, description, and keywords.",
-            },
-          ],
-        },
-      ],
-    });
-
-    const textBlock = response.content.find(
-      (block): block is Anthropic.TextBlock => block.type === "text"
+    const client = new OpenAI();
+    const response = await client.chat.completions.create(
+      {
+        model: "gpt-4o",
+        max_tokens: 1024,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: { url: imageUrl },
+              },
+              {
+                type: "text",
+                text: buildPrompt(context),
+              },
+            ],
+          },
+        ],
+      },
+      { timeout: 30_000 }
     );
-    if (!textBlock) {
+
+    const text = response.choices[0]?.message?.content;
+    if (!text) {
       throw new Error("No text content in model response");
     }
 
-    const result = parseResult(textBlock.text);
+    const result = parseResult(text);
     console.log(`[AltText] Generated for image: "${result.altText}"`);
     return result;
   } catch (error) {
-    console.error("[AltText] Error generating alt text:", error);
+    logErrorCauseChain("[AltText] Error generating alt text:", error);
     return FALLBACK_RESULT;
   }
 }
