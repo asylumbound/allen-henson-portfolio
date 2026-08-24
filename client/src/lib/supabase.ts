@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { normalizeBaseUrl } from "@shared/supabaseUrl";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseUrl = normalizeBaseUrl(import.meta.env.VITE_SUPABASE_URL ?? "");
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let _supabase: SupabaseClient | null = null;

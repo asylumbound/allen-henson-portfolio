@@ -14,7 +14,11 @@
  *   /images/duke/<file>     → duke-images/<file>
  */
 
-const CDN_BASE = import.meta.env.VITE_SUPABASE_CDN_URL as string | undefined;
+import { normalizeBaseUrl } from "@shared/supabaseUrl";
+
+const CDN_BASE = normalizeBaseUrl(
+  (import.meta.env.VITE_SUPABASE_CDN_URL as string | undefined) ?? ""
+);
 const STORAGE_PATH = "/storage/v1/object/public";
 
 // Files with special characters that were renamed on upload

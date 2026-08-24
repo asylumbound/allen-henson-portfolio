@@ -1,10 +1,11 @@
 import { Router } from "express";
+import { getSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_URL = getSupabaseBaseUrl({ fallback: "" });
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 async function sbFetch(path: string, options: RequestInit = {}) {
-  const url = `${SUPABASE_URL}/rest/v1${path}`;
+  const url = joinUrl(SUPABASE_URL, "rest/v1", path);
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -104,7 +105,7 @@ syncShareRouter.post("/:token/download", async (req, res) => {
     }
 
     // Generate signed URL (24 hours)
-    const signRes = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/sync-data-drops/${storage_path}`, {
+    const signRes = await fetch(joinUrl(SUPABASE_URL, "storage/v1/object/sign/sync-data-drops", storage_path), {
       method: "POST",
       headers: {
         "apikey": SERVICE_ROLE_KEY,
@@ -115,7 +116,7 @@ syncShareRouter.post("/:token/download", async (req, res) => {
     });
     const signData = await signRes.json();
     if (signData.signedURL) {
-      res.json({ signedUrl: `${SUPABASE_URL}/storage/v1${signData.signedURL}` });
+      res.json({ signedUrl: joinUrl(SUPABASE_URL, "storage/v1", signData.signedURL) });
     } else {
       res.status(500).json({ error: "Could not generate signed URL" });
     }

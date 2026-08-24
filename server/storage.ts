@@ -2,11 +2,9 @@
 // Gallery uploads land in the same public buckets the site already serves
 // images from (see client/src/lib/assets.ts for the serving-side mapping).
 import type { GalleryKey } from "../shared/const";
+import { getDefaultSupabaseBaseUrl, joinUrl } from "../shared/supabaseUrl";
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  "https://frgdgcpmrshimyxsamdr.supabase.co";
+const SUPABASE_URL = getDefaultSupabaseBaseUrl();
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 // Upload keys arrive as "gallery/<gallery>/<file>" (see routers.ts and
@@ -38,7 +36,7 @@ function resolveBucketAndPath(relKey: string): { bucket: string; path: string } 
 }
 
 function publicUrl(bucket: string, path: string): string {
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  return joinUrl(SUPABASE_URL, "storage/v1/object/public", bucket, path);
 }
 
 export async function storagePut(
@@ -57,7 +55,7 @@ export async function storagePut(
   const body = typeof data === "string" ? Buffer.from(data) : Buffer.from(data);
 
   const response = await fetch(
-    `${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`,
+    joinUrl(SUPABASE_URL, "storage/v1/object", bucket, path),
     {
       method: "PUT",
       headers: {
