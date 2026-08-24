@@ -31,7 +31,7 @@ export type InsertUser = typeof users.$inferInsert;
 // Image order table for storing gallery image ordering
 export const imageOrders = pgTable("image_orders", {
   id: serial("id").primaryKey(),
-  gallery: varchar("gallery", { length: 50 }).notNull(), // 'photos' or 'journal'
+  gallery: varchar("gallery", { length: 50 }).notNull().unique(), // Supported gallery key
   imageOrder: text("imageOrder").notNull(), // JSON array of image paths in order
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

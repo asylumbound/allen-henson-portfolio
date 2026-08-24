@@ -8,6 +8,7 @@ import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 import { storagePut } from "./storage";
 import { generateResponsiveImages } from "./imageProcessing";
 import { generateAltText } from "./altTextGenerator";
+import { GALLERY_KEYS, type GalleryKey } from "../shared/const";
 
 // Admin password for sync/seed operations (DO NOT CHANGE — used by /sync)
 const ADMIN_PASSWORD = "&&77JFR";
@@ -17,6 +18,13 @@ const EDIT_PASSWORD = "&&77MAnila";
 // Helper: check if password matches either admin or edit password
 function isAuthorized(password: string): boolean {
   return password === ADMIN_PASSWORD || password === EDIT_PASSWORD;
+}
+
+const gallerySchema = z.enum(GALLERY_KEYS);
+
+function throwGalleryInternalError(action: string, gallery: GalleryKey, error: unknown, message: string): never {
+  console.error(`[Gallery] ${action} failed for "${gallery}"`, error);
+  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
 }
 
 export const appRouter = router({
@@ -49,7 +57,7 @@ export const appRouter = router({
     // Upload a new image to S3 with automatic responsive variants
     uploadImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
+        gallery: gallerySchema,
         fileName: z.string(),
         fileData: z.string(), // Base64 encoded
         contentType: z.string(),
@@ -73,55 +81,59 @@ export const appRouter = router({
         const baseFileKey = `gallery/${input.gallery}/${timestamp}-${cleanFileName}`;
         
         // Check if we should generate responsive variants
-        if (input.generateResponsive && (input.contentType === "image/webp" || input.contentType === "image/jpeg" || input.contentType === "image/png")) {
-          try {
-            // Generate responsive images (400w, 800w, 1200w) + original
-            const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
-            
-            // Generate AI alt text for the uploaded image
-            let altTextResult = null;
-            try {
-              altTextResult = await generateAltText(result.original.url, input.gallery);
-              console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
-            } catch (altError) {
-              console.error("[Upload] Failed to generate alt text:", altError);
-            }
-            
-            return {
-              success: true,
-              url: result.original.url,
-              fileKey: result.original.fileKey,
-              variants: result.variants,
-              altText: altTextResult,
-            };
-          } catch (error) {
-            console.error("Failed to generate responsive images, falling back to single upload:", error);
-            // Fall through to single upload
-          }
-        }
-        
-        // Fallback: Upload single image without responsive variants
-        const extension = input.contentType === "image/webp" ? ".webp" : 
-                         input.contentType === "image/png" ? ".png" : ".jpg";
-        const fileKey = `${baseFileKey}${extension}`;
-        const { url } = await storagePut(fileKey, buffer, input.contentType);
-        
-        // Generate AI alt text for the uploaded image
-        let altTextResult = null;
         try {
-          altTextResult = await generateAltText(url, input.gallery);
-          console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
-        } catch (altError) {
-          console.error("[Upload] Failed to generate alt text:", altError);
+          if (input.generateResponsive && (input.contentType === "image/webp" || input.contentType === "image/jpeg" || input.contentType === "image/png")) {
+            try {
+              // Generate responsive images (400w, 800w, 1200w) + optimized original
+              const result = await generateResponsiveImages(buffer, baseFileKey, input.contentType);
+              
+              // Generate AI alt text for the uploaded image
+              let altTextResult = null;
+              try {
+                altTextResult = await generateAltText(result.original.url, input.gallery);
+                console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
+              } catch (altError) {
+                console.error("[Upload] Failed to generate alt text:", altError);
+              }
+              
+              return {
+                success: true,
+                url: result.original.url,
+                fileKey: result.original.fileKey,
+                variants: result.variants,
+                altText: altTextResult,
+              };
+            } catch (error) {
+              console.error("Failed to generate responsive images, falling back to single upload:", error);
+              // Fall through to single upload
+            }
+          }
+          
+          // Fallback: Upload single image without responsive variants
+          const extension = input.contentType === "image/webp" ? ".webp" : 
+                           input.contentType === "image/png" ? ".png" : ".jpg";
+          const fileKey = `${baseFileKey}${extension}`;
+          const { url } = await storagePut(fileKey, buffer, input.contentType);
+          
+          // Generate AI alt text for the uploaded image
+          let altTextResult = null;
+          try {
+            altTextResult = await generateAltText(url, input.gallery);
+            console.log(`[Upload] Generated alt text: "${altTextResult.altText}"`);
+          } catch (altError) {
+            console.error("[Upload] Failed to generate alt text:", altError);
+          }
+          
+          return { success: true, url, fileKey, variants: [], altText: altTextResult };
+        } catch (error) {
+          throwGalleryInternalError("upload", input.gallery, error, "Failed to upload image. Please try again.");
         }
-        
-        return { success: true, url, fileKey, variants: [], altText: altTextResult };
       }),
     
     // Delete an image (removes from order, actual S3 deletion optional)
     deleteImage: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
+        gallery: gallerySchema,
         imageSrc: z.string(),
         password: z.string(),
       }))
@@ -129,31 +141,38 @@ export const appRouter = router({
         if (!isAuthorized(input.password)) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
-        
-        // Get current order
-        const currentOrder = await getImageOrder(input.gallery);
-        if (currentOrder) {
-          const order = JSON.parse(currentOrder.imageOrder) as string[];
-          const newOrder = order.filter(src => src !== input.imageSrc);
-          await saveImageOrder(input.gallery, newOrder);
+
+        try {
+          const currentOrder = await getImageOrder(input.gallery);
+          if (currentOrder) {
+            const order = JSON.parse(currentOrder.imageOrder) as string[];
+            const newOrder = order.filter(src => src !== input.imageSrc);
+            await saveImageOrder(input.gallery, newOrder);
+          }
+        } catch (error) {
+          throwGalleryInternalError("delete", input.gallery, error, "Failed to update gallery image order.");
         }
-        
+
         return { success: true };
       }),
 
     getOrder: publicProcedure
-      .input(z.object({ gallery: z.enum(["photos", "journal", "product-photography", "destinations"]) }))
+      .input(z.object({ gallery: gallerySchema }))
       .query(async ({ input }) => {
-        const result = await getImageOrder(input.gallery);
-        if (result) {
-          return { order: JSON.parse(result.imageOrder) as string[] };
+        try {
+          const result = await getImageOrder(input.gallery);
+          if (result) {
+            return { order: JSON.parse(result.imageOrder) as string[] };
+          }
+          return { order: null };
+        } catch (error) {
+          throwGalleryInternalError("load order", input.gallery, error, "Failed to load gallery image order.");
         }
-        return { order: null };
       }),
     
     saveOrder: publicProcedure
       .input(z.object({
-        gallery: z.enum(["photos", "journal", "product-photography", "destinations"]),
+        gallery: gallerySchema,
         order: z.array(z.string()),
         password: z.string(),
       }))
@@ -163,8 +182,12 @@ export const appRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
         }
         
-        await saveImageOrder(input.gallery, input.order);
-        return { success: true };
+        try {
+          await saveImageOrder(input.gallery, input.order);
+          return { success: true };
+        } catch (error) {
+          throwGalleryInternalError("save order", input.gallery, error, "Failed to save image order. Please try again.");
+        }
       }),
     
     // Generate alt text for an existing image

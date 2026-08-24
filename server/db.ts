@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { InsertUser, users, imageOrders, InsertImageOrder, blogPosts, InsertBlogPost, BlogPost, products, InsertProduct, Product } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import type { GalleryKey } from "../shared/const";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -94,36 +95,53 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // Image order queries
-export async function getImageOrder(gallery: string) {
+export async function getImageOrderFromDb(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, gallery: GalleryKey) {
+  const result = await db
+    .select()
+    .from(imageOrders)
+    .where(eq(imageOrders.gallery, gallery))
+    .orderBy(desc(imageOrders.updatedAt), desc(imageOrders.id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getImageOrder(gallery: GalleryKey) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get image order: database not available");
     return null;
   }
 
-  const result = await db.select().from(imageOrders).where(eq(imageOrders.gallery, gallery)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return getImageOrderFromDb(db, gallery);
 }
 
-export async function saveImageOrder(gallery: string, order: string[]) {
+export async function saveImageOrderToDb(
+  db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+  gallery: GalleryKey,
+  order: string[]
+) {
+  const orderJson = JSON.stringify(order);
+
+  await db.insert(imageOrders).values({ gallery, imageOrder: orderJson }).onConflictDoUpdate({
+    target: imageOrders.gallery,
+    set: {
+      imageOrder: orderJson,
+      updatedAt: new Date(),
+    },
+  });
+
+  return { success: true as const };
+}
+
+export async function saveImageOrder(gallery: GalleryKey, order: string[]) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot save image order: database not available");
     return null;
   }
 
-  const orderJson = JSON.stringify(order);
-  
-  // Check if record exists
-  const existing = await db.select().from(imageOrders).where(eq(imageOrders.gallery, gallery)).limit(1);
-  
-  if (existing.length > 0) {
-    await db.update(imageOrders).set({ imageOrder: orderJson, updatedAt: new Date() }).where(eq(imageOrders.gallery, gallery));
-  } else {
-    await db.insert(imageOrders).values({ gallery, imageOrder: orderJson });
-  }
-  
-  return { success: true };
+  return saveImageOrderToDb(db, gallery, order);
 }
 
 // Blog post queries

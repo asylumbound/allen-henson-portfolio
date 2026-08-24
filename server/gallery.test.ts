@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { appRouter } from './routers';
 import type { TrpcContext } from './_core/context';
 
+const EDIT_PASSWORD = "&&77MAnila";
+
 // Mock the database functions
 vi.mock('./db', () => ({
   getImageOrder: vi.fn(),
@@ -59,6 +61,23 @@ describe('Gallery Router', () => {
       
       expect(result.order).toEqual(savedOrder);
     });
+
+    it('should accept destinations gallery keys', async () => {
+      const savedOrder = ['https://example.com/destinations/new-upload.webp'];
+      vi.mocked(getImageOrder).mockResolvedValue({
+        id: 1,
+        gallery: 'destinations',
+        imageOrder: JSON.stringify(savedOrder),
+        updatedAt: new Date(),
+      });
+
+      const ctx = createTestContext();
+      const caller = appRouter.createCaller(ctx);
+      const result = await caller.gallery.getOrder({ gallery: 'destinations' });
+
+      expect(result.order).toEqual(savedOrder);
+      expect(getImageOrder).toHaveBeenCalledWith('destinations');
+    });
   });
 
   describe('gallery.saveOrder', () => {
@@ -83,11 +102,30 @@ describe('Gallery Router', () => {
       const result = await caller.gallery.saveOrder({
         gallery: 'photos',
         order: ['/images/photo1.jpg', '/images/photo2.jpg'],
-        password: '&&77VAnguard',
+        password: EDIT_PASSWORD,
       });
       
       expect(result.success).toBe(true);
       expect(saveImageOrder).toHaveBeenCalledWith('photos', ['/images/photo1.jpg', '/images/photo2.jpg']);
+    });
+
+    it('should return a safe error when order persistence fails', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(saveImageOrder).mockRejectedValue(new Error('Failed query: select * from image_orders'));
+
+      const ctx = createTestContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.gallery.saveOrder({
+          gallery: 'destinations',
+          order: ['https://example.com/destinations/new-upload.webp'],
+          password: EDIT_PASSWORD,
+        })
+      ).rejects.toThrow('Failed to save image order. Please try again.');
+
+      expect(consoleError).toHaveBeenCalled();
+      consoleError.mockRestore();
     });
   });
 
@@ -104,7 +142,7 @@ describe('Gallery Router', () => {
     it('should accept correct password', async () => {
       const ctx = createTestContext();
       const caller = appRouter.createCaller(ctx);
-      const result = await caller.admin.verifyPassword({ password: '&&77VAnguard' });
+      const result = await caller.admin.verifyPassword({ password: EDIT_PASSWORD });
       
       expect(result.success).toBe(true);
       expect(result.token).toBe('admin-verified');
