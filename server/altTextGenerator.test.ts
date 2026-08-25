@@ -6,29 +6,33 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockCreate } = vi.hoisted(() => ({ mockCreate: vi.fn() }));
 
-vi.mock("@anthropic-ai/sdk", () => ({
-  default: class MockAnthropic {
-    messages = { create: mockCreate };
+vi.mock("openai", () => ({
+  default: class MockOpenAI {
+    chat = { completions: { create: mockCreate } };
   },
+}));
+
+vi.mock("./_core/errorDetail", () => ({
+  logErrorCauseChain: vi.fn(),
 }));
 
 import { generateAltText, generateAltTextBatch } from "./altTextGenerator";
 
-function textResponse(payload: unknown) {
+function chatResponse(payload: unknown) {
   return {
-    content: [{ type: "text", text: JSON.stringify(payload) }],
+    choices: [{ message: { content: JSON.stringify(payload) } }],
   };
 }
 
 describe("Alt Text Generator", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.ANTHROPIC_API_KEY = "test-key";
+    process.env.OPENAI_API_KEY = "test-key";
   });
 
   it("should generate alt text for an image", async () => {
     mockCreate.mockResolvedValueOnce(
-      textResponse({
+      chatResponse({
         altText: "Elegant watch on dark background with dramatic lighting",
         title: "Luxury Watch Photography",
         description:
@@ -56,7 +60,7 @@ describe("Alt Text Generator", () => {
   });
 
   it("should return fallback alt text when no API key is configured", async () => {
-    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
 
     const result = await generateAltText("https://example.com/image.jpg");
 
@@ -64,9 +68,20 @@ describe("Alt Text Generator", () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("should include context in the system prompt", async () => {
+  it("should return fallback on malformed JSON response", async () => {
+    mockCreate.mockResolvedValueOnce({
+      choices: [{ message: { content: "not valid json {{" } }],
+    });
+
+    const result = await generateAltText("https://example.com/image.jpg");
+
+    expect(result.altText).toBe("Professional photography by Allen Henson");
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it("should include context in the prompt", async () => {
     mockCreate.mockResolvedValueOnce(
-      textResponse({
+      chatResponse({
         altText: "Portrait of a woman in natural light",
         title: "Natural Light Portrait",
         description: "A portrait photograph taken with natural lighting.",
@@ -78,14 +93,25 @@ describe("Alt Text Generator", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        system: expect.stringContaining("editorial portrait"),
-      })
+        messages: expect.arrayContaining([
+          expect.objectContaining({
+            role: "user",
+            content: expect.arrayContaining([
+              expect.objectContaining({
+                type: "text",
+                text: expect.stringContaining("editorial portrait"),
+              }),
+            ]),
+          }),
+        ]),
+      }),
+      expect.anything()
     );
   });
 
   it("should pass the image URL to the model", async () => {
     mockCreate.mockResolvedValueOnce(
-      textResponse({
+      chatResponse({
         altText: "Test alt text",
         title: "Test",
         description: "Test description.",
@@ -102,23 +128,23 @@ describe("Alt Text Generator", () => {
             role: "user",
             content: expect.arrayContaining([
               expect.objectContaining({
-                type: "image",
-                source: expect.objectContaining({
-                  type: "url",
+                type: "image_url",
+                image_url: expect.objectContaining({
                   url: "https://example.com/image.jpg",
                 }),
               }),
             ]),
           }),
         ]),
-      })
+      }),
+      expect.anything()
     );
   });
 
   it("should process batch images sequentially", async () => {
     mockCreate
       .mockResolvedValueOnce(
-        textResponse({
+        chatResponse({
           altText: "First image alt text",
           title: "First Image",
           description: "Description of first image.",
@@ -126,7 +152,7 @@ describe("Alt Text Generator", () => {
         })
       )
       .mockResolvedValueOnce(
-        textResponse({
+        chatResponse({
           altText: "Second image alt text",
           title: "Second Image",
           description: "Description of second image.",
