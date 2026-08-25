@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
+import MasonryGrid from "@/components/MasonryGrid";
 
 // No built-in images — the Destinations collection is populated via /edit uploads.
 // Export for use in Edit page (mirrors photosImages / journalImages).
@@ -88,15 +89,16 @@ export default function Destinations() {
           </p>
         </motion.div>
 
-        {/* Masonry Grid */}
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
-          {orderedImages.map((image, index) => (
+        {/* Masonry Grid — row-major: order reads left-to-right, matching /edit */}
+        <MasonryGrid
+          items={orderedImages}
+          columns={{ base: 1, sm: 2, lg: 3 }}
+          renderItem={(image, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: Math.min(index * 0.02, 1) }}
-              className="break-inside-avoid mb-4"
             >
               <div
                 onClick={() => openLightbox(index)}
@@ -120,8 +122,8 @@ export default function Destinations() {
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
+          )}
+        />
 
         {/* Empty state — shown until the collection is populated via /edit */}
         {orderedImages.length === 0 && (
