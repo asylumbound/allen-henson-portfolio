@@ -42,9 +42,16 @@ export default function Destinations() {
 
   // Fetch saved order from database
   const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "destinations" });
+  // AI-generated alt texts stored per image (see /edit → AI Alt Text)
+  const { data: altData } = trpc.gallery.getAltTexts.useQuery({ gallery: "destinations" });
 
-  // Compute ordered images based on saved order or default
-  const orderedImages = useMemo(() => applyDestinationsOrder(orderData?.order), [orderData]);
+  // Compute ordered images based on saved order or default, with stored alt text
+  const orderedImages = useMemo(() => {
+    const ordered = applyDestinationsOrder(orderData?.order);
+    const altTexts = altData?.altTexts;
+    if (!altTexts) return ordered;
+    return ordered.map((img) => ({ ...img, alt: altTexts[img.src] || img.alt }));
+  }, [orderData, altData]);
 
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);
