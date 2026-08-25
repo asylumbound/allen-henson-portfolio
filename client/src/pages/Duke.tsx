@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { SEOHead } from "@/components/SEOHead";
+import MasonryGrid from "@/components/MasonryGrid";
 import { assetUrl } from "@/lib/assets";
 
 // SHA-256 hash of the password "duke"
@@ -868,8 +869,11 @@ export default function Duke() {
               <div className="w-24 h-px bg-border mx-auto mt-8" />
             </motion.div>
           ) : (
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-              {orderedImages.map((image, index) => (
+            /* Row-major masonry: order reads left-to-right, matching /edit */
+            <MasonryGrid
+              items={orderedImages}
+              columns={{ base: 1, sm: 2, lg: 3 }}
+              renderItem={(image, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 30 }}
@@ -878,7 +882,6 @@ export default function Duke() {
                     duration: 0.5,
                     delay: Math.min(index * 0.02, 1),
                   }}
-                  className="break-inside-avoid"
                 >
                   <div
                     onClick={() => openLightbox(index)}
@@ -915,8 +918,8 @@ export default function Duke() {
                     </div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
+              )}
+            />
           )}
 
           {/* Lightbox */}

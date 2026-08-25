@@ -10,6 +10,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import { BreadcrumbSchema } from "@/components/StructuredData";
+import MasonryGrid from "@/components/MasonryGrid";
 import { assetUrl } from "@/lib/assets";
 
 // Journal images from allenhenson.nyc/about page
@@ -296,14 +297,17 @@ export default function Journal() {
       {/* Gallery Grid */}
       <section className="pb-24">
         <div className="container">
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
-            {orderedImages.map((img, index) => (
+          {/* Row-major masonry: order reads left-to-right, matching /edit */}
+          <MasonryGrid
+            items={orderedImages}
+            columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+            renderItem={(img, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: Math.min(index * 0.02, 0.5) }}
-                className="break-inside-avoid mb-4 cursor-pointer group relative overflow-hidden"
+                className="cursor-pointer group relative overflow-hidden"
                 onClick={() => setSelectedImage(index)}
               >
                 <img
@@ -315,8 +319,8 @@ export default function Journal() {
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
               </motion.div>
-            ))}
-          </div>
+            )}
+          />
         </div>
       </section>
 

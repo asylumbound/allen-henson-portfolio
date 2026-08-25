@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { ImageGallerySchema, BreadcrumbSchema } from "@/components/StructuredData";
+import MasonryGrid from "@/components/MasonryGrid";
 import { assetUrl } from "@/lib/assets";
 
 // Product photography categories
@@ -270,14 +271,17 @@ export default function ProductPhotography() {
 
         {/* Image Grid — CSS columns masonry: images take natural height, no black gaps */}
         <div className="container">
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
-            {filteredImages.map((image, index) => (
+          {/* Row-major masonry: order reads left-to-right, matching /edit */}
+          <MasonryGrid
+            items={filteredImages}
+            columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+            renderItem={(image, index) => (
               <motion.div
                 key={image.src}
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.4) }}
-                className="group cursor-pointer mb-4 break-inside-avoid"
+                className="group cursor-pointer"
                 onClick={() => openLightbox(index)}
               >
                 <div className="relative overflow-hidden bg-secondary/30">
@@ -296,8 +300,8 @@ export default function ProductPhotography() {
                   </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
+            )}
+          />
         </div>
 
         {/* Lightbox */}
