@@ -17,7 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Save, Check, X, Images, BookOpen, Upload, Trash2, Plus, Loader2,
-  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search, MapPin,
+  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search, MapPin, Sparkles,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -217,6 +217,41 @@ function GalleryTab({
   const saveOrderMutation = trpc.gallery.saveOrder.useMutation();
   const uploadImageMutation = trpc.gallery.uploadImage.useMutation();
   const deleteImageMutation = trpc.gallery.deleteImage.useMutation();
+  const generateAltTextsMutation = trpc.gallery.generateAltTextsForGallery.useMutation();
+  const [altTagProgress, setAltTagProgress] = useState<{ done: number; total: number } | null>(null);
+
+  // Runs OpenAI alt tagging over every uploaded image in this gallery's saved
+  // order, in chunks of 5, until none remain. Already-tagged images are skipped.
+  const handleGenerateAltTexts = async () => {
+    if (altTagProgress) return;
+    setAltTagProgress({ done: 0, total: 0 });
+    let done = 0;
+    try {
+      for (;;) {
+        const res = await generateAltTextsMutation.mutateAsync({
+          gallery: galleryKey as GalleryKey,
+          password,
+          limit: 5,
+        });
+        done += res.processed;
+        setAltTagProgress({ done, total: res.total });
+        if (res.remaining <= 0 || res.processed === 0) {
+          if (res.total === 0) {
+            toast.info("No uploaded images in the saved order to tag. Save the order first.");
+          } else if (done === 0) {
+            toast.success("All images already have alt text.");
+          } else {
+            toast.success(`Alt text generated for ${done} image${done === 1 ? "" : "s"}.`);
+          }
+          break;
+        }
+      }
+    } catch (err: any) {
+      toast.error(typeof err?.message === "string" ? err.message : "Alt text generation failed");
+    } finally {
+      setAltTagProgress(null);
+    }
+  };
 
   // DnD sensors
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
@@ -408,6 +443,20 @@ function GalleryTab({
         <div className="ml-auto flex items-center gap-3">
           <span className="text-xs text-muted-foreground">{images.length} images</span>
           {hasChanges && <span className="text-xs text-gold">Unsaved changes</span>}
+          {galleryKey !== "duke" && (
+            <button
+              onClick={handleGenerateAltTexts}
+              disabled={altTagProgress !== null}
+              title="Generate AI alt text (OpenAI) for uploaded images missing it"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary/40 border border-foreground/10 text-foreground hover:border-gold/50 transition-all disabled:opacity-60"
+            >
+              {altTagProgress ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Tagging {altTagProgress.done}{altTagProgress.total ? `/${altTagProgress.total}` : ""}</>
+              ) : (
+                <><Sparkles className="w-4 h-4" /> AI Alt Text</>
+              )}
+            </button>
+          )}
           <button
             onClick={handleSave}
             disabled={!hasChanges || saveStatus === "saving"}

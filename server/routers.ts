@@ -268,6 +268,102 @@ export const appRouter = router({
         const result = await generateAltText(input.imageUrl, input.context);
         return result;
       }),
+
+    // Stored per-image alt texts for a gallery (public — used by live pages)
+    getAltTexts: publicProcedure
+      .input(z.object({ gallery: gallerySchema }))
+      .query(async ({ input }) => {
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+        const res = await fetch(
+          joinUrl(BLOG_SUPABASE_URL, `rest/v1/image_alt_texts?select=src,alt_text,title,description,keywords&gallery=eq.${encodeURIComponent(input.gallery)}`),
+          { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+        );
+        if (!res.ok) return { altTexts: {} as Record<string, string> };
+        const rows = (await res.json()) as Array<{ src: string; alt_text: string }>;
+        const altTexts: Record<string, string> = {};
+        for (const row of rows) altTexts[row.src] = row.alt_text;
+        return { altTexts };
+      }),
+
+    // AI-generate and store alt texts for a gallery's saved order, in chunks.
+    // Each call processes up to `limit` images that don't have alt text yet
+    // and reports how many remain, so the client can loop with progress.
+    generateAltTextsForGallery: publicProcedure
+      .input(z.object({
+        gallery: gallerySchema,
+        password: z.string(),
+        limit: z.number().min(1).max(10).optional().default(5),
+        force: z.boolean().optional().default(false),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+        const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+        const orderRow = await getImageOrder(input.gallery);
+        if (!orderRow) return { processed: 0, remaining: 0, total: 0 };
+        const srcs = (JSON.parse(orderRow.imageOrder) as string[]).filter(
+          (src) => src.startsWith("http")
+        );
+
+        // Which srcs already have stored alt text?
+        const existing = new Set<string>();
+        if (!input.force) {
+          const res = await fetch(
+            joinUrl(BLOG_SUPABASE_URL, `rest/v1/image_alt_texts?select=src&gallery=eq.${encodeURIComponent(input.gallery)}`),
+            { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+          );
+          if (res.ok) {
+            for (const row of (await res.json()) as Array<{ src: string }>) {
+              existing.add(row.src);
+            }
+          }
+        }
+
+        const pending = srcs.filter((src) => !existing.has(src));
+        const batch = pending.slice(0, input.limit);
+        const context = input.gallery === "destinations"
+          ? "luxury interior and exterior photography of destinations and residences"
+          : `${input.gallery} photography`;
+
+        let processed = 0;
+        for (const src of batch) {
+          const result = await generateAltText(src, context);
+          const upsert = await fetch(
+            joinUrl(BLOG_SUPABASE_URL, "rest/v1/image_alt_texts"),
+            {
+              method: "POST",
+              headers: {
+                apikey: SERVICE_KEY,
+                Authorization: `Bearer ${SERVICE_KEY}`,
+                "Content-Type": "application/json",
+                Prefer: "resolution=merge-duplicates",
+              },
+              body: JSON.stringify({
+                src,
+                gallery: input.gallery,
+                alt_text: result.altText,
+                title: result.title,
+                description: result.description,
+                keywords: result.keywords,
+                updated_at: new Date().toISOString(),
+              }),
+            }
+          );
+          if (!upsert.ok) {
+            const errText = await upsert.text().catch(() => upsert.statusText);
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Failed to store alt text: ${errText}` });
+          }
+          processed++;
+        }
+
+        return {
+          processed,
+          remaining: pending.length - processed,
+          total: srcs.length,
+        };
+      }),
   }),
 
   // Blog posts — served from Supabase (postgres), not TiDB
