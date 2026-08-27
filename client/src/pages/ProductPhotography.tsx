@@ -117,14 +117,42 @@ export const productPhotographyImages = [
 // Used by this page AND the /edit CMS so both always show the same list.
 // NOTE: when a saved order exists, ONLY images in it are shown — this is how
 // deletions made in the CMS stay deleted on the live page.
+//
+// The CMS persists local paths (for example, `/images/product/cartier-tank.webp`),
+// while `assetUrl()` converts the catalogue entries to Supabase public URLs at
+// runtime. Normalize public product URLs back to the CMS path before matching.
+export function normalizeProductOrderSource(src: string): string {
+  if (src.startsWith("/images/product/")) return src;
+
+  try {
+    const url = new URL(src);
+    const marker = "/product-images/";
+    const markerIndex = url.pathname.indexOf(marker);
+    if (markerIndex !== -1) {
+      const objectKey = decodeURIComponent(url.pathname.slice(markerIndex + marker.length));
+      return `/images/product/${objectKey}`;
+    }
+  } catch {
+    // Non-URL values are handled by the caller as stale paths.
+  }
+
+  return src;
+}
+
 export function applyProductOrder(order: string[] | null | undefined) {
   if (order && order.length > 0) {
-    const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
+    const imageMap = new Map(
+      productPhotographyImages.flatMap(img => [
+        [img.src, img] as const,
+        [normalizeProductOrderSource(img.src), img] as const,
+      ])
+    );
+
     return order
       .map(src => {
-        const known = imageMap.get(src);
+        const known = imageMap.get(src) ?? imageMap.get(normalizeProductOrderSource(src));
         if (known) return known;
-        // Absolute storage URL = image uploaded via the /edit CMS
+        // Absolute storage URL = image uploaded through the CMS.
         if (src.startsWith("http")) return { src, alt: "Product photograph", category: "uploaded", description: "" };
         return undefined; // stale local path — drop
       })
