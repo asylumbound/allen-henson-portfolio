@@ -133,6 +133,14 @@ function getProductImageDimensions(src: string) {
   return { width: 400, height: 717 };
 }
 
+function getProductAvifSrcSet(src: string) {
+  if (!src.includes("/storage/v1/object/public/product-images/") || !src.endsWith(".webp")) return undefined;
+  const transformed = src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+  return [400, 800, 1200]
+    .map(width => `${transformed}?width=${width}&quality=55&format=avif ${width}w`)
+    .join(", ");
+}
+
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
 // NOTE: when a saved order exists, ONLY images in it are shown — this is how
@@ -186,36 +194,46 @@ function ProductImage({
   src, 
   alt, 
   className,
-  onLoad 
+  onLoad,
+  priority = false
 }: { 
   src: string; 
   alt: string; 
   className?: string;
   onLoad?: () => void;
+  priority?: boolean;
 }) {
   const { width, height } = getProductImageDimensions(src);
+  const sizes = "(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw";
+  const webpSrcSet = `${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`;
+  const avifSrcSet = getProductAvifSrcSet(src);
 
   return (
     <div className="relative overflow-hidden w-full">
-      <img
-        width={width}
-        height={height}
-        src={src}
-        srcSet={`${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        alt={alt}
-        className={`w-full h-auto block ${className}`}
-        loading="lazy"
-        onLoad={onLoad}
-        onError={(e) => {
-          // Fallback to original image if responsive variants don't exist
-          const img = e.currentTarget;
-          if (img.srcset) {
-            img.srcset = '';
-            img.src = src;
-          }
-        }}
-      />
+      <picture>
+        {avifSrcSet && <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />}
+        <img
+          width={width}
+          height={height}
+          src={src}
+          srcSet={webpSrcSet}
+          sizes={sizes}
+          alt={alt}
+          className={`w-full h-auto block ${className}`}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          onLoad={onLoad}
+          onError={(e) => {
+            // Fall back to the source image only if a pre-generated WebP variant is unavailable.
+            const img = e.currentTarget;
+            if (img.srcset) {
+              img.srcset = '';
+              img.src = src;
+            }
+          }}
+        />
+      </picture>
     </div>
   );
 }
@@ -328,11 +346,8 @@ export default function ProductPhotography() {
             items={filteredImages}
             columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
             renderItem={(image, index) => (
-              <motion.div
+              <div
                 key={image.src}
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.4) }}
                 className="group cursor-pointer"
                 onClick={() => openLightbox(index)}
               >
@@ -341,6 +356,7 @@ export default function ProductPhotography() {
                     src={image.src}
                     alt={image.alt}
                     className="image-hover"
+                    priority={index === 0}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
                   <div className="absolute inset-0 vignette opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -351,7 +367,7 @@ export default function ProductPhotography() {
                     <p className="text-xs text-white/70">{image.description}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
           />
         </div>
