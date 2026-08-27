@@ -113,6 +113,26 @@ export const productPhotographyImages = [
   { src: assetUrl("/images/product/fashion-nike-af1.webp"), alt: "Nike Air Force 1", category: "tech-fashion", description: "Studio: white-on-white texture mastery" },
 ];
 
+// Every generated product variant shares one of these source dimensions. Explicit
+// attributes reserve its gallery space before network decoding and prevent CLS.
+const squareProductImages = new Set([
+  "consumer-aesop-bottles.webp",
+  "fashion-lv-leather.webp",
+  "tech-bo-speaker.webp",
+  "fashion-adidas-samba.webp",
+  "consumer-dyson-hairtool.webp",
+  "tech-leica-camera.webp",
+  "tech-sony-headphones.webp",
+  "fashion-nike-af1.webp",
+]);
+
+function getProductImageDimensions(src: string) {
+  const filename = src.split("/").pop()?.split("?")[0] ?? "";
+  if (squareProductImages.has(filename)) return { width: 400, height: 400 };
+  if (filename === "rolex-yacht-master.webp") return { width: 400, height: 597 };
+  return { width: 400, height: 717 };
+}
+
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
 // NOTE: when a saved order exists, ONLY images in it are shown — this is how
@@ -173,9 +193,13 @@ function ProductImage({
   className?: string;
   onLoad?: () => void;
 }) {
+  const { width, height } = getProductImageDimensions(src);
+
   return (
     <div className="relative overflow-hidden w-full">
       <img
+        width={width}
+        height={height}
         src={src}
         srcSet={`${src.replace('.webp', '-400.webp')} 400w, ${src.replace('.webp', '-800.webp')} 800w, ${src.replace('.webp', '-1200.webp')} 1200w, ${src} 1600w`}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -339,7 +363,7 @@ export default function ProductPhotography() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+              className="fixed inset-0 z-[120] bg-black flex items-center justify-center"
               onClick={closeLightbox}
             >
               {/* Close Button */}

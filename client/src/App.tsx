@@ -1,32 +1,35 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import Photos from "./pages/Photos";
-import Destinations from "./pages/Destinations";
-import Video from "./pages/Video";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Journal from "./pages/Journal";
-import Edit from "./pages/Edit";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Sales from "./pages/Sales";
-import ProductPhotography from "./pages/ProductPhotography";
-import ProductDetail from "./pages/ProductDetail";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
-import Login from "./pages/Login";
-import DataSecurityIncidentNotice from "./pages/DataSecurityIncidentNotice";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import Duke from "./pages/Duke";
-import Agency from "./pages/Agency";
-import PhotoVideoSync from "./pages/PhotoVideoSync";
-import SyncSharePage from "./pages/SyncSharePage";
 import Layout from "./components/Layout";
+
+// Load route code on demand so mobile visitors do not pay for galleries and private tools they never open.
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Home = lazy(() => import("./pages/Home"));
+const Photos = lazy(() => import("./pages/Photos"));
+const Destinations = lazy(() => import("./pages/Destinations"));
+const Video = lazy(() => import("./pages/Video"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Journal = lazy(() => import("./pages/Journal"));
+const Edit = lazy(() => import("./pages/Edit"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Sales = lazy(() => import("./pages/Sales"));
+const ProductPhotography = lazy(() => import("./pages/ProductPhotography"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const Login = lazy(() => import("./pages/Login"));
+const DataSecurityIncidentNotice = lazy(() => import("./pages/DataSecurityIncidentNotice"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Duke = lazy(() => import("./pages/Duke"));
+const Agency = lazy(() => import("./pages/Agency"));
+const PhotoVideoSync = lazy(() => import("./pages/PhotoVideoSync"));
+const SyncSharePage = lazy(() => import("./pages/SyncSharePage"));
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -81,7 +84,9 @@ function App() {
       <ThemeProvider defaultTheme="dark" switchable>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Suspense fallback={<div className="min-h-screen bg-background" aria-busy="true" />}>
+            <Router />
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

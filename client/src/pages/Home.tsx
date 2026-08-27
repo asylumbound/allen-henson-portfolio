@@ -8,6 +8,7 @@
  * LAFC CONSULTING
  */
 
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
@@ -15,6 +16,13 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { SEOHead } from "@/components/SEOHead";
 import { PersonSchema, OrganizationSchema, WebsiteSchema, ProfessionalServiceSchema } from "@/components/StructuredData";
 import { assetUrl } from "@/lib/assets";
+
+const heroPoster = assetUrl("/images/XUQX2322-scaled.jpg");
+
+function transformedImageUrl(src: string, width: number, quality = 72) {
+  if (!src.includes("/storage/v1/object/public/")) return src;
+  return `${src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/")}?width=${width}&quality=${quality}&format=webp`;
+}
 
 const featuredImages = [
   { src: assetUrl("/images/XUQX2322-scaled.jpg"), alt: "Portrait photography" },
@@ -24,8 +32,14 @@ const featuredImages = [
 ];
 
 export default function Home() {
-  // Auth is available if needed for protected features
-  // const { user, isAuthenticated } = useAuth();
+  // Avoid downloading the 1080p ambient reel for phone and data-saving visits.
+  const [playHeroVideo, setPlayHeroVideo] = useState(false);
+
+  useEffect(() => {
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const prefersStaticHero = window.matchMedia("(max-width: 767px), (prefers-reduced-motion: reduce)").matches || saveData;
+    if (!prefersStaticHero) setPlayHeroVideo(true);
+  }, []);
 
   return (
     <>
@@ -43,16 +57,29 @@ export default function Home() {
       <section className="relative min-h-[38rem] h-[78svh] sm:h-[82svh] md:h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Video */}
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-full h-full object-cover opacity-60"
-            poster={assetUrl("/images/XUQX2322-scaled.jpg")}
-          >
-            <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
-          </video>
+          {playHeroVideo ? (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover opacity-60"
+              poster={heroPoster}
+            >
+              <source src="https://vvfkredvyestpjmfyafh.supabase.co/storage/v1/object/public/video-assets/allen_henson_the_reel_1080p.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src={transformedImageUrl(heroPoster, 960)}
+              srcSet={`${transformedImageUrl(heroPoster, 640)} 640w, ${transformedImageUrl(heroPoster, 960)} 960w, ${transformedImageUrl(heroPoster, 1280)} 1280w`}
+              sizes="100vw"
+              alt=""
+              aria-hidden="true"
+              fetchPriority="high"
+              className="w-full h-full object-cover opacity-60"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="absolute inset-0 vignette" />
         </div>
