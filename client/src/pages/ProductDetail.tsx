@@ -1124,7 +1124,7 @@ export default function ProductDetail() {
         type="website"
       />
       
-      <div className="min-h-screen py-12 md:py-20">
+      <div className="min-h-screen py-8 sm:py-12 md:py-20">
         <div className="container">
           {/* Back Link */}
           <motion.div
@@ -1142,7 +1142,7 @@ export default function ProductDetail() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          <div className="grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20">
             {/* Product Image Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}

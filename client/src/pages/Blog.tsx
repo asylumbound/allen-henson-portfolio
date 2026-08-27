@@ -46,7 +46,7 @@ export default function Blog() {
       />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[42svh] min-h-[20rem] sm:h-[50vh] sm:min-h-[25rem] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={BLOG_HERO}
@@ -78,7 +78,7 @@ export default function Blog() {
       </section>
 
       {/* Blog Posts Grid */}
-      <section className="py-16 md:py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -91,7 +91,7 @@ export default function Blog() {
               ))}
             </div>
           ) : posts && posts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:gap-12">
               {posts.map((post, index) => (
                 <motion.article
                   key={post.id}

@@ -275,9 +275,9 @@ export default function ProductPhotography() {
         ]}
       />
 
-      <div className="min-h-screen pt-24 pb-16">
+      <div className="min-h-screen pt-10 pb-10 sm:pt-16 sm:pb-16 md:pt-24">
         {/* Header */}
-        <div className="container mb-12">
+        <div className="container mb-8 sm:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -396,7 +396,7 @@ export default function ProductPhotography() {
         </AnimatePresence>
 
         {/* CTA Section */}
-        <div className="container mt-16">
+        <div className="container mt-10 sm:mt-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

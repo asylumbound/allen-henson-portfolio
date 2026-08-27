@@ -59,14 +59,14 @@ export default function Contact() {
           { name: "Contact", url: "https://www.allenhenson.com/contact" },
         ]}
       />
-      <div className="min-h-screen py-12 md:py-20">
+      <div className="min-h-screen py-8 sm:py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20 md:mb-24"
+          className="text-center mb-12 sm:mb-16 md:mb-24"
         >
           <p className="meta-text text-gold uppercase mb-4">
             LET'S CONNECT
@@ -82,7 +82,7 @@ export default function Contact() {
         </motion.div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 gap-10 sm:gap-16 lg:grid-cols-2 lg:gap-24 max-w-5xl mx-auto">
           {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}

@@ -40,7 +40,7 @@ export default function Home() {
       <ProfessionalServiceSchema />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[38rem] h-[78svh] sm:h-[82svh] md:h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Video */}
         <div className="absolute inset-0 z-0">
           <video
@@ -112,14 +112,14 @@ export default function Home() {
       </section>
 
       {/* Featured Work Section */}
-      <section className="py-28 md:py-36">
+      <section className="py-16 sm:py-20 md:py-36">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-20"
+            className="text-center mb-12 sm:mb-16 md:mb-20"
           >
             <p className="meta-text text-gold mb-4 uppercase">
               SELECTED WORKS
@@ -175,9 +175,9 @@ export default function Home() {
       </section>
 
       {/* About Teaser */}
-      <section className="py-28 md:py-36 bg-secondary/30">
+      <section className="py-16 sm:py-20 md:py-36 bg-secondary/30">
         <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -230,7 +230,7 @@ export default function Home() {
       </section>
 
       {/* Contact CTA */}
-      <section className="py-28 md:py-36">
+      <section className="py-16 sm:py-20 md:py-36">
         <div className="container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

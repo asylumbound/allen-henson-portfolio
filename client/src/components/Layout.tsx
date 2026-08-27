@@ -66,7 +66,9 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Header */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-500 ${
+        className={`sticky top-0 relative transition-all duration-500 ${
+          mobileMenuOpen ? "z-[110]" : "z-50"
+        } ${
           scrolled
             ? "bg-background/95 backdrop-blur-sm border-b border-border"
             : "bg-transparent"
@@ -130,6 +132,8 @@ export default function Layout({ children }: LayoutProps) {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-foreground hover:text-gold cinematic-transition"
                 aria-label="Toggle menu"
+                aria-controls="mobile-navigation"
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? (
                   <X className="w-6 h-6" />
@@ -141,18 +145,24 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile navigation overlays the page and scrolls independently on every phone height. */}
         <div
-          className={`md:hidden overflow-hidden cinematic-transition ${
-            mobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+          className={`md:hidden absolute inset-x-0 top-full border-t border-border bg-background/98 backdrop-blur-lg transition-all duration-300 ${
+            mobileMenuOpen
+              ? "visible translate-y-0 opacity-100"
+              : "invisible -translate-y-2 opacity-0 pointer-events-none"
           }`}
+          aria-hidden={!mobileMenuOpen}
         >
-          <nav className="container py-4 flex flex-col gap-4 border-t border-border">
+          <nav
+            id="mobile-navigation"
+            className="container flex max-h-[calc(100dvh-9rem)] flex-col gap-1 overflow-y-auto overscroll-contain py-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] touch-pan-y"
+          >
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`nav-text py-2 ${
+                className={`nav-text min-h-11 py-3 flex items-center ${
                   location === item.href
                     ? "text-gold"
                     : "text-foreground hover:text-gold"
@@ -173,7 +183,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Footer Navigation */}
-            <nav className="flex items-center gap-6">
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -186,7 +196,7 @@ export default function Layout({ children }: LayoutProps) {
             </nav>
 
             {/* Legal Links */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center">
               <Link
                 href="/privacy-policy"
                 className="caption-text text-muted-foreground hover:text-gold cinematic-transition"

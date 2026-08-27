@@ -25,14 +25,14 @@ export default function Video() {
           { name: "Video", url: "https://www.allenhenson.com/video" },
         ]}
       />
-      <div className="min-h-screen py-12 md:py-20">
+      <div className="min-h-screen py-8 sm:py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 md:mb-20"
         >
           <p className="meta-text text-gold uppercase mb-4">
             MOTION
@@ -92,7 +92,7 @@ export default function Video() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="max-w-3xl mx-auto mt-20 text-center"
+          className="max-w-3xl mx-auto mt-12 sm:mt-20 text-center"
         >
           <div className="w-12 h-px bg-border mx-auto mb-8" />
           <p className="text-base font-normal leading-relaxed text-foreground/80 mb-6">

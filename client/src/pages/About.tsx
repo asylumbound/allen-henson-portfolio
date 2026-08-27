@@ -28,14 +28,14 @@ export default function About() {
           { name: "About", url: "https://www.allenhenson.com/about" },
         ]}
       />
-      <div className="min-h-screen py-12 md:py-20">
+      <div className="min-h-screen py-8 sm:py-12 md:py-20">
       <div className="container">
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20 md:mb-24"
+          className="text-center mb-12 sm:mb-16 md:mb-24"
         >
           <p className="meta-text text-gold uppercase mb-4">
             THE ARTIST
@@ -46,14 +46,14 @@ export default function About() {
         </motion.div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20 items-start">
           {/* Image */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <div className="relative aspect-[3/4] overflow-hidden sticky top-24">
+            <div className="relative aspect-[3/4] overflow-hidden lg:sticky lg:top-24">
               <img
                 src={assetUrl("/images/allen-about-new.png")}
                 alt="Allen Henson"

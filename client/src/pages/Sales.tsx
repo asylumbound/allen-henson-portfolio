@@ -182,7 +182,7 @@ export default function Sales() {
       />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-28 md:py-36 overflow-hidden">
+      <section className="relative py-16 sm:py-20 md:py-36 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={assetUrl("/images/L1009868.jpg")}
@@ -218,7 +218,7 @@ export default function Sales() {
       </section>
 
       {/* Products Grid */}
-      <section className="py-16 md:py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {currentProducts.map((product, index) => (
@@ -270,7 +270,7 @@ export default function Sales() {
           
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-16">
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-10 sm:mt-16">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -315,7 +315,7 @@ export default function Sales() {
       </section>
 
       {/* Contact CTA */}
-      <section className="py-16 md:py-24 bg-secondary/20">
+      <section className="py-12 sm:py-16 md:py-24 bg-secondary/20">
         <div className="container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -345,7 +345,7 @@ export default function Sales() {
       </section>
 
       {/* Custom Orders */}
-      <section className="py-16 md:py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

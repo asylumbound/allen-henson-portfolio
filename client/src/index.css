@@ -129,6 +129,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body,
+  #root {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 1.125rem;
@@ -174,11 +182,21 @@
 
 @layer components {
   .container {
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  @media (max-width: 639px) {
+    .container {
+      /* Keep every page aligned to the same intentional phone gutter. */
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
   }
 
   .flex {

@@ -74,14 +74,14 @@ export default function Destinations() {
         title="Destinations"
         description="Luxury interior and exterior photography by Allen Henson. Residences, resorts, and architectural spaces captured as experiences — a way of living, framed."
       />
-      <div className="min-h-screen py-12 md:py-20">
+      <div className="min-h-screen py-8 sm:py-12 md:py-20">
         <div className="container">
           {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 md:mb-20"
         >
           <p className="meta-text text-gold uppercase mb-4">
             PORTFOLIO

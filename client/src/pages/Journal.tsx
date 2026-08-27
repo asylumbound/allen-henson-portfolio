@@ -275,7 +275,7 @@ export default function Journal() {
       />
       <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-28 md:py-36">
+      <section className="relative py-16 sm:py-20 md:py-36">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -295,7 +295,7 @@ export default function Journal() {
       </section>
 
       {/* Gallery Grid */}
-      <section className="pb-24">
+      <section className="pb-12 sm:pb-24">
         <div className="container">
           {/* Row-major masonry: order reads left-to-right, matching /edit */}
           <MasonryGrid
