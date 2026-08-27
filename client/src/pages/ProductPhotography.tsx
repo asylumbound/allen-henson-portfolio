@@ -385,14 +385,6 @@ export default function ProductPhotography() {
                   alt={filteredImages[currentIndex]?.alt}
                   className="max-w-full max-h-[85vh] object-contain"
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <h3 className="text-lg font-medium text-white mb-1">
-                    {filteredImages[currentIndex]?.alt}
-                  </h3>
-                  <p className="text-sm text-white/70">
-                    {filteredImages[currentIndex]?.description}
-                  </p>
-                </div>
               </motion.div>
 
               {/* Counter */}
