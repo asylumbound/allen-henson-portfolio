@@ -13,6 +13,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import MasonryGrid from "@/components/MasonryGrid";
+import { resolveGalleryOrder } from "@/lib/galleryOrder";
 
 // No built-in images — the Destinations collection is populated via /edit uploads.
 // Export for use in Edit page (mirrors photosImages / journalImages).
@@ -21,20 +22,10 @@ export const destinationsImages: Array<{ src: string; webSrc?: string; alt: stri
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
 export function applyDestinationsOrder(order: string[] | null | undefined) {
-  if (order) {
-    const ordered = order
-      .map((src) => {
-        const known = destinationsImages.find(img => img.src === src);
-        if (known) return known;
-        // Absolute storage URL = image uploaded via the /edit CMS
-        if (src.startsWith("http")) return { src, alt: "Destination by Allen Henson" };
-        return undefined; // stale local path — drop
-      })
-      .filter((img): img is typeof destinationsImages[0] => img !== undefined);
-    const newImages = destinationsImages.filter(img => !order.includes(img.src));
-    return [...ordered, ...newImages];
-  }
-  return destinationsImages;
+  return resolveGalleryOrder(order, destinationsImages, {
+    appendRemaining: true,
+    makeUploaded: (src) => ({ src, alt: "Destination by Allen Henson" }),
+  });
 }
 
 export default function Destinations() {

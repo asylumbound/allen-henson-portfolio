@@ -12,6 +12,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { ImageGallerySchema, BreadcrumbSchema } from "@/components/StructuredData";
 import MasonryGrid from "@/components/MasonryGrid";
+import { resolveGalleryOrder } from "@/lib/galleryOrder";
 import { assetUrl } from "@/lib/assets";
 
 // Product photography categories
@@ -118,19 +119,11 @@ export const productPhotographyImages = [
 // NOTE: when a saved order exists, ONLY images in it are shown — this is how
 // deletions made in the CMS stay deleted on the live page.
 export function applyProductOrder(order: string[] | null | undefined) {
-  if (order && order.length > 0) {
-    const imageMap = new Map(productPhotographyImages.map(img => [img.src, img]));
-    return order
-      .map(src => {
-        const known = imageMap.get(src);
-        if (known) return known;
-        // Absolute storage URL = image uploaded via the /edit CMS
-        if (src.startsWith("http")) return { src, alt: "Product photograph", category: "uploaded", description: "" };
-        return undefined; // stale local path — drop
-      })
-      .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
-  }
-  return productPhotographyImages;
+  return resolveGalleryOrder(order, productPhotographyImages, {
+    // The saved order is authoritative here, so CMS deletions stay deleted.
+    appendRemaining: false,
+    makeUploaded: (src) => ({ src, alt: "Product photograph", category: "uploaded", description: "" }),
+  });
 }
 
 // Simple image component (zoom feature disabled)

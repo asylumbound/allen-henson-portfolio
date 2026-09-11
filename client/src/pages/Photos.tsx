@@ -13,6 +13,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import MasonryGrid from "@/components/MasonryGrid";
+import { resolveGalleryOrder } from "@/lib/galleryOrder";
 import { assetUrl } from "@/lib/assets";
 
 // Images in exact order from allenhenson.nyc landing page
@@ -193,20 +194,10 @@ export const photosImages: Array<{ src: string; webSrc?: string; alt: string }> 
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
 export function applyPhotosOrder(order: string[] | null | undefined) {
-  if (order) {
-    const ordered = order
-      .map((src) => {
-        const known = photosImages.find(p => p.src === src);
-        if (known) return known;
-        // Absolute storage URL = image uploaded via the /edit CMS
-        if (src.startsWith("http")) return { src, alt: "Photograph by Allen Henson" };
-        return undefined; // stale local path — drop
-      })
-      .filter((p): p is typeof photosImages[0] => p !== undefined);
-    const newImages = photosImages.filter(p => !order.includes(p.src));
-    return [...ordered, ...newImages];
-  }
-  return photosImages;
+  return resolveGalleryOrder(order, photosImages, {
+    appendRemaining: true,
+    makeUploaded: (src) => ({ src, alt: "Photograph by Allen Henson" }),
+  });
 }
 
 export default function Photos() {

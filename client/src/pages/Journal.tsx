@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { SEOHead } from "@/components/SEOHead";
 import { BreadcrumbSchema } from "@/components/StructuredData";
 import MasonryGrid from "@/components/MasonryGrid";
+import { resolveGalleryOrder } from "@/lib/galleryOrder";
 import { assetUrl } from "@/lib/assets";
 
 // Journal images from allenhenson.nyc/about page
@@ -187,20 +188,10 @@ export const journalImages: Array<{ src: string; webSrc: string }> = [
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
 export function applyJournalOrder(order: string[] | null | undefined) {
-  if (order) {
-    const ordered = order
-      .map((src) => {
-        const known = journalImages.find(img => img.src === src);
-        if (known) return known;
-        // Absolute storage URL = image uploaded via the /edit CMS
-        if (src.startsWith("http")) return { src, webSrc: src };
-        return undefined; // stale local path — drop
-      })
-      .filter((img): img is typeof journalImages[0] => img !== undefined);
-    const newImages = journalImages.filter(img => !order.includes(img.src));
-    return [...ordered, ...newImages];
-  }
-  return journalImages;
+  return resolveGalleryOrder(order, journalImages, {
+    appendRemaining: true,
+    makeUploaded: (src) => ({ src, webSrc: src }),
+  });
 }
 
 export default function Journal() {
