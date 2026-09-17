@@ -246,6 +246,18 @@ export const appRouter = router({
         try {
           const hidden = await getHiddenImages(input.gallery);
           await saveHiddenImages(input.gallery, hidden.filter(src => src !== input.imageSrc));
+
+          // Dropping the src from the hidden list is enough for a bundled image:
+          // the applyXOrder helpers re-append anything missing from the order.
+          // An uploaded image has no such fallback — it exists only in the saved
+          // order — so put it back there, at the end, or it would stay invisible.
+          const currentOrder = await getImageOrder(input.gallery);
+          if (currentOrder) {
+            const order = JSON.parse(currentOrder.imageOrder) as string[];
+            if (!order.includes(input.imageSrc)) {
+              await saveImageOrder(input.gallery, [...order, input.imageSrc]);
+            }
+          }
         } catch (error) {
           throwGalleryInternalError("restore", input.gallery, error, "Failed to restore gallery image.");
         }

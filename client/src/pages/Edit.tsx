@@ -17,7 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lock, Save, Check, X, Images, BookOpen, Upload, Trash2, Plus, Loader2,
-  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search, MapPin, Sparkles,
+  Camera, PenTool, Eye, EyeOff, FileText, ChevronDown, Search, MapPin, Sparkles, RotateCcw,
 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -38,7 +38,7 @@ import { applyJournalOrder } from "./Journal";
 import { applyProductOrder } from "./ProductPhotography";
 import { applyDestinationsOrder } from "./Destinations";
 import { assetUrl } from "@/lib/assets";
-import type { GalleryKey } from "@shared/const";
+import { GALLERY_KEYS, type GalleryKey } from "@shared/const";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -223,6 +223,21 @@ function GalleryTab({
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showHidden, setShowHidden] = useState(false);
+  const [restoringSrc, setRestoringSrc] = useState<string | null>(null);
+
+  // Duke is served by its own REST endpoints, not the tRPC gallery router, so
+  // the hidden-image panel only applies to the four tRPC-backed galleries.
+  const isTrpcGallery = (GALLERY_KEYS as readonly string[]).includes(galleryKey);
+
+  const utils = trpc.useUtils();
+  const { data: hiddenData } = trpc.gallery.getHidden.useQuery(
+    { gallery: galleryKey as GalleryKey },
+    { enabled: isTrpcGallery }
+  );
+  const hiddenSrcs = hiddenData?.hidden ?? [];
+  const restoreImageMutation = trpc.gallery.restoreImage.useMutation();
+
   const saveOrderMutation = trpc.gallery.saveOrder.useMutation();
   const uploadImageMutation = trpc.gallery.uploadImage.useMutation();
   const deleteImageMutation = trpc.gallery.deleteImage.useMutation();
@@ -354,11 +369,38 @@ function GalleryTab({
         });
       }
       setImages((prev) => prev.filter((p) => p.id !== image.id));
-      toast.success("Image deleted");
+      // Refresh the hidden list so the panel below reflects the new entry.
+      if (isTrpcGallery) {
+        await utils.gallery.getHidden.invalidate({ gallery: galleryKey as GalleryKey });
+      }
+      toast.success("Image hidden from the live site");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Restoring re-adds the image to the live gallery. Nothing was destroyed on
+  // delete, so this only drops the src from the hidden list — the parent then
+  // recomputes its image list from the refreshed order + hidden data.
+  const handleRestore = async (src: string) => {
+    setRestoringSrc(src);
+    try {
+      await restoreImageMutation.mutateAsync({
+        gallery: galleryKey as GalleryKey,
+        imageSrc: src,
+        password,
+      });
+      await Promise.all([
+        utils.gallery.getHidden.invalidate({ gallery: galleryKey as GalleryKey }),
+        utils.gallery.getOrder.invalidate({ gallery: galleryKey as GalleryKey }),
+      ]);
+      toast.success("Image restored to the live site");
+    } catch (err: any) {
+      toast.error(typeof err?.message === "string" ? err.message : "Failed to restore image");
+    } finally {
+      setRestoringSrc(null);
     }
   };
 
@@ -487,7 +529,8 @@ function GalleryTab({
       </div>
 
       <p className="text-xs text-muted-foreground mb-4">
-        Drag to reorder. Hover to delete. {showUpload ? "Upload adds to the top." : ""}
+        Drag to reorder. Tap the red button to hide an image from the live site.{" "}
+        {showUpload ? "Upload adds to the top." : ""}
       </p>
 
       {/* DnD Grid */}
@@ -523,6 +566,70 @@ function GalleryTab({
         <div className="text-center py-16">
           <Images className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground text-sm">No images yet.</p>
+        </div>
+      )}
+
+      {/* Hidden images.
+          Deleting never destroys anything — the file stays in storage and
+          bundled images stay in the source — so everything hidden from this
+          gallery is listed here and can be put back. */}
+      {isTrpcGallery && hiddenSrcs.length > 0 && (
+        <div className="mt-8 border-t border-foreground/10 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowHidden((v) => !v)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-expanded={showHidden}
+          >
+            <EyeOff className="w-4 h-4" />
+            <span>
+              {hiddenSrcs.length} hidden image{hiddenSrcs.length === 1 ? "" : "s"}
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${showHidden ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {showHidden && (
+            <>
+              <p className="text-xs text-muted-foreground mt-2 mb-3">
+                These are hidden from the live site. Nothing was deleted — restore
+                puts an image back at the end of the gallery.
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                {hiddenSrcs.map((src) => (
+                  <div
+                    key={src}
+                    className="relative aspect-square overflow-hidden bg-secondary/30 border border-foreground/5"
+                  >
+                    <img
+                      src={toThumb(src)}
+                      alt=""
+                      className="w-full h-full object-contain opacity-40"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <button
+                      type="button"
+                      aria-label={`Restore ${src.split("/").pop() || "image"}`}
+                      onClick={() => handleRestore(src)}
+                      disabled={restoringSrc === src}
+                      className="absolute top-1 right-1 w-9 h-9 sm:w-8 sm:h-8 bg-gold/90 hover:bg-gold rounded-full flex items-center justify-center transition-colors disabled:opacity-50 touch-manipulation shadow-md shadow-black/40"
+                    >
+                      {restoringSrc === src ? (
+                        <Loader2 className="w-4 h-4 text-black animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-4 h-4 text-black" />
+                      )}
+                    </button>
+                    <div className="absolute bottom-0 inset-x-0 bg-black/70 text-white/70 text-[10px] px-1 py-0.5 truncate font-mono">
+                      {src.split("/").pop()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
