@@ -161,17 +161,26 @@ function SortableImage({
       <div className="absolute top-1 left-1 bg-black/70 text-white/70 text-[10px] px-1.5 py-0.5 font-mono">
         {index + 1}
       </div>
-      {/* Delete button */}
+      {/* Delete button.
+          Always visible: Tailwind v4 compiles group-hover into @media (hover:hover),
+          so on touch devices the old group-hover:opacity-100 never applied and the
+          opacity-0 base left this button permanently invisible on iPad.
+          Touch events are stopped as well as pointer events, otherwise dnd-kit's
+          TouchSensor claims the tap and starts a drag instead of firing onClick. */}
       <button
+        type="button"
+        aria-label={`Delete image ${index + 1}`}
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete(image); }}
         disabled={isDeleting}
-        className="absolute top-1 right-1 w-6 h-6 bg-red-600/80 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+        className="absolute top-1 right-1 w-9 h-9 sm:w-8 sm:h-8 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 touch-manipulation shadow-md shadow-black/40"
         onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
       >
         {isDeleting ? (
-          <Loader2 className="w-3 h-3 text-white animate-spin" />
+          <Loader2 className="w-4 h-4 text-white animate-spin" />
         ) : (
-          <Trash2 className="w-3 h-3 text-white" />
+          <Trash2 className="w-4 h-4 text-white" />
         )}
       </button>
       {/* Drag grip overlay */}
@@ -325,7 +334,7 @@ function GalleryTab({
   };
 
   const handleDelete = async (image: GalleryImage) => {
-    if (!confirm(`Delete this image?\n\n${image.alt}`)) return;
+    if (!confirm(`Remove this image from the live site?\n\n${image.alt}\n\nThe file is kept — it is only hidden from the public gallery.`)) return;
     setDeletingId(image.id);
     try {
       if (galleryKey === "duke") {
@@ -900,46 +909,54 @@ export default function Edit() {
   const { data: productOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "product-photography" }, { enabled: isAuthenticated });
   const { data: destinationsOrderData } = trpc.gallery.getOrder.useQuery({ gallery: "destinations" }, { enabled: isAuthenticated });
 
+  // Images hidden from the live site via this CMS. Nothing is deleted — the
+  // files stay in storage — so these must be filtered out of the editor too,
+  // otherwise a hidden image reappears here on reload.
+  const { data: photosHidden } = trpc.gallery.getHidden.useQuery({ gallery: "photos" }, { enabled: isAuthenticated });
+  const { data: journalHidden } = trpc.gallery.getHidden.useQuery({ gallery: "journal" }, { enabled: isAuthenticated });
+  const { data: productHidden } = trpc.gallery.getHidden.useQuery({ gallery: "product-photography" }, { enabled: isAuthenticated });
+  const { data: destinationsHidden } = trpc.gallery.getHidden.useQuery({ gallery: "destinations" }, { enabled: isAuthenticated });
+
   // Initialize Photos — same list, same order as the live /photos page
   useEffect(() => {
     setPhotosOrder(
-      applyPhotosOrder(photosOrderData?.order).map((img) => ({
+      applyPhotosOrder(photosOrderData?.order, photosHidden?.hidden).map((img) => ({
         id: img.src,
         src: img.src,
         thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
         alt: img.alt,
       }))
     );
-  }, [photosOrderData]);
+  }, [photosOrderData, photosHidden]);
 
   // Initialize Destinations — same list, same order as the live /destinations page
   useEffect(() => {
     setDestinationsOrder(
-      applyDestinationsOrder(destinationsOrderData?.order).map((img) => ({
+      applyDestinationsOrder(destinationsOrderData?.order, destinationsHidden?.hidden).map((img) => ({
         id: img.src,
         src: img.src,
         thumbnailSrc: toThumb(img.src),
         alt: img.alt,
       }))
     );
-  }, [destinationsOrderData]);
+  }, [destinationsOrderData, destinationsHidden]);
 
   // Initialize Journal — same list, same order as the live /journal page
   useEffect(() => {
     setJournalOrder(
-      applyJournalOrder(journalOrderData?.order).map((img, idx) => ({
+      applyJournalOrder(journalOrderData?.order, journalHidden?.hidden).map((img, idx) => ({
         id: img.src,
         src: img.src,
         thumbnailSrc: img.webSrc ? toThumb(img.webSrc) : undefined,
         alt: `Journal ${idx + 1}`,
       }))
     );
-  }, [journalOrderData]);
+  }, [journalOrderData, journalHidden]);
 
   // Initialize Product — same list, same order as the live /product-photography page
   useEffect(() => {
     setProductOrder(
-      applyProductOrder(productOrderData?.order).map((img) => ({
+      applyProductOrder(productOrderData?.order, productHidden?.hidden).map((img) => ({
         id: img.src,
         src: img.src,
         thumbnailSrc: toThumb(img.src),
@@ -948,7 +965,7 @@ export default function Edit() {
         description: img.description,
       }))
     );
-  }, [productOrderData]);
+  }, [productOrderData, productHidden]);
 
   // Initialize Duke (uses REST API for order)
   useEffect(() => {

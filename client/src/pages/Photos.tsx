@@ -192,7 +192,7 @@ export const photosImages: Array<{ src: string; webSrc?: string; alt: string }> 
 
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
-export function applyPhotosOrder(order: string[] | null | undefined) {
+function computePhotosOrder(order: string[] | null | undefined) {
   if (order) {
     const ordered = order
       .map((src) => {
@@ -209,14 +209,28 @@ export function applyPhotosOrder(order: string[] | null | undefined) {
   return photosImages;
 }
 
+// Hidden srcs (set via the /edit CMS) are filtered out last, so an image stays
+// hidden even when the bundled-image fallback would otherwise re-append it.
+export function applyPhotosOrder(order: string[] | null | undefined, hidden?: string[] | null) {
+  const images = computePhotosOrder(order);
+  if (!hidden || hidden.length === 0) return images;
+  const hiddenSet = new Set(hidden);
+  return images.filter(img => !hiddenSet.has(img.src));
+}
+
 export default function Photos() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   
   // Fetch saved order from database
   const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "photos" });
+  // Images hidden via the /edit CMS
+  const { data: hiddenData } = trpc.gallery.getHidden.useQuery({ gallery: "photos" });
   
   // Compute ordered images based on saved order or default
-  const orderedImages = useMemo(() => applyPhotosOrder(orderData?.order), [orderData]);
+  const orderedImages = useMemo(
+    () => applyPhotosOrder(orderData?.order, hiddenData?.hidden),
+    [orderData, hiddenData]
+  );
 
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);

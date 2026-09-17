@@ -188,6 +188,67 @@ export async function saveImageOrder(gallery: GalleryKey, order: string[]) {
   return saveImageOrderToDb(db, gallery, order);
 }
 
+// Hidden image queries
+//
+// "Deleting" an image in the /edit CMS must never destroy anything: the file
+// stays in storage and bundled images stay in the code. We only record that a
+// src should be hidden from the public gallery. The list is persisted as a
+// sibling row in image_orders under a "<gallery>:hidden" key so this needs no
+// schema migration.
+export function hiddenRowKey(gallery: GalleryKey) {
+  return `${gallery}:hidden`;
+}
+
+export async function getHiddenImagesFromDb(
+  db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+  gallery: GalleryKey
+) {
+  const result = await db
+    .select()
+    .from(imageOrders)
+    .where(eq(imageOrders.gallery, hiddenRowKey(gallery)))
+    .orderBy(desc(imageOrders.updatedAt), desc(imageOrders.id))
+    .limit(1);
+
+  if (result.length === 0) return [];
+
+  try {
+    const parsed = JSON.parse(result[0].imageOrder);
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getHiddenImages(gallery: GalleryKey) {
+  const db = await getDb();
+  if (!db) {
+    throw new DatabaseUnavailableError(`[Database] Cannot get hidden images for "${gallery}": database not available`);
+  }
+
+  return getHiddenImagesFromDb(db, gallery);
+}
+
+export async function saveHiddenImages(gallery: GalleryKey, hidden: string[]) {
+  const db = await getDb();
+  if (!db) {
+    throw new DatabaseUnavailableError(`[Database] Cannot save hidden images for "${gallery}": database not available`);
+  }
+
+  const key = hiddenRowKey(gallery);
+  const hiddenJson = JSON.stringify(hidden);
+
+  await db.insert(imageOrders).values({ gallery: key, imageOrder: hiddenJson }).onConflictDoUpdate({
+    target: imageOrders.gallery,
+    set: {
+      imageOrder: hiddenJson,
+      updatedAt: new Date(),
+    },
+  });
+
+  return { success: true as const };
+}
+
 // Blog post queries
 export async function getAllBlogPosts() {
   const db = await getDb();

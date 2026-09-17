@@ -2,7 +2,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { syncSheetRouter } from "./syncSheetRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getImageOrder, saveImageOrder, getAllBlogPosts, getBlogPostBySlug, seedBlogPosts, getAllProducts, getProductBySlug, seedProducts } from "./db";
+import { getImageOrder, saveImageOrder, getHiddenImages, saveHiddenImages, getAllBlogPosts, getBlogPostBySlug, seedBlogPosts, getAllProducts, getProductBySlug, seedProducts } from "./db";
 import { TRPCError } from "@trpc/server";
 import { createCheckoutSession, getOrderBySessionId } from "./stripe";
 import { storagePut } from "./storage";
@@ -206,6 +206,17 @@ export const appRouter = router({
         }
 
         try {
+          // Record the hide first. This is what actually removes the image from
+          // the public gallery: bundled images live in the client source and are
+          // re-appended by the applyXOrder helpers whenever they are missing from
+          // the saved order, so dropping the src from the order alone is not
+          // enough to hide them. Nothing is deleted — the file stays in storage.
+          const hidden = await getHiddenImages(input.gallery);
+          if (!hidden.includes(input.imageSrc)) {
+            await saveHiddenImages(input.gallery, [...hidden, input.imageSrc]);
+          }
+
+          // Also drop it from the saved order so the position list stays clean.
           const currentOrder = await getImageOrder(input.gallery);
           if (currentOrder) {
             const order = JSON.parse(currentOrder.imageOrder) as string[];
@@ -213,10 +224,45 @@ export const appRouter = router({
             await saveImageOrder(input.gallery, newOrder);
           }
         } catch (error) {
-          throwGalleryInternalError("delete", input.gallery, error, "Failed to update gallery image order.");
+          throwGalleryInternalError("delete", input.gallery, error, "Failed to hide gallery image.");
         }
 
         return { success: true };
+      }),
+
+    // Restore a previously hidden image. Delete is reversible because it never
+    // destroys anything — this just drops the src from the hidden list.
+    restoreImage: publicProcedure
+      .input(z.object({
+        gallery: gallerySchema,
+        imageSrc: z.string(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isAuthorized(input.password)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid password" });
+        }
+
+        try {
+          const hidden = await getHiddenImages(input.gallery);
+          await saveHiddenImages(input.gallery, hidden.filter(src => src !== input.imageSrc));
+        } catch (error) {
+          throwGalleryInternalError("restore", input.gallery, error, "Failed to restore gallery image.");
+        }
+
+        return { success: true };
+      }),
+
+    // Srcs hidden from this gallery. Public — the live gallery pages need it to
+    // filter, exactly as they already fetch the saved order.
+    getHidden: publicProcedure
+      .input(z.object({ gallery: gallerySchema }))
+      .query(async ({ input }) => {
+        try {
+          return { hidden: await getHiddenImages(input.gallery) };
+        } catch (error) {
+          throwGalleryInternalError("getHidden", input.gallery, error, "Failed to load hidden images.");
+        }
       }),
 
     getOrder: publicProcedure

@@ -167,7 +167,7 @@ export function normalizeProductOrderSource(src: string): string {
   return src;
 }
 
-export function applyProductOrder(order: string[] | null | undefined) {
+function computeProductOrder(order: string[] | null | undefined) {
   if (order && order.length > 0) {
     const imageMap = new Map(
       productPhotographyImages.flatMap(img => [
@@ -187,6 +187,15 @@ export function applyProductOrder(order: string[] | null | undefined) {
       .filter((img): img is typeof productPhotographyImages[0] => img !== undefined);
   }
   return productPhotographyImages;
+}
+
+// Hidden srcs (set via the /edit CMS) are filtered out last, so an image stays
+// hidden even when the bundled-image fallback would otherwise re-append it.
+export function applyProductOrder(order: string[] | null | undefined, hidden?: string[] | null) {
+  const images = computeProductOrder(order);
+  if (!hidden || hidden.length === 0) return images;
+  const hiddenSet = new Set(hidden);
+  return images.filter(img => !hiddenSet.has(img.src));
 }
 
 // Simple image component (zoom feature disabled)
@@ -250,13 +259,22 @@ export default function ProductPhotography() {
     { staleTime: 1000 * 60 * 5 } // Cache for 5 minutes
   );
 
+  // Images hidden via the /edit CMS
+  const { data: hiddenData } = trpc.gallery.getHidden.useQuery(
+    { gallery: "product-photography" },
+    { staleTime: 1000 * 60 * 5 }
+  );
+
   // Apply saved order when loaded - ONLY show images from saved order
-  // This respects deletions made in the /edit CMS
+  // This respects deletions made in the /edit CMS. Hidden srcs are applied even
+  // when no order has been saved yet, so a delete takes effect either way.
   useEffect(() => {
     if (savedOrder?.order && savedOrder.order.length > 0) {
-      setOrderedImages(applyProductOrder(savedOrder.order));
+      setOrderedImages(applyProductOrder(savedOrder.order, hiddenData?.hidden));
+    } else {
+      setOrderedImages(applyProductOrder(null, hiddenData?.hidden));
     }
-  }, [savedOrder]);
+  }, [savedOrder, hiddenData]);
 
   const filteredImages = orderedImages;
 

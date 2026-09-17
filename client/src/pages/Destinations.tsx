@@ -20,7 +20,7 @@ export const destinationsImages: Array<{ src: string; webSrc?: string; alt: stri
 
 // Single source of truth for how the saved order maps onto the gallery.
 // Used by this page AND the /edit CMS so both always show the same list.
-export function applyDestinationsOrder(order: string[] | null | undefined) {
+function computeDestinationsOrder(order: string[] | null | undefined) {
   if (order) {
     const ordered = order
       .map((src) => {
@@ -37,21 +37,32 @@ export function applyDestinationsOrder(order: string[] | null | undefined) {
   return destinationsImages;
 }
 
+// Hidden srcs (set via the /edit CMS) are filtered out last, so an image stays
+// hidden even when the bundled-image fallback would otherwise re-append it.
+export function applyDestinationsOrder(order: string[] | null | undefined, hidden?: string[] | null) {
+  const images = computeDestinationsOrder(order);
+  if (!hidden || hidden.length === 0) return images;
+  const hiddenSet = new Set(hidden);
+  return images.filter(img => !hiddenSet.has(img.src));
+}
+
 export default function Destinations() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // Fetch saved order from database
   const { data: orderData } = trpc.gallery.getOrder.useQuery({ gallery: "destinations" });
+  // Images hidden via the /edit CMS
+  const { data: hiddenData } = trpc.gallery.getHidden.useQuery({ gallery: "destinations" });
   // AI-generated alt texts stored per image (see /edit → AI Alt Text)
   const { data: altData } = trpc.gallery.getAltTexts.useQuery({ gallery: "destinations" });
 
   // Compute ordered images based on saved order or default, with stored alt text
   const orderedImages = useMemo(() => {
-    const ordered = applyDestinationsOrder(orderData?.order);
+    const ordered = applyDestinationsOrder(orderData?.order, hiddenData?.hidden);
     const altTexts = altData?.altTexts;
     if (!altTexts) return ordered;
     return ordered.map((img) => ({ ...img, alt: altTexts[img.src] || img.alt }));
-  }, [orderData, altData]);
+  }, [orderData, altData, hiddenData]);
 
   const openLightbox = (index: number) => setSelectedIndex(index);
   const closeLightbox = () => setSelectedIndex(null);
